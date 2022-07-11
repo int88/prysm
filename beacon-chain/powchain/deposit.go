@@ -11,6 +11,7 @@ import (
 )
 
 // DepositContractAddress returns the deposit contract address for the given chain.
+// DepositContractAddress返回对于给定链的deposit contract地址
 func DepositContractAddress() (string, error) {
 	address := params.BeaconConfig().DepositContractAddress
 	if address == "" {

@@ -83,6 +83,8 @@ type serviceFlagOpts struct {
 // BeaconNode defines a struct that handles the services running a random beacon chain
 // full PoS node. It handles the lifecycle of the entire system and registers
 // services to a service registry.
+// BeaconNode定义了一个结构处理运行在一个随机的beacon chain full PoS节点的services
+// 它处理整个系统的生命周期并且注册services到一个service registry
 type BeaconNode struct {
 	cliCtx                  *cli.Context
 	ctx                     context.Context
@@ -115,6 +117,7 @@ type BeaconNode struct {
 
 // New creates a new node instance, sets up configuration options, and registers
 // every required service to the node.
+// New创建一个新的node实例，设置配置选项，并且注册每个必须的服务到node
 func New(cliCtx *cli.Context, opts ...Option) (*BeaconNode, error) {
 	if err := configureTracing(cliCtx); err != nil {
 		return nil, err
@@ -187,11 +190,13 @@ func New(cliCtx *cli.Context, opts ...Option) (*BeaconNode, error) {
 		return nil, err
 	}
 	log.Debugln("Starting DB")
+	// 启动beacon db
 	if err := beacon.startDB(cliCtx, depositAddress); err != nil {
 		return nil, err
 	}
 
 	log.Debugln("Starting Slashing DB")
+	// 启动slashing db
 	if err := beacon.startSlasherDB(cliCtx); err != nil {
 		return nil, err
 	}
@@ -207,11 +212,13 @@ func New(cliCtx *cli.Context, opts ...Option) (*BeaconNode, error) {
 	}
 
 	log.Debugln("Registering P2P Service")
+	// 注册p2p服务
 	if err := beacon.registerP2P(cliCtx); err != nil {
 		return nil, err
 	}
 
 	log.Debugln("Registering POW Chain Service")
+	// 初测POW Chain Service
 	if err := beacon.registerPOWChainService(); err != nil {
 		return nil, err
 	}
