@@ -253,6 +253,7 @@ func NewLocalConnection(ctx context.Context, port int) (*grpc.ClientConn, error)
 }
 
 // NewLocalConnections returns number of GRPC connections, along with function to close all of them.
+// NewLocalConnections返回一系列的GRPC连接，以及用于关闭它们的函数
 func NewLocalConnections(ctx context.Context, numConns int) ([]*grpc.ClientConn, func(), error) {
 	conns := make([]*grpc.ClientConn, numConns)
 	for i := 0; i < len(conns); i++ {
@@ -308,6 +309,7 @@ func EpochTickerStartTime(genesis *eth.Genesis) time.Time {
 // WaitOnNodes waits on nodes to complete execution, accepts function that will be called when all nodes are ready.
 func WaitOnNodes(ctx context.Context, nodes []e2etypes.ComponentRunner, nodesStarted func()) error {
 	// Start nodes.
+	// 启动nodes
 	g, ctx := errgroup.WithContext(ctx)
 	for _, node := range nodes {
 		node := node
@@ -317,6 +319,7 @@ func WaitOnNodes(ctx context.Context, nodes []e2etypes.ComponentRunner, nodesSta
 	}
 
 	// Mark set as ready (happens when all contained nodes report as started).
+	// 将set标记为ready（当所有包含的nodes都被报告为started）
 	go func() {
 		for _, node := range nodes {
 			select {

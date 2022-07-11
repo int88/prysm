@@ -56,6 +56,7 @@ func init() {
 }
 
 // testRunner abstracts E2E test configuration and running.
+// testRunner抽象了E2E的test配置并且运行
 type testRunner struct {
 	t          *testing.T
 	config     *e2etypes.E2EConfig
@@ -63,6 +64,7 @@ type testRunner struct {
 }
 
 // newTestRunner creates E2E test runner.
+// newTestRunner创建E2E test runner
 func newTestRunner(t *testing.T, config *e2etypes.E2EConfig) *testRunner {
 	return &testRunner{
 		t:      t,
@@ -71,11 +73,15 @@ func newTestRunner(t *testing.T, config *e2etypes.E2EConfig) *testRunner {
 }
 
 // run executes configured E2E test.
+// run执行配置的E2E测试
 func (r *testRunner) run() {
+	// 构建component handler
 	r.comHandler = NewComponentHandler(r.config, r.t)
+	// 启动component handler
 	r.comHandler.setup()
 
 	// Run E2E evaluators and tests.
+	// 运行e2e evaluators以及tests
 	r.addEvent(r.defaultEndToEndRun)
 
 	if err := r.comHandler.group.Wait(); err != nil && !errors.Is(err, context.Canceled) {
@@ -133,6 +139,7 @@ func (r *testRunner) waitExtra(ctx context.Context, e types.Epoch, conn *grpc.Cl
 }
 
 // waitForChainStart allows to wait up until beacon nodes are started.
+// waitForChainStart允许等待直到beacon nodes都启动
 func (r *testRunner) waitForChainStart() {
 	// Sleep depending on the count of validators, as generating the genesis state could take some time.
 	time.Sleep(time.Duration(params.BeaconConfig().GenesisDelay) * time.Second)
@@ -145,6 +152,7 @@ func (r *testRunner) waitForChainStart() {
 }
 
 // runEvaluators executes assigned evaluators.
+// runEvaluators执行被赋值的evaluators
 func (r *testRunner) runEvaluators(conns []*grpc.ClientConn, tickingStartTime time.Time) error {
 	t, config := r.t, r.config
 	secondsPerEpoch := uint64(params.BeaconConfig().SlotsPerEpoch.Mul(params.BeaconConfig().SecondsPerSlot))
@@ -407,6 +415,7 @@ func (r *testRunner) defaultEndToEndRun() error {
 	}()
 
 	// Wait for all required nodes to start.
+	// 等待所有required nodes启动
 	ctxAllNodesReady, cancel := context.WithTimeout(ctx, allNodesStartTimeout)
 	defer cancel()
 	if err := helpers.ComponentsStarted(ctxAllNodesReady, r.comHandler.required()); err != nil {
@@ -425,6 +434,7 @@ func (r *testRunner) defaultEndToEndRun() error {
 	}
 
 	// Blocking, wait period varies depending on number of validators.
+	// 阻塞，等待的时间根据validators的数目有所不同
 	r.waitForChainStart()
 
 	// Failing early in case chain doesn't start.
@@ -447,6 +457,7 @@ func (r *testRunner) defaultEndToEndRun() error {
 	r.testDepositsAndTx(ctx, g, eth1Miner.KeystorePath(), []e2etypes.ComponentRunner{beaconNodes})
 
 	// Create GRPC connection to beacon nodes.
+	// 创建到beacon nodes的GRPC连接
 	conns, closeConns, err := helpers.NewLocalConnections(ctx, e2e.TestParams.BeaconNodeCount)
 	require.NoError(t, err, "Cannot create local connections")
 	defer closeConns()
@@ -458,12 +469,14 @@ func (r *testRunner) defaultEndToEndRun() error {
 	tickingStartTime := helpers.EpochTickerStartTime(genesis)
 
 	// Run assigned evaluators.
+	// 运行赋值的evaluators
 	if err := r.runEvaluators(conns, tickingStartTime); err != nil {
 		return errors.Wrap(err, "one or more evaluators failed")
 	}
 
 	index := e2e.TestParams.BeaconNodeCount + e2e.TestParams.LighthouseBeaconNodeCount
 	if config.TestSync {
+		// 测试beacon chain的同步
 		if err := r.testBeaconChainSync(ctx, g, conns, tickingStartTime, bootNode.ENR(), eth1Miner.ENR()); err != nil {
 			return errors.Wrap(err, "beacon chain sync test failed")
 		}

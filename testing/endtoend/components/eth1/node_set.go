@@ -30,24 +30,30 @@ func (s *NodeSet) SetMinerENR(enr string) {
 }
 
 // Start starts all the beacon nodes in set.
+// Start启动在set中的所有beacon nodes
 func (s *NodeSet) Start(ctx context.Context) error {
 	// Create Eth1 nodes. The number of nodes is the same as the number of beacon nodes.
 	// We want each beacon node to connect to its own Eth1 node.
+	// 我们想要每个beacon node都连接到它自己的Eth1 node
 	// We start up one Eth1 node less than the beacon node count because the first
 	// beacon node will connect to the already existing Eth1 miner.
 	totalNodeCount := e2e.TestParams.BeaconNodeCount + e2e.TestParams.LighthouseBeaconNodeCount - 1
 	nodes := make([]e2etypes.ComponentRunner, totalNodeCount)
 	for i := 0; i < totalNodeCount; i++ {
 		// We start indexing nodes from 1 because the miner has an implicit 0 index.
+		// 构建nodes
 		node := NewNode(i+1, s.enr)
 		nodes[i] = node
 	}
 	s.nodes = nodes
 
 	// Wait for all nodes to finish their job (blocking).
+	// 等待所有的nodes结束他们的job（阻塞）
 	// Once nodes are ready passed in handler function will be called.
+	// 一旦nodes已经ready，传入的handler function会被调用
 	return helpers.WaitOnNodes(ctx, nodes, func() {
 		// All nodes started, close channel, so that all services waiting on a set, can proceed.
+		// 所有的nodes都已经启动，关闭channel，这样所有等待set的services，可以开始处理
 		close(s.started)
 	})
 }

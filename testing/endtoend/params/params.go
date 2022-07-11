@@ -17,6 +17,7 @@ import (
 )
 
 // params struct defines the parameters needed for running E2E tests to properly handle test sharding.
+// params结构定义了运行e2e测试来正确处理test sharding所需的参数
 type params struct {
 	TestPath                  string
 	LogPath                   string

@@ -62,16 +62,19 @@ func NewValidatorNodeSet(config *e2etypes.E2EConfig) *ValidatorNodeSet {
 }
 
 // Start starts the configured amount of validators, also sending and mining their deposits.
+// Start启动配置的validators的数目，同时发送以及mining它们的deposits
 func (s *ValidatorNodeSet) Start(ctx context.Context) error {
 	// Always using genesis count since using anything else would be difficult to test for.
 	validatorNum := int(params.BeaconConfig().MinGenesisActiveValidatorCount)
 	prysmBeaconNodeNum := e2e.TestParams.BeaconNodeCount
 	beaconNodeNum := prysmBeaconNodeNum + e2e.TestParams.LighthouseBeaconNodeCount
 	if validatorNum%beaconNodeNum != 0 {
+		// validator的数目不能简单地被beacon node count整除
 		return errors.New("validator count is not easily divisible by beacon node count")
 	}
 	validatorsPerNode := validatorNum / beaconNodeNum
 	// Create validator nodes.
+	// 创建validator nodes
 	nodes := make([]e2etypes.ComponentRunner, prysmBeaconNodeNum)
 	for i := 0; i < prysmBeaconNodeNum; i++ {
 		nodes[i] = NewValidatorNode(s.config, validatorsPerNode, i, validatorsPerNode*i)
@@ -165,6 +168,7 @@ type ValidatorNode struct {
 }
 
 // NewValidatorNode creates and returns a validator node.
+// NewValidatorNode创建并且返回一个validor node
 func NewValidatorNode(config *e2etypes.E2EConfig, validatorNum, index, offset int) *ValidatorNode {
 	return &ValidatorNode{
 		config:       config,
@@ -176,6 +180,7 @@ func NewValidatorNode(config *e2etypes.E2EConfig, validatorNum, index, offset in
 }
 
 // Start starts a validator client.
+// Start启动一个validator client
 func (v *ValidatorNode) Start(ctx context.Context) error {
 	validatorHexPubKeys := make([]string, 0)
 	var pkg, target string

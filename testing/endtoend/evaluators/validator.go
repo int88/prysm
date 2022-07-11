@@ -26,6 +26,7 @@ var expectedParticipation = 0.99
 var expectedSyncParticipation = 0.99
 
 // ValidatorsAreActive ensures the expected amount of validators are active.
+// ValidatorsAreActive确保期望数目的validators处于active状态
 var ValidatorsAreActive = types.Evaluator{
 	Name:       "validators_active_epoch_%d",
 	Policy:     policies.AllEpochs,
@@ -33,6 +34,7 @@ var ValidatorsAreActive = types.Evaluator{
 }
 
 // ValidatorsParticipatingAtEpoch ensures the expected amount of validators are participating.
+// ValidatorsParticipatingAtEpoch确保期望数目的validators正在参与
 var ValidatorsParticipatingAtEpoch = func(epoch ethtypes.Epoch) types.Evaluator {
 	return types.Evaluator{
 		Name:       "validators_participating_epoch_%d",
@@ -43,6 +45,7 @@ var ValidatorsParticipatingAtEpoch = func(epoch ethtypes.Epoch) types.Evaluator 
 
 // ValidatorSyncParticipation ensures the expected amount of sync committee participants
 // are active.
+// ValidatorSyncParticipation确认期望数目的sync committee参与者是active的
 var ValidatorSyncParticipation = types.Evaluator{
 	Name:       "validator_sync_participation_%d",
 	Policy:     policies.AfterNthEpoch(helpers.AltairE2EForkEpoch - 1),
@@ -53,6 +56,7 @@ func validatorsAreActive(conns ...*grpc.ClientConn) error {
 	conn := conns[0]
 	client := ethpb.NewBeaconChainClient(conn)
 	// Balances actually fluctuate but we just want to check initial balance.
+	// Balances事实上是在波动的，但是我们想要检查初始的balance
 	validatorRequest := &ethpb.ListValidatorsRequest{
 		PageSize: int32(params.BeaconConfig().MinGenesisActiveValidatorCount),
 		Active:   true,
@@ -160,6 +164,7 @@ func validatorsParticipating(conns ...*grpc.ClientConn) error {
 
 // validatorsSyncParticipation ensures the validators have an acceptable participation rate for
 // sync committee assignments.
+// validatorsSyncParticipation确保validators有一个可以接受的participation rate，对于sync committee assignments
 func validatorsSyncParticipation(conns ...*grpc.ClientConn) error {
 	conn := conns[0]
 	client := ethpb.NewNodeClient(conn)
@@ -216,6 +221,7 @@ func validatorsSyncParticipation(conns ...*grpc.ClientConn) error {
 	if lowestBound == currEpoch {
 		return nil
 	}
+	// 获取beacon blocks
 	blockCtrs, err = altairClient.ListBeaconBlocks(context.Background(), &ethpb.ListBlocksRequest{QueryFilter: &ethpb.ListBlocksRequest_Epoch{Epoch: currEpoch}})
 	if err != nil {
 		return errors.Wrap(err, "failed to get validator participation")

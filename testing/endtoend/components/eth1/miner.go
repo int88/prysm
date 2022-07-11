@@ -64,7 +64,9 @@ func (m *Miner) SetBootstrapENR(bootstrapEnr string) {
 }
 
 // Start runs a mining ETH1 node.
+// Start启动一个mining ETH1 node
 // The miner is responsible for moving the ETH1 chain forward and for deploying the deposit contract.
+// miner负责将ETH1 chain向前移动并且用于部署desposit contract
 func (m *Miner) Start(ctx context.Context) error {
 	binaryPath, found := bazel.FindBinary("cmd/geth", "geth")
 	if !found {
@@ -92,6 +94,7 @@ func (m *Miner) Start(ctx context.Context) error {
 		return err
 	}
 
+	// 执行geth init
 	initCmd := exec.CommandContext(
 		ctx,
 		binaryPath,
@@ -182,6 +185,7 @@ func (m *Miner) Start(ctx context.Context) error {
 	log.Infof("Communicated enode. Enode is %s", enode)
 
 	// Connect to the started geth dev chain.
+	// 连接到启动的geth dev chain
 	client, err := rpc.DialHTTP(fmt.Sprintf("http://127.0.0.1:%d", e2e.TestParams.Ports.Eth1RPCPort))
 	if err != nil {
 		return fmt.Errorf("failed to connect to ipc: %w", err)
@@ -189,6 +193,7 @@ func (m *Miner) Start(ctx context.Context) error {
 	web3 := ethclient.NewClient(client)
 
 	// Deploy the contract.
+	// 部署contract
 	store, err := keystore.DecryptKey(jsonBytes, KeystorePassword)
 	if err != nil {
 		return err
@@ -207,6 +212,7 @@ func (m *Miner) Start(ctx context.Context) error {
 	}
 	txOpts.Nonce = big.NewInt(0).SetUint64(nonce)
 	txOpts.Context = ctx
+	// 部署contract
 	contractAddr, tx, _, err := contracts.DeployDepositContract(txOpts, web3)
 	if err != nil {
 		return fmt.Errorf("failed to deploy deposit contract: %w", err)
@@ -214,6 +220,7 @@ func (m *Miner) Start(ctx context.Context) error {
 	e2e.TestParams.ContractAddress = contractAddr
 
 	// Wait for contract to mine.
+	// 等待contract挖出
 	for pending := true; pending; _, pending, err = web3.TransactionByHash(ctx, tx.Hash()) {
 		if err != nil {
 			return err
@@ -227,9 +234,11 @@ func (m *Miner) Start(ctx context.Context) error {
 	}
 
 	// Save keystore path (used for saving and mining deposits).
+	// 保存keystore路径（用于保存以及mining deposits）
 	m.keystorePath = keystorePath
 
 	// Mark node as ready.
+	// 将node标记为ready
 	close(m.started)
 
 	m.cmd = runCmd

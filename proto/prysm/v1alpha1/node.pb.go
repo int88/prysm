@@ -1004,6 +1004,7 @@ var _ grpc.ClientConnInterface
 const _ = grpc.SupportPackageIsVersion6
 
 // NodeClient is the client API for Node service.
+// NodeClient是client API用于Node服务
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type NodeClient interface {

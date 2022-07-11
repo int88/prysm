@@ -4867,6 +4867,7 @@ var _ grpc.ClientConnInterface
 const _ = grpc.SupportPackageIsVersion6
 
 // BeaconChainClient is the client API for BeaconChain service.
+// BeaconChainClient是BeaconChain service的client API
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type BeaconChainClient interface {

@@ -37,7 +37,9 @@ func NewNode(index int, enr string) *Node {
 }
 
 // Start runs a non-mining ETH1 node.
+// Start运行一个non-mining的ETH1节点
 // To connect to a miner and start working properly, this node should be a part of a NodeSet.
+// 为了连接到一个miner并且正确启动，这个节点应该是一个NodeSet的一部分
 func (node *Node) Start(ctx context.Context) error {
 	binaryPath, found := bazel.FindBinary("cmd/geth", "geth")
 	if !found {
@@ -94,6 +96,7 @@ func (node *Node) Start(ctx context.Context) error {
 	}
 	// If we are testing sync, geth needs to be run via full sync as snap sync does not
 	// work in our setup.
+	// 如果我们正在测试sync，geth需要通过full sync运行，以为你snap sync在我们的设置中不work
 	if node.index == e2e.TestParams.BeaconNodeCount+e2e.TestParams.LighthouseBeaconNodeCount {
 		args = append(args, []string{"--syncmode=full"}...)
 	}

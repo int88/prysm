@@ -30,6 +30,7 @@ func WithCheckpointSync() E2EConfigOpt {
 }
 
 // E2EConfig defines the struct for all configurations needed for E2E testing.
+// E2EConfig定义了结构，用于包含E2E testing需要的所有配置
 type E2EConfig struct {
 	TestCheckpointSync      bool
 	TestSync                bool
@@ -53,6 +54,7 @@ type E2EConfig struct {
 
 // Evaluator defines the structure of the evaluators used to
 // conduct the current beacon state during the E2E.
+// Evaluator定义了evaluators的结构用于在E2E中执行当前的beacon state
 type Evaluator struct {
 	Name       string
 	Policy     func(currentEpoch types.Epoch) bool
@@ -60,6 +62,7 @@ type Evaluator struct {
 }
 
 // ComponentRunner defines an interface via which E2E component's configuration, execution and termination is managed.
+// ComponentRunner定义了一个接口，通过它E2E组件的配置，执行，以及终止都能被管理起来
 type ComponentRunner interface {
 	// Start starts a component.
 	Start(ctx context.Context) error

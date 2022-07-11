@@ -24,6 +24,7 @@ import (
 var connTimeDelay = 50 * time.Millisecond
 
 // PeersConnect checks all beacon nodes and returns whether they are connected to each other as peers.
+// PeersConnect检查所有的beacon nodes并且返回是否它们各自连接作为peers
 var PeersConnect = e2etypes.Evaluator{
 	Name:       "peers_connect_epoch_%d",
 	Policy:     policies.OnEpoch(0),
@@ -46,6 +47,8 @@ var FinishedSyncing = e2etypes.Evaluator{
 
 // AllNodesHaveSameHead ensures all nodes have the same head epoch. Checks finality and justification as well.
 // Not checking head block root as it may change irregularly for the validator connected nodes.
+// AllNodesHaveSameHead确保所有的nodes有着同样的head epoch，同时检查finality和justification
+// 不要检查head block root，因为它可能无规律得变化，对于validator连接的节点
 var AllNodesHaveSameHead = e2etypes.Evaluator{
 	Name:       "all_nodes_have_same_head_%d",
 	Policy:     policies.AllEpochs,
@@ -134,6 +137,7 @@ func allNodesHaveSameHead(conns ...*grpc.ClientConn) error {
 	finalizedRoots := make([][]byte, len(conns))
 	for i, conn := range conns {
 		beaconClient := eth.NewBeaconChainClient(conn)
+		// 获取chain header
 		chainHead, err := beaconClient.GetChainHead(context.Background(), &emptypb.Empty{})
 		if err != nil {
 			return errors.Wrapf(err, "connection number=%d", i)

@@ -83,6 +83,7 @@ func (c *componentHandler) setup() {
 	}
 
 	// Boot node.
+	// 构建boot node
 	bootNode := components.NewBootNode()
 	g.Go(func() error {
 		if err := bootNode.Start(ctx); err != nil {
@@ -93,6 +94,7 @@ func (c *componentHandler) setup() {
 	c.bootnode = bootNode
 
 	// ETH1 miner.
+	// 构建eth1的miner
 	eth1Miner := eth1.NewMiner()
 	g.Go(func() error {
 		if err := helpers.ComponentsStarted(ctx, []e2etypes.ComponentRunner{bootNode}); err != nil {
@@ -107,6 +109,7 @@ func (c *componentHandler) setup() {
 	c.eth1Miner = eth1Miner
 
 	// ETH1 non-mining nodes.
+	// 构建eth1，非mining的nodes
 	eth1Nodes := eth1.NewNodeSet()
 	g.Go(func() error {
 		if err := helpers.ComponentsStarted(ctx, []e2etypes.ComponentRunner{eth1Miner}); err != nil {
@@ -134,6 +137,7 @@ func (c *componentHandler) setup() {
 		appendDebugEndpoints(config)
 	}
 	// Proxies
+	// 构建eth1的proxies
 	proxies := eth1.NewProxySet()
 	g.Go(func() error {
 		if err := helpers.ComponentsStarted(ctx, []e2etypes.ComponentRunner{eth1Nodes}); err != nil {
@@ -144,9 +148,11 @@ func (c *componentHandler) setup() {
 		}
 		return nil
 	})
+	// 将proxies加入到c.eth1Proxy
 	c.eth1Proxy = proxies
 
 	// Beacon nodes.
+	// 构建Beacon nodes
 	beaconNodes := components.NewBeaconNodes(config)
 	g.Go(func() error {
 		if err := helpers.ComponentsStarted(ctx, []e2etypes.ComponentRunner{eth1Nodes, proxies, bootNode}); err != nil {
@@ -175,6 +181,7 @@ func (c *componentHandler) setup() {
 		c.lighthouseBeaconNodes = lighthouseNodes
 	}
 	// Validator nodes.
+	// 构建validator nodes
 	validatorNodes := components.NewValidatorNodeSet(config)
 	g.Go(func() error {
 		comps := []e2etypes.ComponentRunner{beaconNodes}

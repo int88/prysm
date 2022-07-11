@@ -19,6 +19,7 @@ import (
 )
 
 // ProxySet represents a set of proxies for the engine-api.
+// ProxySet代表了一系列的proxies，用于engine-api
 type ProxySet struct {
 	e2etypes.ComponentRunner
 	started chan struct{}
@@ -26,6 +27,7 @@ type ProxySet struct {
 }
 
 // NewProxySet creates and returns a set of engine-api proxies.
+// NewProxySet创建并且返回一系列的engine-api proxies
 func NewProxySet() *ProxySet {
 	return &ProxySet{
 		started: make(chan struct{}, 1),
@@ -33,6 +35,7 @@ func NewProxySet() *ProxySet {
 }
 
 // Start starts all the proxies in set.
+// Start启动set中的所有proxies
 func (s *ProxySet) Start(ctx context.Context) error {
 
 	totalNodeCount := e2e.TestParams.BeaconNodeCount + e2e.TestParams.LighthouseBeaconNodeCount

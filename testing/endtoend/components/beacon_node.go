@@ -39,6 +39,7 @@ type BeaconNodeSet struct {
 }
 
 // SetENR assigns ENR to the set of beacon nodes.
+// SetENR对一系列的beacon nodes设置ENR
 func (s *BeaconNodeSet) SetENR(enr string) {
 	s.enr = enr
 }
@@ -58,6 +59,7 @@ func (s *BeaconNodeSet) Start(ctx context.Context) error {
 	}
 
 	// Create beacon nodes.
+	// 创建beacon nodes
 	nodes := make([]e2etypes.ComponentRunner, e2e.TestParams.BeaconNodeCount)
 	for i := 0; i < e2e.TestParams.BeaconNodeCount; i++ {
 		nodes[i] = NewBeaconNode(s.config, i, s.enr)
@@ -65,7 +67,9 @@ func (s *BeaconNodeSet) Start(ctx context.Context) error {
 	s.nodes = nodes
 
 	// Wait for all nodes to finish their job (blocking).
+	// 等待所有的nodes结束它们的job（阻塞）
 	// Once nodes are ready passed in handler function will be called.
+	// 一旦nodes处于ready，传入的handler函数会被调用
 	return helpers.WaitOnNodes(ctx, nodes, func() {
 		if s.config.UseFixedPeerIDs {
 			for i := 0; i < len(nodes); i++ {
@@ -167,6 +171,7 @@ func NewBeaconNode(config *e2etypes.E2EConfig, index int, enr string) *BeaconNod
 }
 
 // Start starts a fresh beacon node, connecting to all passed in beacon nodes.
+// Start启动一个fresh beacon node，连接所有传入的beacon nodes
 func (node *BeaconNode) Start(ctx context.Context) error {
 	binaryPath, found := bazel.FindBinary("cmd/beacon-chain", "beacon-chain")
 	if !found {
