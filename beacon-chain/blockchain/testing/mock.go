@@ -31,6 +31,7 @@ import (
 var ErrNilState = errors.New("nil state")
 
 // ChainService defines the mock interface for testing
+// ChainService定义了mock接口用于测试
 type ChainService struct {
 	Optimistic                  bool
 	ValidAttestation            bool

@@ -45,6 +45,8 @@ var initialSyncBlockCacheSize = uint64(2 * params.BeaconConfig().SlotsPerEpoch)
 // onBlock is called when a gossip block is received. It runs regular state transition on the block.
 // The block's signing root should be computed before calling this method to avoid redundant
 // computation in this method and methods it calls into.
+// onBlock在接收到gossip block的时候被调用，它在block之上运行regular state transition
+// block的signing root应该在调用这个方法之前被调用，来避免在这个方法以及它调用的方法里被重复计算
 //
 // Spec pseudocode definition:
 //   def on_block(store: Store, signed_block: SignedBeaconBlock) -> None:
@@ -110,6 +112,7 @@ func (s *Service) onBlock(ctx context.Context, signed interfaces.SignedBeaconBlo
 	if err != nil {
 		return err
 	}
+	// 执行state transition
 	postState, err := transition.ExecuteStateTransition(ctx, preState, signed)
 	if err != nil {
 		return invalidBlock{err}
@@ -146,6 +149,7 @@ func (s *Service) onBlock(ctx context.Context, signed interfaces.SignedBeaconBlo
 
 	// If slasher is configured, forward the attestations in the block via
 	// an event feed for processing.
+	// 如果配置了slasher，转发block中的attestations，通过一个event feed用于处理
 	if features.Get().EnableSlasher {
 		// Feed the indexed attestation to slasher if enabled. This action
 		// is done in the background to avoid adding more load to this critical code path.
@@ -188,6 +192,7 @@ func (s *Service) onBlock(ctx context.Context, signed interfaces.SignedBeaconBlo
 	}
 
 	// Send notification of the processed block to the state feed.
+	// 发送processed block的通知到state feed
 	s.cfg.StateNotifier.StateFeed().Send(&feed.Event{
 		Type: statefeed.BlockProcessed,
 		Data: &statefeed.BlockProcessedData{

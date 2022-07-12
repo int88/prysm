@@ -32,6 +32,7 @@ type P2P interface {
 }
 
 // Broadcaster broadcasts messages to peers over the p2p pubsub protocol.
+// Broadcaster广播messages到peers，通过p2p pubsub协议
 type Broadcaster interface {
 	Broadcast(context.Context, proto.Message) error
 	BroadcastAttestation(ctx context.Context, subnet uint64, att *ethpb.Attestation) error
@@ -87,6 +88,7 @@ type Sender interface {
 }
 
 // PeersProvider abstracts obtaining our current list of known peers status.
+// PeersProvider抽象我们当前已知的一系列peers的状态
 type PeersProvider interface {
 	Peers() *peers.Status
 }

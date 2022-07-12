@@ -80,6 +80,7 @@ func TestSyncHandlers_WaitToSync(t *testing.T) {
 	msg.Signature = sk.Sign([]byte("data")).Marshal()
 	p2p.ReceivePubSub(topic, msg)
 	// wait for chainstart to be sent
+	// 等待chainstart发送
 	time.Sleep(400 * time.Millisecond)
 	require.Equal(t, true, r.chainStarted.IsSet(), "Did not receive chain start event.")
 }
@@ -116,6 +117,7 @@ func TestSyncHandlers_WaitForChainStart(t *testing.T) {
 	require.Equal(t, false, r.chainStarted.IsSet(), "Chainstart was marked prematurely")
 
 	// wait for chainstart to be sent
+	// 等待chainstart被发送
 	time.Sleep(3 * time.Second)
 	require.Equal(t, true, r.chainStarted.IsSet(), "Did not receive chain start event.")
 }
@@ -171,6 +173,7 @@ func TestSyncHandlers_WaitTillSynced(t *testing.T) {
 	b32 := bytesutil.ToBytes32(b)
 	sk, err := bls.SecretKeyFromBytes(b32[:])
 	require.NoError(t, err)
+	// 构建一个beacon block的message
 	msg := util.NewBeaconBlock()
 	msg.Block.ParentRoot = util.Random32Bytes(t)
 	msg.Signature = sk.Sign([]byte("data")).Marshal()
@@ -178,6 +181,7 @@ func TestSyncHandlers_WaitTillSynced(t *testing.T) {
 	require.NoError(t, err)
 
 	// Save block into DB so that validateBeaconBlockPubSub() process gets short cut.
+	// 将block保存到DB中，这样validateBeaconBlockPubSub()的处理就能走捷径
 	util.SaveBlock(t, ctx, r.cfg.beaconDB, msg)
 
 	topic := "/eth2/%x/beacon_block"
@@ -187,6 +191,7 @@ func TestSyncHandlers_WaitTillSynced(t *testing.T) {
 	for i := 0; i == 0; {
 		assert.NoError(t, ctx.Err())
 		i = r.cfg.stateNotifier.StateFeed().Send(&feed.Event{
+			// 发送Synced事件
 			Type: statefeed.Synced,
 			Data: &statefeed.SyncedData{
 				StartTime: time.Now(),

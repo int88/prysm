@@ -18,6 +18,7 @@ import (
 )
 
 // ReadOnlyDatabase defines a struct which only has read access to database methods.
+// ReadOnlyDatabase定义了一个结构，只有对数据库方法的读权限
 type ReadOnlyDatabase interface {
 	// Block related methods.
 	Block(ctx context.Context, blockRoot [32]byte) (interfaces.SignedBeaconBlock, error)
@@ -59,6 +60,7 @@ type ReadOnlyDatabase interface {
 }
 
 // NoHeadAccessDatabase defines a struct without access to chain head data.
+// NoHeadAccessDatabase定义了一个结构不能反问chain head data
 type NoHeadAccessDatabase interface {
 	ReadOnlyDatabase
 
@@ -92,6 +94,7 @@ type NoHeadAccessDatabase interface {
 }
 
 // HeadAccessDatabase defines a struct with access to reading chain head data.
+// HeadAccessDatabase定义了一个结构用于访问chain head data
 type HeadAccessDatabase interface {
 	NoHeadAccessDatabase
 

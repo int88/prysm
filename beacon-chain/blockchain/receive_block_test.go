@@ -179,6 +179,7 @@ func TestService_ReceiveBlockUpdateHead(t *testing.T) {
 	go func() {
 		wsb, err := wrapper.WrappedSignedBeaconBlock(b)
 		require.NoError(t, err)
+		// 接收到一个block
 		require.NoError(t, s.ReceiveBlock(ctx, wsb, root))
 		wg.Done()
 	}()

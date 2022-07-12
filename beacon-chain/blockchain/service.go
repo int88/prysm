@@ -49,6 +49,7 @@ const headSyncMinEpochsAfterCheckpoint = 128
 
 // Service represents a service that handles the internal
 // logic of managing the full PoS beacon chain.
+// Service代表一个service，处理管理完整的PoS beacon chain的内部逻辑
 type Service struct {
 	cfg                     *config
 	ctx                     context.Context
@@ -92,6 +93,7 @@ type config struct {
 
 // NewService instantiates a new block service instance that will
 // be registered into a running beacon node.
+// NewService初始化一个新的block service实例，会注册到一个正在运行的beacon node
 func NewService(ctx context.Context, opts ...Option) (*Service, error) {
 	ctx, cancel := context.WithCancel(ctx)
 	srv := &Service{
@@ -122,6 +124,7 @@ func NewService(ctx context.Context, opts ...Option) (*Service, error) {
 }
 
 // Start a blockchain service's main event loop.
+// Start启动一个blockchain service的main event loop
 func (s *Service) Start() {
 	saved := s.cfg.FinalizedStateAtStartUp
 
@@ -351,6 +354,7 @@ func (s *Service) initializeHeadFromDB(ctx context.Context) error {
 }
 
 func (s *Service) startFromPOWChain() error {
+	// 等待到达validator deposit threshold来启动beacon chain
 	log.Info("Waiting to reach the validator deposit threshold to start the beacon chain...")
 	if s.cfg.ChainStartFetcher == nil {
 		return errors.New("not configured web3Service for POW chain")
@@ -368,6 +372,7 @@ func (s *Service) startFromPOWChain() error {
 						log.Error("event data is not type *statefeed.ChainStartedData")
 						return
 					}
+					// 接收到了pow chain启动的事件
 					log.WithField("starttime", data.StartTime).Debug("Received chain start event")
 					s.onPowchainStart(s.ctx, data.StartTime)
 					return
@@ -387,8 +392,11 @@ func (s *Service) startFromPOWChain() error {
 
 // onPowchainStart initializes a series of deposits from the ChainStart deposits in the eth1
 // deposit contract, initializes the beacon chain's state, and kicks off the beacon chain.
+// onPowchainStart初始化一系列的deposits，从eth1的deposit contract的ChainStart deposits
+// 初始化beacon chain的状态并且启动beacon chain
 func (s *Service) onPowchainStart(ctx context.Context, genesisTime time.Time) {
 	preGenesisState := s.cfg.ChainStartFetcher.PreGenesisState()
+	// 初始化beacon chain
 	initializedState, err := s.initializeBeaconChain(ctx, genesisTime, preGenesisState, s.cfg.ChainStartFetcher.ChainStartEth1Data())
 	if err != nil {
 		log.Fatalf("Could not initialize beacon chain: %v", err)
@@ -402,6 +410,7 @@ func (s *Service) onPowchainStart(ctx context.Context, genesisTime time.Time) {
 
 	// We send out a state initialized event to the rest of the services
 	// running in the beacon node.
+	// 我们发出一个state initialized 事件到剩余在beacon node中运行的services
 	s.cfg.StateNotifier.StateFeed().Send(&feed.Event{
 		Type: statefeed.Initialized,
 		Data: &statefeed.InitializedData{
@@ -414,6 +423,8 @@ func (s *Service) onPowchainStart(ctx context.Context, genesisTime time.Time) {
 // initializes the state and genesis block of the beacon chain to persistent storage
 // based on a genesis timestamp value obtained from the ChainStart event emitted
 // by the ETH1.0 Deposit Contract and the POWChain service of the node.
+// 初始化state以及beacon chain的genesis block到持久化存储，基于从ChainStart事件中获取到的
+// genesis timestamp
 func (s *Service) initializeBeaconChain(
 	ctx context.Context,
 	genesisTime time.Time,
@@ -452,6 +463,7 @@ func (s *Service) initializeBeaconChain(
 }
 
 // This gets called when beacon chain is first initialized to save genesis data (state, block, and more) in db.
+// 这在beacon chain第一次调用用来初始化保存gensis data到db的时候（state, block以及其他）被调用
 func (s *Service) saveGenesisData(ctx context.Context, genesisState state.BeaconState) error {
 	if err := s.cfg.BeaconDB.SaveGenesisData(ctx, genesisState); err != nil {
 		return errors.Wrap(err, "could not save genesis data")

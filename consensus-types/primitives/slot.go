@@ -12,6 +12,7 @@ var _ fssz.Marshaler = (*Slot)(nil)
 var _ fssz.Unmarshaler = (*Slot)(nil)
 
 // Slot represents a single slot.
+// Slot代表一个单个的slot
 type Slot uint64
 
 // Mul multiplies slot by x.

@@ -272,6 +272,7 @@ func (s *Store) SaveBlock(ctx context.Context, signed interfaces.SignedBeaconBlo
 }
 
 // SaveBlocks via bulk updates to the db.
+// 通过批量更新，保存blocks到db中
 func (s *Store) SaveBlocks(ctx context.Context, blocks []interfaces.SignedBeaconBlock) error {
 	ctx, span := trace.StartSpan(ctx, "BeaconDB.SaveBlocks")
 	defer span.End()

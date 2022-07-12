@@ -48,6 +48,8 @@ type ForkchoiceUpdatedResponse struct {
 
 // EngineCaller defines a client that can interact with an Ethereum
 // execution node's engine service via JSON-RPC.
+// EngineCaller定义了一个client，它能和一个Ethereum执行节点的engine service进行交互
+// 通过JSON-RPC
 type EngineCaller interface {
 	NewPayload(ctx context.Context, payload *pb.ExecutionPayload) ([]byte, error)
 	ForkchoiceUpdated(

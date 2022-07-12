@@ -36,6 +36,7 @@ const metatadataV1Topic = "/eth2/beacon_chain/req/metadata/1"
 const metatadataV2Topic = "/eth2/beacon_chain/req/metadata/2"
 
 // TestP2P represents a p2p implementation that can be used for testing.
+// TestP2P代表了一个p2p实现，可以用于测试
 type TestP2P struct {
 	t               *testing.T
 	BHost           host.Host
@@ -49,6 +50,7 @@ type TestP2P struct {
 }
 
 // NewTestP2P initializes a new p2p test service.
+// NewTestP2P初始化一个新的p2p test service
 func NewTestP2P(t *testing.T) *TestP2P {
 	ctx := context.Background()
 	h := bhost.NewBlankHost(swarmt.GenSwarm(t))
@@ -120,6 +122,7 @@ func (p *TestP2P) ReceiveRPC(topic string, msg proto.Message) {
 }
 
 // ReceivePubSub simulates an incoming message over pubsub on a given topic.
+// ReceivePubSub模拟一个incoming message，来自pubsub，在给定的topic
 func (p *TestP2P) ReceivePubSub(topic string, msg proto.Message) {
 	h := bhost.NewBlankHost(swarmt.GenSwarm(p.t))
 	ps, err := pubsub.NewFloodSub(context.Background(), h,

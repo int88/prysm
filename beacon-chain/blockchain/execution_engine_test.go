@@ -210,14 +210,18 @@ func Test_NotifyForkchoiceUpdate(t *testing.T) {
 //
 // We test:
 // 1. forkchoice removes blocks F and G from the forkchoice implementation
+// 1. forkchoice将blocks F和G移除出forkchoice实现
 // 2. forkchoice removes the weights of these blocks
+// 2. forkchoice移除这些blocks的weights
 // 3. the blockchain package calls fcu to obtain heads G -> F -> D.
+// 3. blockchian包调用fcu来获取heads G -> F -> D
 
 func Test_NotifyForkchoiceUpdateRecursive(t *testing.T) {
 	ctx := context.Background()
 	beaconDB := testDB.SetupDB(t)
 
 	// Prepare blocks
+	// 准备blocks
 	ba := util.NewBeaconBlockBellatrix()
 	ba.Block.Body.ExecutionPayload.BlockNumber = 1
 	wba := util.SaveBlock(t, ctx, beaconDB, ba)
@@ -271,6 +275,7 @@ func Test_NotifyForkchoiceUpdateRecursive(t *testing.T) {
 	require.NoError(t, err)
 
 	// Insert blocks into forkchoice
+	// 将blocks插入到forkchoice
 	fcs := doublylinkedtree.New()
 	opts := []Option{
 		WithDatabase(beaconDB),

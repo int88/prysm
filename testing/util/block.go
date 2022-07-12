@@ -49,6 +49,7 @@ func DefaultBlockGenConfig() *BlockGenConfig {
 }
 
 // NewBeaconBlock creates a beacon block with minimum marshalable fields.
+// NewBeaconBlock创建一个beacon block，有着最少的marshalable字段
 func NewBeaconBlock() *ethpb.SignedBeaconBlock {
 	return &ethpb.SignedBeaconBlock{
 		Block: &ethpb.BeaconBlock{
@@ -886,6 +887,7 @@ func HydrateV2BlindedBeaconBlockBodyBellatrix(b *v2.BlindedBeaconBlockBodyBellat
 func SaveBlock(tb assertions.AssertionTestingTB, ctx context.Context, db iface.NoHeadAccessDatabase, b interface{}) interfaces.SignedBeaconBlock {
 	wsb, err := wrapper.WrappedSignedBeaconBlock(b)
 	require.NoError(tb, err)
+	// 保存block到db中
 	require.NoError(tb, db.SaveBlock(ctx, wsb))
 	return wsb
 }

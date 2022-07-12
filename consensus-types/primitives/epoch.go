@@ -12,6 +12,7 @@ var _ fssz.Marshaler = (*Epoch)(nil)
 var _ fssz.Unmarshaler = (*Epoch)(nil)
 
 // Epoch represents a single epoch.
+// Epoch代表一个单个的epoch
 type Epoch uint64
 
 // MaxEpoch compares two epochs and returns the greater one.

@@ -33,6 +33,7 @@ var respTimeout = params.BeaconNetworkConfig().RespTimeout
 type rpcHandler func(context.Context, interface{}, libp2pcore.Stream) error
 
 // registerRPCHandlers for p2p RPC.
+// registerRPCHandlers用于p2p RPC
 func (s *Service) registerRPCHandlers() {
 	currEpoch := slots.ToEpoch(s.cfg.chain.CurrentSlot())
 	// Register V2 handlers if we are past altair fork epoch.

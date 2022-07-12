@@ -21,6 +21,8 @@ type HeadAccessDatabase = iface.HeadAccessDatabase
 // Database defines the necessary methods for Prysm's Ethereum backend which may be implemented by any
 // key-value or relational database in practice. This is the full database interface which should
 // not be used often. Prefer a more restrictive interface in this package.
+// Database定义了必要的方法作为Prysm的Ethereum backend，它可以由任何键值或者关系数据库实现，这是完整的数据库接口
+// 它不应该经常使用
 type Database = iface.Database
 
 // SlasherDatabase defines necessary methods for Prysm's slasher implementation.

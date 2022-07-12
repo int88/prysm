@@ -15,6 +15,8 @@ import (
 
 // GenesisBeaconState gets called when MinGenesisActiveValidatorCount count of
 // full deposits were made to the deposit contract and the ChainStart log gets emitted.
+// GenesisBeaconState当MinGenesisActiveValidatorCount个full deposits已经部署到deposit contract
+// 并且ChainStart日志已经被发射的时候被调用
 //
 // Spec pseudocode definition:
 //  def initialize_beacon_state_from_eth1(eth1_block_hash: Bytes32,
@@ -75,6 +77,7 @@ func GenesisBeaconState(ctx context.Context, deposits []*ethpb.Deposit, genesisT
 
 // OptimizedGenesisBeaconState is used to create a state that has already processed deposits. This is to efficiently
 // create a mainnet state at chainstart.
+// OptimizedGenesisBeaconState用于创建一个已经处理过deposits的state，它用于在chainstart创建一个mainnet state
 func OptimizedGenesisBeaconState(genesisTime uint64, preState state.BeaconState, eth1Data *ethpb.Eth1Data) (state.BeaconState, error) {
 	if eth1Data == nil {
 		return nil, errors.New("no eth1data provided for genesis state")

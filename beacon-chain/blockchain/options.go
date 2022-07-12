@@ -44,6 +44,7 @@ func WithDatabase(beaconDB db.HeadAccessDatabase) Option {
 }
 
 // WithChainStartFetcher to retrieve information about genesis.
+// WithChainStartFetcher用于获取关于gensis的信息
 func WithChainStartFetcher(f powchain.ChainStartFetcher) Option {
 	return func(s *Service) error {
 		s.cfg.ChainStartFetcher = f
@@ -52,6 +53,7 @@ func WithChainStartFetcher(f powchain.ChainStartFetcher) Option {
 }
 
 // WithExecutionEngineCaller to call execution engine.
+// WithExecutionEngineCaller用于调用execution engine
 func WithExecutionEngineCaller(c powchain.EngineCaller) Option {
 	return func(s *Service) error {
 		s.cfg.ExecutionEngineCaller = c

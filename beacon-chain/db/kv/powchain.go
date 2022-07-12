@@ -12,6 +12,7 @@ import (
 )
 
 // SavePowchainData saves the pow chain data.
+// SavePowchainData保存pow的链数据
 func (s *Store) SavePowchainData(ctx context.Context, data *v2.ETH1ChainData) error {
 	_, span := trace.StartSpan(ctx, "BeaconDB.SavePowchainData")
 	defer span.End()

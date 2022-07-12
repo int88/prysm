@@ -88,6 +88,7 @@ func (s *Service) VerifyFinalizedConsistency(ctx context.Context, root []byte) e
 }
 
 // This routine processes fork choice attestations from the pool to account for validator votes and fork choice.
+// 这个routine处理来自pool的fork choice attestations，对于validator votes以及fork choice
 func (s *Service) spawnProcessAttestationsRoutine(stateFeed *event.Feed) {
 	// Wait for state to be initialized.
 	stateChannel := make(chan *feed.Event, 1)

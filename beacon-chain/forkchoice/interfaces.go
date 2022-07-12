@@ -21,6 +21,7 @@ type ForkChoicer interface {
 }
 
 // HeadRetriever retrieves head root and optimistic info of the current chain.
+// HeadRetriever获取head root以及optimistic info，关于当前的chain
 type HeadRetriever interface {
 	Head(context.Context, []uint64) ([32]byte, error)
 	CachedHeadRoot() [32]byte

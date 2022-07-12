@@ -94,7 +94,9 @@ type StatusConfig struct {
 }
 
 // NewStatus creates a new status entity.
+// NewStatus创建一个新的status实体
 func NewStatus(ctx context.Context, config *StatusConfig) *Status {
+	// 构建一个peerdata store
 	store := peerdata.NewStore(ctx, &peerdata.StoreConfig{
 		MaxPeers: maxLimitBuffer + config.PeerLimit,
 	})
@@ -878,6 +880,7 @@ func (p *Status) deprecatedPeersToPrune() []peer.ID {
 }
 
 // HighestEpoch returns the highest epoch reported epoch amongst peers.
+// HighestEpoch返回peers中最高的epoch
 func (p *Status) HighestEpoch() types.Epoch {
 	p.store.RLock()
 	defer p.store.RUnlock()

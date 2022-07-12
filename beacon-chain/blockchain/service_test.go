@@ -134,6 +134,7 @@ func setupBeaconChain(t *testing.T, beaconDB db.Database) *Service {
 		WithStateGen(stateGen),
 	}
 
+	// 构建pos chain service
 	chainService, err := NewService(ctx, opts...)
 	require.NoError(t, err, "Unable to setup chain service")
 	chainService.genesisTime = time.Unix(1, 0) // non-zero time
@@ -167,6 +168,7 @@ func TestChainStartStop_Initialized(t *testing.T) {
 	require.NoError(t, beaconDB.SaveStateSummary(ctx, ss))
 	chainService.cfg.FinalizedStateAtStartUp = s
 	// Test the start function.
+	// 测试启动功能
 	chainService.Start()
 
 	require.NoError(t, chainService.Stop(), "Unable to stop chain service")

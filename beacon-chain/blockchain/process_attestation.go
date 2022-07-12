@@ -17,6 +17,8 @@ import (
 // OnAttestation is called whenever an attestation is received, verifies the attestation is valid and saves
 // it to the DB. As a stateless function, this does not hold nor delay attestation based on the spec descriptions.
 // The delay is handled by the caller in `processAttestations`.
+// OnAttestation在收到一个attestation的时候被调用，确认attestation是合法的并且保存到DB中
+// 作为一个stateless函数，它不维护任何的delay attestation，基于spec的描述
 //
 // Spec pseudocode definition:
 //   def on_attestation(store: Store, attestation: Attestation) -> None:

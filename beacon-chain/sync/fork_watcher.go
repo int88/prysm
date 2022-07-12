@@ -11,6 +11,8 @@ import (
 
 // Is a background routine that observes for new incoming forks. Depending on the epoch
 // it will be in charge of subscribing/unsubscribing the relevant topics at the fork boundaries.
+// 是一个后台运行的routine，用于观察新的incoming forks，基于epoch它会负责subscribe/unsubscribing相关的topcis
+// 在fork boundaries
 func (s *Service) forkWatcher() {
 	slotTicker := slots.NewSlotTicker(s.cfg.chain.GenesisTime(), params.BeaconConfig().SecondsPerSlot)
 	for {

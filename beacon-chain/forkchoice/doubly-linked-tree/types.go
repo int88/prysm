@@ -9,6 +9,7 @@ import (
 )
 
 // ForkChoice defines the overall fork choice store which includes all block nodes, validator's latest votes and balances.
+// ForkChoice定义了整体的fork choice store，其中包括block nodes, validator最新的votes以及balances
 type ForkChoice struct {
 	store     *Store
 	votes     []Vote // tracks individual validator's last vote.
@@ -17,6 +18,7 @@ type ForkChoice struct {
 }
 
 // Store defines the fork choice store which includes block nodes and the last view of checkpoint information.
+// Store定义了fork choice store，包括block nodes以及checkpoint信息的最新view
 type Store struct {
 	justifiedCheckpoint           *forkchoicetypes.Checkpoint            // latest justified epoch in store.
 	bestJustifiedCheckpoint       *forkchoicetypes.Checkpoint            // best justified checkpoint in store.

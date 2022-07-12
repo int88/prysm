@@ -22,6 +22,7 @@ import (
 )
 
 // New initializes a new fork choice store.
+// New初始化一个新的fork choice store
 func New() *ForkChoice {
 	s := &Store{
 		justifiedCheckpoint:           &forkchoicetypes.Checkpoint{},

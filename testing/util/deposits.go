@@ -45,6 +45,7 @@ func DeterministicDepositsAndKeys(numDeposits uint64) ([]*ethpb.Deposit, []bls.S
 	}
 
 	// If more deposits requested than cached, generate more.
+	// 如果请求的deposits超过缓存的，产生更多
 	if numDeposits > uint64(len(cachedDeposits)) {
 		numExisting := uint64(len(cachedDeposits))
 		numRequired := numDeposits - uint64(len(cachedDeposits))
@@ -56,6 +57,7 @@ func DeterministicDepositsAndKeys(numDeposits uint64) ([]*ethpb.Deposit, []bls.S
 		privKeys = append(privKeys, secretKeys[:len(secretKeys)-1]...)
 
 		// Create the new deposits and add them to the trie.
+		// 创建新的deposits并且将他们加入到trie
 		for i := uint64(0); i < numRequired; i++ {
 			balance := params.BeaconConfig().MaxEffectiveBalance
 			deposit, err := signedDeposit(secretKeys[i], publicKeys[i].Marshal(), publicKeys[i+1].Marshal(), balance)
@@ -237,6 +239,7 @@ func DepositTrieSubset(sparseTrie *trie.SparseMerkleTrie, size int) (*trie.Spars
 }
 
 // DeterministicEth1Data takes an array of deposits and returns the eth1Data made from the deposit trie.
+// DeterministicEth1Data获取一系列的deposits并且返回来自deposit trie的eth1Data
 func DeterministicEth1Data(size int) (*ethpb.Eth1Data, error) {
 	depositTrie, _, err := DeterministicDepositTrie(size)
 	if err != nil {
@@ -255,6 +258,7 @@ func DeterministicEth1Data(size int) (*ethpb.Eth1Data, error) {
 }
 
 // DeterministicGenesisState returns a genesis state made using the deterministic deposits.
+// DeterministicGenesisState返回一个由deterministic deposits创建的genesis state
 func DeterministicGenesisState(t testing.TB, numValidators uint64) (state.BeaconState, []bls.SecretKey) {
 	deposits, privKeys, err := DeterministicDepositsAndKeys(numValidators)
 	if err != nil {

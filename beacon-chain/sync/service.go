@@ -67,6 +67,7 @@ var (
 type validationFn func(ctx context.Context) (pubsub.ValidationResult, error)
 
 // config to hold dependencies for the sync service.
+// config包含了sync service的依赖
 type config struct {
 	attestationNotifier     operation.Notifier
 	p2p                     p2p.P2P
@@ -101,6 +102,7 @@ type blockchainService interface {
 
 // Service is responsible for handling all run time p2p related operations as the
 // main entry point for network messages.
+// Service负责处理所有运行时的p2p相关操作，作为network messages的主要入口
 type Service struct {
 	cfg                              *config
 	ctx                              context.Context
@@ -205,9 +207,12 @@ func (s *Service) Stop() error {
 }
 
 // Status of the currently running regular sync service.
+// 当前正在运行的regular sync service的状态
 func (s *Service) Status() error {
 	// If our head slot is on a previous epoch and our peers are reporting their head block are
 	// in the most recent epoch, then we might be out of sync.
+	// 如果我们的head slot在之前的epoch并且我们的peers报告了它们的head block在最近的epoch
+	// 那么我们可能已经out of sync
 	if headEpoch := slots.ToEpoch(s.cfg.chain.HeadSlot()); headEpoch+1 < slots.ToEpoch(s.cfg.chain.CurrentSlot()) &&
 		headEpoch+1 < s.cfg.p2p.Peers().HighestEpoch() {
 		return errors.New("out of sync")
@@ -217,6 +222,7 @@ func (s *Service) Status() error {
 
 // This initializes the caches to update seen beacon objects coming in from the wire
 // and prevent DoS.
+// 这个函数初始化caches来更新看到的来自wire的beacon objects并且防止DoS
 func (s *Service) initCaches() {
 	s.seenBlockCache = lruwrpr.New(seenBlockSize)
 	s.seenAggregatedAttestationCache = lruwrpr.New(seenAggregatedAttSize)
@@ -232,7 +238,9 @@ func (s *Service) initCaches() {
 
 func (s *Service) registerHandlers() {
 	// Wait until chain start.
+	// 等待直到chain start
 	stateChannel := make(chan *feed.Event, 1)
+	// 订阅state feed
 	stateSub := s.cfg.stateNotifier.StateFeed().Subscribe(stateChannel)
 	defer stateSub.Unsubscribe()
 	for {
@@ -249,8 +257,10 @@ func (s *Service) registerHandlers() {
 				log.WithField("starttime", startTime).Debug("Received state initialized event")
 
 				// Register respective rpc handlers at state initialized event.
+				// 对于state initialized event，注册各自的rpc handlers
 				s.registerRPCHandlers()
 				// Wait for chainstart in separate routine.
+				// 在另外一个goroutine等待chainstart
 				go func() {
 					if startTime.After(prysmTime.Now()) {
 						time.Sleep(prysmTime.Until(startTime))
@@ -265,6 +275,7 @@ func (s *Service) registerHandlers() {
 					return
 				}
 				// Register respective pubsub handlers at state synced event.
+				// 注册各自的pubsub handlers，对于state synced事件
 				digest, err := s.currentForkDigest()
 				if err != nil {
 					log.WithError(err).Error("Could not retrieve current fork digest")
@@ -272,6 +283,7 @@ func (s *Service) registerHandlers() {
 				}
 				currentEpoch := slots.ToEpoch(slots.CurrentSlot(uint64(s.cfg.chain.GenesisTime().Unix())))
 				s.registerSubscribers(currentEpoch, digest)
+				// 启动fork watcher
 				go s.forkWatcher()
 				return
 			}

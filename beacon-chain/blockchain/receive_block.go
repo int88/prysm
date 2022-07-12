@@ -32,8 +32,12 @@ type SlashingReceiver interface {
 
 // ReceiveBlock is a function that defines the operations (minus pubsub)
 // that are performed on a received block. The operations consist of:
+// ReceiveBlock是一个函数定义了在接收到一个block的时候的操作（除了pubsub），操作包括：
+//   1. 检查block，应用state transition并且更新checkpoints
 //   1. Validate block, apply state transition and update checkpoints
+//	 2. 对于processed block应用fork choice
 //   2. Apply fork choice to the processed block
+//	 3. 保存最新的head info
 //   3. Save latest head info
 func (s *Service) ReceiveBlock(ctx context.Context, block interfaces.SignedBeaconBlock, blockRoot [32]byte) error {
 	ctx, span := trace.StartSpan(ctx, "blockChain.ReceiveBlock")
@@ -42,6 +46,7 @@ func (s *Service) ReceiveBlock(ctx context.Context, block interfaces.SignedBeaco
 	blockCopy := block.Copy()
 
 	// Apply state transition on the new block.
+	// 对于新的block应用state transition
 	if err := s.onBlock(ctx, blockCopy, blockRoot); err != nil {
 		err := errors.Wrap(err, "could not process block")
 		tracing.AnnotateError(span, err)
@@ -49,29 +54,35 @@ func (s *Service) ReceiveBlock(ctx context.Context, block interfaces.SignedBeaco
 	}
 
 	// Handle post block operations such as attestations and exits.
+	// 处理post block操作，例如attestations以及exits
 	if err := s.handlePostBlockOperations(blockCopy.Block()); err != nil {
 		return err
 	}
 
 	// Have we been finalizing? Should we start saving hot states to db?
+	// 我们已经finalizing了么？我们是否应该保存hot states到db?
 	if err := s.checkSaveHotStateDB(ctx); err != nil {
 		return err
 	}
 
 	// Reports on block and fork choice metrics.
+	// 汇报block以及fork choice metrics
 	finalized := s.FinalizedCheckpt()
 	reportSlotMetrics(blockCopy.Block().Slot(), s.HeadSlot(), s.CurrentSlot(), finalized)
 
 	// Log block sync status.
+	// 记录block sync status
 	justified := s.CurrentJustifiedCheckpt()
 	if err := logBlockSyncStatus(blockCopy.Block(), blockRoot, justified, finalized, receivedTime, uint64(s.genesisTime.Unix())); err != nil {
 		log.WithError(err).Error("Unable to log block sync status")
 	}
 	// Log payload data
+	// 记录payload data
 	if err := logPayload(blockCopy.Block()); err != nil {
 		log.WithError(err).Error("Unable to log debug block payload data")
 	}
 	// Log state transition data.
+	// 记录state transition data
 	if err := logStateTransitionData(blockCopy.Block()); err != nil {
 		log.WithError(err).Error("Unable to log state transition data")
 	}

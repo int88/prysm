@@ -164,6 +164,7 @@ type Service struct {
 }
 
 // NewService sets up a new instance with an ethclient when given a web3 endpoint as a string in the config.
+// NewService设置一个新的实例，有一个ethclient，当给定的web3 endpoint作为一个string在配置中
 func NewService(ctx context.Context, opts ...Option) (*Service, error) {
 	ctx, cancel := context.WithCancel(ctx)
 	_ = cancel // govet fix for lost cancel. Cancel is handled in service.Stop()

@@ -12,6 +12,9 @@ import (
 // fork choice and validators. In the current design, aggregated attestations
 // are used by proposer actor. Unaggregated attestations are used by
 // aggregator actor.
+// Pool定义了必要的方法，Prysm attestations pool用于服务fork choice和validators
+// 在当前的设计中，aggregated attestations由proposer actor使用，Unaggregated attestations
+// 由aggregator actor使用
 type Pool interface {
 	// For Aggregated attestations
 	AggregateUnaggregatedAttestations(ctx context.Context) error

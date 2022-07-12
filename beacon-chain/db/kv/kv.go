@@ -94,6 +94,8 @@ func KVStoreDatafilePath(dirPath string) string {
 // NewKVStore initializes a new boltDB key-value store at the directory
 // path specified, creates the kv-buckets based on the schema, and stores
 // an open connection db object as a property of the Store struct.
+// NewKVStore初始化一个新的boltDB键值存储在指定的目录，基于schema创建kv-buckets
+// 并且存储一个open connection db对象，作为Store结构的一个特性
 func NewKVStore(ctx context.Context, dirPath string, config *Config) (*Store, error) {
 	hasDir, err := file.HasDir(dirPath)
 	if err != nil {
