@@ -229,10 +229,14 @@ func recheckValidatingKeysBucket(ctx context.Context, valDB vdb.Database, km key
 // it calls to the beacon node which then verifies the ETH1.0 deposit contract logs to check
 // for the ChainStart log to have been emitted. If so, it starts a ticker based on the ChainStart
 // unix timestamp which will be used to keep track of time within the validator client.
+// WaitForChainStart检查是否beacon node已经启动，它会调用beacon node，之后确认ETH1.0 deposit contract
+// logs来检查ChainStart log已经被发射了，如果是这样的话，它启动一个ticker，基于ChainStart时间戳
+// 它会用于在validator client追踪时间
 func (v *validator) WaitForChainStart(ctx context.Context) error {
 	ctx, span := trace.StartSpan(ctx, "validator.WaitForChainStart")
 	defer span.End()
 	// First, check if the beacon chain has started.
+	// 首先，检查beacon chain已经启动了
 	stream, err := v.validatorClient.WaitForChainStart(ctx, &emptypb.Empty{})
 	if err != nil {
 		return errors.Wrap(
@@ -259,6 +263,7 @@ func (v *validator) WaitForChainStart(ctx context.Context) error {
 			return errors.Wrap(err, "could not get current genesis validators root")
 		}
 		if len(curGenValRoot) == 0 {
+			// 保存genesis validator root
 			if err := v.db.SaveGenesisValidatorsRoot(ctx, chainStartRes.GenesisValidatorsRoot); err != nil {
 				return errors.Wrap(err, "could not save genesis validators root")
 			}
@@ -281,6 +286,8 @@ func (v *validator) WaitForChainStart(ctx context.Context) error {
 
 	// Once the ChainStart log is received, we update the genesis time of the validator client
 	// and begin a slot ticker used to track the current slot the beacon node is in.
+	// 一旦ChainStart log已经接收到了，我们更新validator client的genesis time，并且启动一个slot ticker
+	// 用于追踪beacon node所在的slot
 	v.ticker = slots.NewSlotTicker(time.Unix(int64(v.genesisTime), 0), params.BeaconConfig().SecondsPerSlot)
 	log.WithField("genesisTime", time.Unix(int64(v.genesisTime), 0)).Info("Beacon chain started")
 	return nil

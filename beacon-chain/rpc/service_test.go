@@ -23,9 +23,11 @@ func init() {
 
 func TestLifecycle_OK(t *testing.T) {
 	hook := logTest.NewGlobal()
+	// 构建chain service
 	chainService := &mock.ChainService{
 		Genesis: time.Now(),
 	}
+	// 构建rpc service
 	rpcService := NewService(context.Background(), &Config{
 		Port:                "7348",
 		SyncService:         &mockSync.Sync{IsSyncing: false},
@@ -39,6 +41,7 @@ func TestLifecycle_OK(t *testing.T) {
 
 	rpcService.Start()
 
+	// 要求日志中包含相应的信息
 	require.LogsContain(t, hook, "listening on port")
 	assert.NoError(t, rpcService.Stop())
 }

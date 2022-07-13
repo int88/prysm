@@ -70,6 +70,7 @@ type Service struct {
 }
 
 // Config options for the beacon node RPC server.
+// Config选项定义了beacon node的RPC server
 type Config struct {
 	Host                    string
 	Port                    string
@@ -118,6 +119,7 @@ type Config struct {
 
 // NewService instantiates a new RPC service instance that will
 // be registered into a running beacon node.
+// NewService实例化一个新的RPC service实例，它会被注册到一个正在运行的beacon node中
 func NewService(ctx context.Context, cfg *Config) *Service {
 	ctx, cancel := context.WithCancel(ctx)
 	s := &Service{
@@ -177,6 +179,7 @@ var _ stategen.CanonicalChecker = blockchain.ChainInfoFetcher(nil)
 var _ stategen.CurrentSlotter = blockchain.ChainInfoFetcher(nil)
 
 // Start the gRPC server.
+// 启动gRPC server
 func (s *Service) Start() {
 	grpcprometheus.EnableHandlingTimeHistogram()
 

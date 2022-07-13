@@ -139,15 +139,18 @@ func generateMockStatusResponse(pubkeys [][]byte) *ethpb.ValidatorActivationResp
 func TestWaitForChainStart_SetsGenesisInfo(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
+	// 构建validator client
 	client := mock2.NewMockBeaconNodeValidatorClient(ctrl)
 
 	db := dbTest.SetupDB(t, [][fieldparams.BLSPubkeyLength]byte{})
+	// 构建validator
 	v := validator{
 		validatorClient: client,
 		db:              db,
 	}
 
 	// Make sure its clean at the start.
+	// 确保在启动的时候是干净的
 	savedGenValRoot, err := db.GenesisValidatorsRoot(context.Background())
 	require.NoError(t, err)
 	assert.DeepEqual(t, []byte(nil), savedGenValRoot, "Unexpected saved genesis validators root")

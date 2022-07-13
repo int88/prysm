@@ -75,6 +75,7 @@ var (
 
 // ChainStartFetcher retrieves information pertaining to the chain start event
 // of the beacon chain for usage across various services.
+// ChainStartFetcher接收信息，关于beacon chain的chain start事件，用于各种services
 type ChainStartFetcher interface {
 	ChainStartEth1Data() *ethpb.Eth1Data
 	PreGenesisState() state.BeaconState

@@ -71,9 +71,12 @@ func setupWithKey(t *testing.T, validatorKey bls.SecretKey) (*validator, *mocks,
 	valDB := testing2.SetupDB(t, [][fieldparams.BLSPubkeyLength]byte{pubKey})
 	ctrl := gomock.NewController(t)
 	m := &mocks{
+		// 构建validator client
 		validatorClient: mock.NewMockBeaconNodeValidatorClient(ctrl),
-		nodeClient:      mock.NewMockNodeClient(ctrl),
-		slasherClient:   mock.NewMockSlasherClient(ctrl),
+		// 构建node client
+		nodeClient: mock.NewMockNodeClient(ctrl),
+		// 构建slasher client
+		slasherClient: mock.NewMockSlasherClient(ctrl),
 		signfunc: func(ctx context.Context, req *validatorpb.SignRequest) (bls.Signature, error) {
 			return mockSignature{}, nil
 		},
@@ -86,6 +89,7 @@ func setupWithKey(t *testing.T, validatorKey bls.SecretKey) (*validator, *mocks,
 			pubKey: validatorKey,
 		},
 	}
+	// 构建validator
 	validator := &validator{
 		db:                             valDB,
 		keyManager:                     km,
