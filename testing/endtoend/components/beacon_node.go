@@ -199,6 +199,7 @@ func (node *BeaconNode) Start(ctx context.Context) error {
 	args := []string{
 		fmt.Sprintf("--%s=%s/eth2-beacon-node-%d", cmdshared.DataDirFlag.Name, e2e.TestParams.TestPath, index),
 		fmt.Sprintf("--%s=%s", cmdshared.LogFileName.Name, stdOutFile.Name()),
+		// 指定deposit contract的地址
 		fmt.Sprintf("--%s=%s", flags.DepositContractFlag.Name, e2e.TestParams.ContractAddress.Hex()),
 		fmt.Sprintf("--%s=%d", flags.RPCPort.Name, e2e.TestParams.Ports.PrysmBeaconNodeRPCPort+index),
 		fmt.Sprintf("--%s=http://127.0.0.1:%d", flags.HTTPWeb3ProviderFlag.Name, e2e.TestParams.Ports.Eth1ProxyPort+index),
@@ -252,6 +253,7 @@ func (node *BeaconNode) Start(ctx context.Context) error {
 	cmd.Stdout = stdout
 	cmd.Stderr = stderr
 	log.Infof("Starting beacon chain %d with flags: %s", index, strings.Join(args[2:], " "))
+	// 启动beacon node
 	if err = cmd.Start(); err != nil {
 		return fmt.Errorf("failed to start beacon node: %w", err)
 	}

@@ -28,10 +28,12 @@ var FinalizationOccurs = func(epoch ethtypes.Epoch) types.Evaluator {
 func finalizationOccurs(conns ...*grpc.ClientConn) error {
 	conn := conns[0]
 	client := eth.NewBeaconChainClient(conn)
+	// 获取beacon的chain header
 	chainHead, err := client.GetChainHead(context.Background(), &emptypb.Empty{})
 	if err != nil {
 		return errors.Wrap(err, "failed to get chain head")
 	}
+	// 获取当前的epoch和finalized epoch
 	currentEpoch := chainHead.HeadEpoch
 	finalizedEpoch := chainHead.FinalizedEpoch
 
@@ -47,6 +49,7 @@ func finalizationOccurs(conns ...*grpc.ClientConn) error {
 	currentJustifiedEpoch := chainHead.JustifiedEpoch
 	if previousJustifiedEpoch+1 != currentJustifiedEpoch {
 		return fmt.Errorf(
+			// 当前的和之前的justified epochs之间不应该有gaps
 			"there should be no gaps between current and previous justified epochs, received current %d and previous %d",
 			currentJustifiedEpoch,
 			previousJustifiedEpoch,

@@ -21,6 +21,7 @@ import (
 var lock sync.Mutex
 
 // Caches
+// 缓存的deposits
 var cachedDeposits []*ethpb.Deposit
 var privKeys []bls.SecretKey
 var t *trie.SparseMerkleTrie
@@ -94,6 +95,7 @@ func DeterministicDepositsAndKeys(numDeposits uint64) ([]*ethpb.Deposit, []bls.S
 }
 
 // DepositsWithBalance generates N amount of deposits with the balances taken from the passed in balances array.
+// DepositsWithBalance生成N个deposits，有着来自传入参数balances数组的balances
 // If an empty array is passed,
 func DepositsWithBalance(balances []uint64) ([]*ethpb.Deposit, *trie.SparseMerkleTrie, error) {
 	var err error
@@ -110,12 +112,14 @@ func DepositsWithBalance(balances []uint64) ([]*ethpb.Deposit, *trie.SparseMerkl
 	var secretKeys []bls.SecretKey
 	var publicKeys []bls.PublicKey
 	if numExisting >= numDeposits+1 {
+		// 获取numDeposits个public key
 		secretKeys = append(secretKeys, privKeys[:numDeposits+1]...)
 		publicKeys = publicKeysFromSecrets(secretKeys)
 	} else {
 		secretKeys = append(secretKeys, privKeys[:numExisting]...)
 		publicKeys = publicKeysFromSecrets(secretKeys)
 		// Fetch enough keys for all deposits, since this function is uncached.
+		// 获取足够的keys用于所有的deposits，因为这个函数是非缓存的
 		newSecretKeys, newPublicKeys, err := interop.DeterministicallyGenerateKeys(numExisting, numRequired+1)
 		if err != nil {
 			return nil, nil, errors.Wrap(err, "could not create deterministic keys: ")
@@ -126,6 +130,7 @@ func DepositsWithBalance(balances []uint64) ([]*ethpb.Deposit, *trie.SparseMerkl
 
 	deposits := make([]*ethpb.Deposit, numDeposits)
 	// Create the new deposits and add them to the trie.
+	// 创建新的deposits并且将它们加入到trie中
 	for i := uint64(0); i < numDeposits; i++ {
 		balance := params.BeaconConfig().MaxEffectiveBalance
 		// lint:ignore uintcast -- test code
@@ -156,8 +161,10 @@ func DepositsWithBalance(balances []uint64) ([]*ethpb.Deposit, *trie.SparseMerkl
 	for i := range deposits {
 		proof, err := depositTrie.MerkleProof(i)
 		if err != nil {
+			// 不能创建 merkle proof
 			return nil, nil, errors.Wrap(err, "could not create merkle proof")
 		}
+		// 设置proof
 		deposits[i].Proof = proof
 	}
 
@@ -215,6 +222,7 @@ func DeterministicDepositTrie(size int) (*trie.SparseMerkleTrie, [][32]byte, err
 }
 
 // DepositTrieSubset takes in a full tree and the desired size and returns a subset of the deposit trie.
+// DepositTrieSubset拿一个full tree和期望的size，返回deposit trie的一个子集
 func DepositTrieSubset(sparseTrie *trie.SparseMerkleTrie, size int) (*trie.SparseMerkleTrie, [][32]byte, error) {
 	if sparseTrie == nil {
 		return nil, [][32]byte{}, errors.New("trie is empty")

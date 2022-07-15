@@ -10,6 +10,7 @@ import (
 )
 
 // NodeSet represents a set of Eth1 nodes, none of which is a mining node.
+// NodeSet代表一系列的Eth1 nodes，没有一个是mining node
 type NodeSet struct {
 	e2etypes.ComponentRunner
 	started chan struct{}

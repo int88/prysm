@@ -26,6 +26,7 @@ var _ e2etypes.MultipleComponentRunners = (*LighthouseBeaconNodeSet)(nil)
 var _ e2etypes.BeaconNodeSet = (*LighthouseBeaconNodeSet)(nil)
 
 // LighthouseBeaconNodeSet represents set of lighthouse beacon nodes.
+// LighthouseBeaconNodeSet代表一系列的lighthouse beacon nodes
 type LighthouseBeaconNodeSet struct {
 	e2etypes.ComponentRunner
 	config  *e2etypes.E2EConfig

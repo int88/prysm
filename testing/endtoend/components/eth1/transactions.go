@@ -52,6 +52,7 @@ func (t *TransactionGenerator) Start(ctx context.Context) error {
 	}
 	// Set seed so that all transactions can be
 	// deterministically generated.
+	// 设置seed，这样所有的transactions都可以确定性地产生
 	mathRand.Seed(seed)
 
 	keystoreBytes, err := os.ReadFile(t.keystore) // #nosec G304
@@ -70,6 +71,7 @@ func (t *TransactionGenerator) Start(ctx context.Context) error {
 	}
 	f := filler.NewFiller(rnd)
 	// Broadcast Transactions every 3 blocks
+	// 每三秒钟广播一次transactions
 	txPeriod := time.Duration(params.BeaconConfig().SecondsPerSlot) * time.Second
 	ticker := time.NewTicker(txPeriod)
 	gasPrice := big.NewInt(1e11)
@@ -116,6 +118,7 @@ func SendTransaction(client *rpc.Client, key *ecdsa.PrivateKey, f *filler.Filler
 			if err != nil {
 				return nil
 			}
+			// 发送transaction到后端
 			err = backend.SendTransaction(context.Background(), signedTx)
 			return nil
 		})

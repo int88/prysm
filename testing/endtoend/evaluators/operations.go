@@ -44,6 +44,7 @@ var depositActivationStartEpoch = depositsInBlockStart + 2 + params.E2ETestConfi
 var depositEndEpoch = depositActivationStartEpoch + types.Epoch(math.Ceil(float64(depositValCount)/float64(churnLimit)))
 
 // ProcessesDepositsInBlocks ensures the expected amount of deposits are accepted into blocks.
+// ProcessesDepositsInBlocks确保期望数目的deposits已经被blocks接受
 var ProcessesDepositsInBlocks = e2etypes.Evaluator{
 	Name:       "processes_deposits_in_blocks_epoch_%d",
 	Policy:     policies.OnEpoch(depositsInBlockStart), // We expect all deposits to enter in one epoch.
@@ -58,6 +59,7 @@ var VerifyBlockGraffiti = e2etypes.Evaluator{
 }
 
 // ActivatesDepositedValidators ensures the expected amount of validator deposits are activated into the state.
+// ActivatesDepositedValidators确保期望数目的validator deposits处于激活状态
 var ActivatesDepositedValidators = e2etypes.Evaluator{
 	Name:       "processes_deposit_validators_epoch_%d",
 	Policy:     policies.BetweenEpochs(depositActivationStartEpoch, depositEndEpoch),
@@ -65,6 +67,7 @@ var ActivatesDepositedValidators = e2etypes.Evaluator{
 }
 
 // DepositedValidatorsAreActive ensures the expected amount of validators are active after their deposits are processed.
+// DepositedValidatorsAreActive确保期望数目的validators处于活跃状态，在处理deposits之后
 var DepositedValidatorsAreActive = e2etypes.Evaluator{
 	Name:       "deposited_validators_are_active_epoch_%d",
 	Policy:     policies.AfterNthEpoch(depositEndEpoch),
@@ -72,6 +75,7 @@ var DepositedValidatorsAreActive = e2etypes.Evaluator{
 }
 
 // ProposeVoluntaryExit sends a voluntary exit from randomly selected validator in the genesis set.
+// ProposeVoluntaryExit发送一个voluntary exit，从genesis set中随机选择的validator
 var ProposeVoluntaryExit = e2etypes.Evaluator{
 	Name:       "propose_voluntary_exit_epoch_%d",
 	Policy:     policies.OnEpoch(7),
@@ -79,6 +83,7 @@ var ProposeVoluntaryExit = e2etypes.Evaluator{
 }
 
 // ValidatorHasExited checks the beacon state for the exited validator and ensures its marked as exited.
+// ValidatorHasExited检查exited validator的beacon state并且确保它被标记为exited
 var ValidatorHasExited = e2etypes.Evaluator{
 	Name:       "voluntary_has_exited_%d",
 	Policy:     policies.OnEpoch(8),
@@ -86,6 +91,7 @@ var ValidatorHasExited = e2etypes.Evaluator{
 }
 
 // ValidatorsVoteWithTheMajority verifies whether validator vote for eth1data using the majority algorithm.
+// ValidatorsVoteWithTheMajority确认是否validator使用majority算法为eth1data投票
 var ValidatorsVoteWithTheMajority = e2etypes.Evaluator{
 	Name:       "validators_vote_with_the_majority_%d",
 	Policy:     policies.AfterNthEpoch(0),
@@ -101,6 +107,7 @@ func processesDepositsInBlocks(conns ...*grpc.ClientConn) error {
 	}
 
 	req := &ethpb.ListBlocksRequest{QueryFilter: &ethpb.ListBlocksRequest_Epoch{Epoch: chainHead.HeadEpoch - 1}}
+	// 获取beacon blocks
 	blks, err := client.ListBeaconBlocks(context.Background(), req)
 	if err != nil {
 		return errors.Wrap(err, "failed to get blocks from beacon-chain")
@@ -111,6 +118,7 @@ func processesDepositsInBlocks(conns ...*grpc.ClientConn) error {
 		var eth1Data *ethpb.Eth1Data
 		var deposits []*ethpb.Deposit
 		switch blk.Block.(type) {
+		// 根据beacon block的类型
 		case *ethpb.BeaconBlockContainer_Phase0Block:
 			b := blk.GetPhase0Block().Block
 			slot = b.Slot
@@ -120,6 +128,7 @@ func processesDepositsInBlocks(conns ...*grpc.ClientConn) error {
 			b := blk.GetAltairBlock().Block
 			slot = b.Slot
 			eth1Data = b.Body.Eth1Data
+			// 获取其中的deposits
 			deposits = b.Body.Deposits
 		default:
 			return errors.New("block neither phase0 nor altair")
@@ -273,6 +282,7 @@ func depositedValidatorsAreActive(conns ...*grpc.ClientConn) error {
 	}
 	if belowBalanceCount > 0 {
 		return fmt.Errorf(
+			// validators至少有32个ETH
 			"%d validators did not have a proper balance, expected %d validators to have 32 ETH",
 			belowBalanceCount,
 			params.BeaconConfig().MinGenesisActiveValidatorCount,
@@ -297,6 +307,7 @@ func proposeVoluntaryExit(conns ...*grpc.ClientConn) error {
 		return err
 	}
 
+	// exitedIndex是一个全局变量
 	exitedIndex = types.ValidatorIndex(rand.Uint64() % params.BeaconConfig().MinGenesisActiveValidatorCount)
 	valExited = true
 
@@ -308,6 +319,7 @@ func proposeVoluntaryExit(conns ...*grpc.ClientConn) error {
 		Epoch:  chainHead.HeadEpoch,
 		Domain: params.BeaconConfig().DomainVoluntaryExit[:],
 	}
+	// 发送一个voluntary exit
 	domain, err := valClient.DomainData(ctx, req)
 	if err != nil {
 		return err

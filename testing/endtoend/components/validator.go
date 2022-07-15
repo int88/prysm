@@ -77,6 +77,7 @@ func (s *ValidatorNodeSet) Start(ctx context.Context) error {
 	// 创建validator nodes
 	nodes := make([]e2etypes.ComponentRunner, prysmBeaconNodeNum)
 	for i := 0; i < prysmBeaconNodeNum; i++ {
+		// 构建validator node
 		nodes[i] = NewValidatorNode(s.config, validatorsPerNode, i, validatorsPerNode*i)
 	}
 	s.nodes = nodes
@@ -157,6 +158,7 @@ func (s *ValidatorNodeSet) ComponentAtIndex(i int) (e2etypes.ComponentRunner, er
 }
 
 // ValidatorNode represents a validator node.
+// ValidatorNode代表一个validator node
 type ValidatorNode struct {
 	e2etypes.ComponentRunner
 	config       *e2etypes.E2EConfig
@@ -320,6 +322,7 @@ func (v *ValidatorNode) Stop() error {
 }
 
 // SendAndMineDeposits sends the requested amount of deposits and mines the chain after to ensure the deposits are seen.
+// SendAndMineDeposits发送请求数目的deposits并且在之后mine the chain，来确保看到了deposits
 func SendAndMineDeposits(keystorePath string, validatorNum, offset int, partial bool) error {
 	client, err := rpc.DialHTTP(fmt.Sprintf("http://127.0.0.1:%d", e2e.TestParams.Ports.Eth1RPCPort))
 	if err != nil {
@@ -339,6 +342,7 @@ func SendAndMineDeposits(keystorePath string, validatorNum, offset int, partial 
 	if err != nil {
 		return err
 	}
+	// 等待blocks被挖掘
 	if err = eth1.WaitForBlocks(web3, mineKey, params.BeaconConfig().Eth1FollowDistance); err != nil {
 		return fmt.Errorf("failed to mine blocks %w", err)
 	}
@@ -346,6 +350,7 @@ func SendAndMineDeposits(keystorePath string, validatorNum, offset int, partial 
 }
 
 // sendDeposits uses the passed in web3 and keystore bytes to send the requested deposits.
+// sendDeposits使用传入的web3和keystore字节来发送请求的deposits
 func sendDeposits(web3 *ethclient.Client, keystoreBytes []byte, num, offset int, partial bool) error {
 	txOps, err := bind.NewTransactorWithChainID(bytes.NewReader(keystoreBytes), eth1.KeystorePassword, big.NewInt(eth1.NetworkId))
 	if err != nil {
@@ -359,6 +364,7 @@ func sendDeposits(web3 *ethclient.Client, keystoreBytes []byte, num, offset int,
 	}
 	txOps.Nonce = big.NewInt(0).SetUint64(nonce)
 
+	// 构建deposit contract
 	contract, err := contracts.NewDepositContract(e2e.TestParams.ContractAddress, web3)
 	if err != nil {
 		return err
@@ -396,6 +402,7 @@ func sendDeposits(web3 *ethclient.Client, keystoreBytes []byte, num, offset int,
 		txOps.Value = depositInGwei.Mul(depositInGwei, big.NewInt(int64(params.BeaconConfig().GweiPerEth)))
 		_, err = contract.Deposit(txOps, dd.Data.PublicKey, dd.Data.WithdrawalCredentials, dd.Data.Signature, bytesutil.ToBytes32(allRoots[index]))
 		if err != nil {
+			// 发送transaction到contract失败
 			return errors.Wrap(err, "unable to send transaction to contract")
 		}
 		txOps.Nonce = txOps.Nonce.Add(txOps.Nonce, big.NewInt(1))

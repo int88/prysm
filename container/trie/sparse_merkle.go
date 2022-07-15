@@ -15,6 +15,7 @@ import (
 
 // SparseMerkleTrie implements a sparse, general purpose Merkle trie to be used
 // across Ethereum consensus functionality.
+// SparseMerkleTrie实现了一个稀疏的，通用的Merkle trie，用于在Ethereum的共识功能
 type SparseMerkleTrie struct {
 	depth         uint
 	branches      [][][]byte
@@ -22,6 +23,7 @@ type SparseMerkleTrie struct {
 }
 
 // NewTrie returns a new merkle trie filled with zerohashes to use.
+// NewTrie返回一个新的merkle trie，用于zerohashes填充使用
 func NewTrie(depth uint64) (*SparseMerkleTrie, error) {
 	var zeroBytes [32]byte
 	items := [][]byte{zeroBytes[:]}

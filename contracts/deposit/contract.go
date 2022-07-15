@@ -88,6 +88,7 @@ type DepositContractTransactorRaw struct {
 }
 
 // NewDepositContract creates a new instance of DepositContract, bound to a specific deployed contract.
+// NewDepositContract创建一个新的DepositContract实例，绑定到一个特定的已经部署的contract
 func NewDepositContract(address common.Address, backend bind.ContractBackend) (*DepositContract, error) {
 	contract, err := bindDepositContract(address, backend, backend, backend)
 	if err != nil {

@@ -13,6 +13,7 @@ import (
 const epochToCheck = 50 // must be more than 46 (32 hot states + 16 chkpt interval)
 
 // ColdStateCheckpoint checks data from the database using cold state storage.
+// ColdStateCheckpoint使用cold state storage从database检查数据
 var ColdStateCheckpoint = e2etypes.Evaluator{
 	Name: "cold_state_assignments_from_epoch_%d",
 	Policy: func(currentEpoch types.Epoch) bool {
@@ -22,6 +23,7 @@ var ColdStateCheckpoint = e2etypes.Evaluator{
 }
 
 // Checks the first node for an old checkpoint using cold state storage.
+// Checks使用cold state storage检查第一个node，对于一个old checkpoint
 func checkColdStateCheckpoint(conns ...*grpc.ClientConn) error {
 	ctx := context.Background()
 	client := eth.NewBeaconChainClient(conns[0])

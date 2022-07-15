@@ -298,6 +298,7 @@ func ComponentsStarted(ctx context.Context, comps []e2etypes.ComponentRunner) er
 }
 
 // EpochTickerStartTime calculates the best time to start epoch ticker for a given genesis.
+// EpochTickerStartTime计算对于一个给定的gensis，启动epoch ticker的最佳时间
 func EpochTickerStartTime(genesis *eth.Genesis) time.Time {
 	epochSeconds := uint64(params.BeaconConfig().SlotsPerEpoch.Mul(params.BeaconConfig().SecondsPerSlot))
 	epochSecondsHalf := time.Duration(int64(epochSeconds*1000)/2) * time.Millisecond

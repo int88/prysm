@@ -143,11 +143,13 @@ func (r *testRunner) waitExtra(ctx context.Context, e types.Epoch, conn *grpc.Cl
 // waitForChainStart允许等待直到beacon nodes都启动
 func (r *testRunner) waitForChainStart() {
 	// Sleep depending on the count of validators, as generating the genesis state could take some time.
+	// Sleep基于validators的数目，因为生成genesis state需要一些时间
 	time.Sleep(time.Duration(params.BeaconConfig().GenesisDelay) * time.Second)
 	beaconLogFile, err := os.Open(path.Join(e2e.TestParams.LogPath, fmt.Sprintf(e2e.BeaconNodeLogFileName, 0)))
 	require.NoError(r.t, err)
 
 	r.t.Run("chain started", func(t *testing.T) {
+		// beacon node的日志里面有"Chain started in sync service"的日志
 		require.NoError(t, helpers.WaitForTextInFile(beaconLogFile, "Chain started in sync service"), "Chain did not start")
 	})
 }
@@ -159,9 +161,11 @@ func (r *testRunner) runEvaluators(conns []*grpc.ClientConn, tickingStartTime ti
 	secondsPerEpoch := uint64(params.BeaconConfig().SlotsPerEpoch.Mul(params.BeaconConfig().SecondsPerSlot))
 	ticker := helpers.NewEpochTicker(tickingStartTime, secondsPerEpoch)
 	for currentEpoch := range ticker.C() {
+		// 返回的是当前的epoch
 		if config.EvalInterceptor(currentEpoch, conns) {
 			continue
 		}
+		// 执行提供的evaluators
 		r.executeProvidedEvaluators(currentEpoch, conns, config.Evaluators)
 
 		if t.Failed() || currentEpoch >= config.EpochsToRun-1 {
@@ -176,6 +180,7 @@ func (r *testRunner) runEvaluators(conns []*grpc.ClientConn, tickingStartTime ti
 }
 
 // testDepositsAndTx runs tests when config.TestDeposits is enabled.
+// testDepositsAndTx运行测试，当config.TestDeposits使能的话
 func (r *testRunner) testDepositsAndTx(ctx context.Context, g *errgroup.Group,
 	keystorePath string, requiredNodes []e2etypes.ComponentRunner) {
 	minGenesisActiveCount := int(params.BeaconConfig().MinGenesisActiveValidatorCount)
@@ -204,6 +209,7 @@ func (r *testRunner) testDepositsAndTx(ctx context.Context, g *errgroup.Group,
 }
 
 func (r *testRunner) testTxGeneration(ctx context.Context, g *errgroup.Group, keystorePath string, requiredNodes []e2etypes.ComponentRunner) {
+	// 构建transaction generator
 	txGenerator := eth1.NewTransactionGenerator(keystorePath, r.config.Seed)
 	g.Go(func() error {
 		if err := helpers.ComponentsStarted(ctx, requiredNodes); err != nil {
@@ -412,6 +418,7 @@ func (r *testRunner) defaultEndToEndRun() error {
 	// When everything is done, cancel parent context (will stop all spawned nodes).
 	defer func() {
 		log.Info("All E2E evaluations are finished, cleaning up")
+		// 所有E2E evaluations都已经结束了，清理
 		r.comHandler.done()
 	}()
 
@@ -439,6 +446,7 @@ func (r *testRunner) defaultEndToEndRun() error {
 	r.waitForChainStart()
 
 	// Failing early in case chain doesn't start.
+	// 尽早failing，如果chain没有启动的话
 	if t.Failed() {
 		return errors.New("chain cannot start")
 	}
@@ -464,6 +472,7 @@ func (r *testRunner) defaultEndToEndRun() error {
 	defer closeConns()
 
 	// Calculate genesis time.
+	// 计算genesis时间
 	nodeClient := eth.NewNodeClient(conns[0])
 	genesis, err := nodeClient.GetGenesis(context.Background(), &emptypb.Empty{})
 	require.NoError(t, err)
@@ -559,6 +568,7 @@ func (r *testRunner) addEvent(ev func() error) {
 
 func (r *testRunner) executeProvidedEvaluators(currentEpoch uint64, conns []*grpc.ClientConn, evals []e2etypes.Evaluator) {
 	wg := new(sync.WaitGroup)
+	// 执行提供的evaluators
 	for _, eval := range evals {
 		// Fix reference to evaluator as it will be running
 		// in a separate goroutine.

@@ -7,10 +7,13 @@ import (
 )
 
 // EpochTicker is a special ticker for timing epoch changes.
+// EpochTicker是一个特殊的ticker用于对每个epoch的改变进行计时
 // The channel emits over the epoch interval, and ensures that
 // the ticks are in line with the genesis time. This means that
 // the duration between the ticks and the genesis time are always a
 // multiple of the epoch duration.
+// 每epoch interval都会从channel发送一次，并且确保ticks和genesis time保持一致
+// 这意味着ticks和genesis time的差值总是和epoch duration是epoch duration的倍数
 // In addition, the channel returns the new epoch number.
 type EpochTicker struct {
 	c    chan uint64

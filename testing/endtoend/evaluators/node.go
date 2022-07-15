@@ -21,6 +21,7 @@ import (
 )
 
 // Allow a very short delay after disconnecting to prevent connection refused issues.
+// 允许一个非常小的延时在断开连接之后，来防止connection refulsed的问题
 var connTimeDelay = 50 * time.Millisecond
 
 // PeersConnect checks all beacon nodes and returns whether they are connected to each other as peers.
@@ -40,6 +41,7 @@ var HealthzCheck = e2etypes.Evaluator{
 }
 
 // FinishedSyncing returns whether the beacon node with the given rpc port has finished syncing.
+// FinishedSyncing返回对于给定rpc端口的beacon node是否已经结束了syncing
 var FinishedSyncing = e2etypes.Evaluator{
 	Name:       "finished_syncing_%d",
 	Policy:     policies.AllEpochs,
@@ -121,6 +123,7 @@ func peersConnect(conns ...*grpc.ClientConn) error {
 func finishedSyncing(conns ...*grpc.ClientConn) error {
 	conn := conns[0]
 	syncNodeClient := eth.NewNodeClient(conn)
+	// 获取sync status
 	syncStatus, err := syncNodeClient.GetSyncStatus(context.Background(), &emptypb.Empty{})
 	if err != nil {
 		return err
