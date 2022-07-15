@@ -20,6 +20,7 @@ func e2eMinimal(t *testing.T, cfgo ...types.E2EConfigOpt) *testRunner {
 	require.NoError(t, e2eParams.Init(t, e2eParams.StandardBeaconCount))
 
 	// Run for 12 epochs if not in long-running to confirm long-running has no issues.
+	// 运行12个epochs，如果不是long-running，用来确保long-running没有问题
 	var err error
 	epochsToRun := 10
 	epochStr, longRunning := os.LookupEnv("E2E_EPOCHS")

@@ -56,8 +56,9 @@ type E2EConfig struct {
 // conduct the current beacon state during the E2E.
 // Evaluator定义了evaluators的结构用于在E2E中执行当前的beacon state
 type Evaluator struct {
-	Name       string
-	Policy     func(currentEpoch types.Epoch) bool
+	Name   string
+	Policy func(currentEpoch types.Epoch) bool
+	// 一系列的conns被允许传入，让evaluations检查所有nodes，如果需要的话
 	Evaluation func(conn ...*grpc.ClientConn) error // A variable amount of conns is allowed to be passed in for evaluations to check all nodes if needed.
 }
 

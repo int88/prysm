@@ -13,6 +13,7 @@ import (
 
 // PeersCheck performs a check on peer data to ensure that any connected peers
 // are not publishing invalid data.
+// PeersCheck对peer data进行检查来确保任何连接的peers都没有发布非法的data
 var PeersCheck = types.Evaluator{
 	Name:       "peers_check_epoch_%d",
 	Policy:     policies.AfterNthEpoch(0),
@@ -20,8 +21,10 @@ var PeersCheck = types.Evaluator{
 }
 
 func peersTest(conns ...*grpc.ClientConn) error {
+	// 构建debug client
 	debugClient := eth.NewDebugClient(conns[0])
 
+	// 对peers进行list
 	peerResponses, err := debugClient.ListPeers(context.Background(), &emptypb.Empty{})
 	if err != nil {
 		return err

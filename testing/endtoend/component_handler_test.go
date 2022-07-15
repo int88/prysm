@@ -86,6 +86,7 @@ func (c *componentHandler) setup() {
 	// 构建boot node
 	bootNode := components.NewBootNode()
 	g.Go(func() error {
+		// 启动bootstrap node
 		if err := bootNode.Start(ctx); err != nil {
 			return errors.Wrap(err, "failed to start bootnode")
 		}
@@ -100,6 +101,7 @@ func (c *componentHandler) setup() {
 		if err := helpers.ComponentsStarted(ctx, []e2etypes.ComponentRunner{bootNode}); err != nil {
 			return errors.Wrap(err, "sending and mining deposits require ETH1 nodes to run")
 		}
+		// 设置bootnode的enr
 		eth1Miner.SetBootstrapENR(bootNode.ENR())
 		if err := eth1Miner.Start(ctx); err != nil {
 			return errors.Wrap(err, "failed to start the ETH1 miner")

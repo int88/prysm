@@ -86,6 +86,7 @@ func (r *testRunner) run() {
 
 	if err := r.comHandler.group.Wait(); err != nil && !errors.Is(err, context.Canceled) {
 		// At the end of the main evaluator goroutine all nodes are killed, no need to fail the test.
+		// 在main evaluator goroutine的最后，所有的nodes都会被killed，不需要再fail the test
 		if strings.Contains(err.Error(), "signal: killed") {
 			return
 		}

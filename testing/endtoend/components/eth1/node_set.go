@@ -25,6 +25,7 @@ func NewNodeSet() *NodeSet {
 }
 
 // SetMinerENR sets the miner's enode, used to connect to the miner through P2P.
+// SetMinerENR设置miner的enode，用于通过P2P连接miner
 func (s *NodeSet) SetMinerENR(enr string) {
 	s.enr = enr
 }

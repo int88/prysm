@@ -14,7 +14,9 @@ import (
 )
 
 // FinalizationOccurs is an evaluator to make sure finalization is performing as it should.
+// FinalizationOccurs是一个evaluator来确保finalization按照预期的执行
 // Requires to be run after at least 4 epochs have passed.
+// 需要至少已经过了4个epochs
 var FinalizationOccurs = func(epoch ethtypes.Epoch) types.Evaluator {
 	return types.Evaluator{
 		Name:       "finalizes_at_epoch_%d",

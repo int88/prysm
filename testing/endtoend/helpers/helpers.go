@@ -60,6 +60,7 @@ func DeleteAndCreateFile(tmpPath, fileName string) (*os.File, error) {
 }
 
 // WaitForTextInFile checks a file every polling interval for the text requested.
+// WaitForTextInFile每polling interval都检查请求的text是否存在
 func WaitForTextInFile(file *os.File, text string) error {
 	d := time.Now().Add(maxPollingWaitTime)
 	ctx, cancel := context.WithDeadline(context.Background(), d)
@@ -283,6 +284,7 @@ func BeaconAPIHostnames(numConns int) []string {
 }
 
 // ComponentsStarted checks, sequentially, each provided component, blocks until all of the components are ready.
+// ComponentsStarted按序检查每个提供的component，阻塞直到所有的components都处于ready状态
 func ComponentsStarted(ctx context.Context, comps []e2etypes.ComponentRunner) error {
 	for _, comp := range comps {
 		select {
@@ -307,6 +309,7 @@ func EpochTickerStartTime(genesis *eth.Genesis) time.Time {
 }
 
 // WaitOnNodes waits on nodes to complete execution, accepts function that will be called when all nodes are ready.
+// WaitOnNodes等待nodes执行完成，接收函数，当所有nodes都处于ready的时候执行
 func WaitOnNodes(ctx context.Context, nodes []e2etypes.ComponentRunner, nodesStarted func()) error {
 	// Start nodes.
 	// 启动nodes
@@ -314,6 +317,7 @@ func WaitOnNodes(ctx context.Context, nodes []e2etypes.ComponentRunner, nodesSta
 	for _, node := range nodes {
 		node := node
 		g.Go(func() error {
+			// 启动node
 			return node.Start(ctx)
 		})
 	}
@@ -331,6 +335,7 @@ func WaitOnNodes(ctx context.Context, nodes []e2etypes.ComponentRunner, nodesSta
 		}
 		// When all nodes are done, signal the client. Client handles unresponsive components by setting up
 		// a deadline for passed in context, and this ensures that nothing breaks if function below is never called.
+		// 当所有nodes都启动的时候，通知client
 		nodesStarted()
 	}()
 

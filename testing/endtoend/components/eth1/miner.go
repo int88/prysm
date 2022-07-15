@@ -118,6 +118,7 @@ func (m *Miner) Start(ctx context.Context) error {
 		fmt.Sprintf("--http.port=%d", e2e.TestParams.Ports.Eth1RPCPort),
 		fmt.Sprintf("--ws.port=%d", e2e.TestParams.Ports.Eth1WSPort),
 		fmt.Sprintf("--authrpc.port=%d", e2e.TestParams.Ports.Eth1AuthRPCPort),
+		// 设置连接的bootnodes
 		fmt.Sprintf("--bootnodes=%s", m.bootstrapEnr),
 		fmt.Sprintf("--port=%d", e2e.TestParams.Ports.Eth1Port),
 		fmt.Sprintf("--networkid=%d", NetworkId),
@@ -199,6 +200,7 @@ func (m *Miner) Start(ctx context.Context) error {
 		return err
 	}
 	// Advancing the blocks eth1follow distance to prevent issues reading the chain.
+	// 推进eth1follow个blocks的距离来防止读取chain的问题
 	if err = WaitForBlocks(web3, store, params.BeaconConfig().Eth1FollowDistance); err != nil {
 		return fmt.Errorf("unable to advance chain: %w", err)
 	}
@@ -217,6 +219,7 @@ func (m *Miner) Start(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("failed to deploy deposit contract: %w", err)
 	}
+	// 保存deposit contract的地址
 	e2e.TestParams.ContractAddress = contractAddr
 
 	// Wait for contract to mine.
@@ -229,6 +232,7 @@ func (m *Miner) Start(ctx context.Context) error {
 	}
 
 	// Advancing the blocks another eth1follow distance to prevent issues reading the chain.
+	// 再将blocks推进eth1follow，来防止读取chain的时候有问题
 	if err = WaitForBlocks(web3, store, params.BeaconConfig().Eth1FollowDistance); err != nil {
 		return fmt.Errorf("unable to advance chain: %w", err)
 	}

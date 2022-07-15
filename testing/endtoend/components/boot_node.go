@@ -77,6 +77,7 @@ func (node *BootNode) Start(ctx context.Context) error {
 	}
 
 	// Mark node as ready.
+	// 将node标记为ready
 	close(node.started)
 	node.cmd = cmd
 

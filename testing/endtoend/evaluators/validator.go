@@ -53,7 +53,9 @@ var ValidatorSyncParticipation = types.Evaluator{
 }
 
 func validatorsAreActive(conns ...*grpc.ClientConn) error {
+	// 只拿第一个连接
 	conn := conns[0]
+	// 创建beacon chain的client
 	client := ethpb.NewBeaconChainClient(conn)
 	// Balances actually fluctuate but we just want to check initial balance.
 	// Balances事实上是在波动的，但是我们想要检查初始的balance
@@ -61,6 +63,7 @@ func validatorsAreActive(conns ...*grpc.ClientConn) error {
 		PageSize: int32(params.BeaconConfig().MinGenesisActiveValidatorCount),
 		Active:   true,
 	}
+	// 获取实际的validator的数量
 	validators, err := client.ListValidators(context.Background(), validatorRequest)
 	if err != nil {
 		return errors.Wrap(err, "failed to get validators")
@@ -106,6 +109,7 @@ func validatorsAreActive(conns ...*grpc.ClientConn) error {
 }
 
 // validatorsParticipating ensures the validators have an acceptable participation rate.
+// validatorsParticipating确保validators有一个可接受的participation rate
 func validatorsParticipating(conns ...*grpc.ClientConn) error {
 	conn := conns[0]
 	client := ethpb.NewBeaconChainClient(conn)

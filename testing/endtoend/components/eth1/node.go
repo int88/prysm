@@ -77,6 +77,7 @@ func (node *Node) Start(ctx context.Context) error {
 		fmt.Sprintf("--http.port=%d", e2e.TestParams.Ports.Eth1RPCPort+node.index),
 		fmt.Sprintf("--ws.port=%d", e2e.TestParams.Ports.Eth1WSPort+node.index),
 		fmt.Sprintf("--authrpc.port=%d", e2e.TestParams.Ports.Eth1AuthRPCPort+node.index),
+		// 连接bootnodes
 		fmt.Sprintf("--bootnodes=%s", node.enr),
 		fmt.Sprintf("--port=%d", e2e.TestParams.Ports.Eth1Port+node.index),
 		fmt.Sprintf("--networkid=%d", NetworkId),
@@ -112,6 +113,7 @@ func (node *Node) Start(ctx context.Context) error {
 		return fmt.Errorf("failed to start eth1 chain: %w", err)
 	}
 	if err = helpers.WaitForTextInFile(file, "Started P2P networking"); err != nil {
+		// 如果没有找到P2P日志，则说明eth1 chain启动存在问题
 		return fmt.Errorf("P2P log not found, this means the eth1 chain had issues starting: %w", err)
 	}
 

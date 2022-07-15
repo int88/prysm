@@ -31,7 +31,9 @@ var _ e2etypes.ComponentRunner = (*Node)(nil)
 var _ e2etypes.EngineProxy = (*Proxy)(nil)
 
 // WaitForBlocks waits for a certain amount of blocks to be mined by the ETH1 chain before returning.
+// WaitForBlocks等待特定数目的blocks被ETH1 chain挖出，在返回之前
 func WaitForBlocks(web3 *ethclient.Client, keystore *keystore.Key, blocksToWait uint64) error {
+	// 获取对应账号的nonce
 	nonce, err := web3.PendingNonceAt(context.Background(), keystore.Address)
 	if err != nil {
 		return err
@@ -57,6 +59,7 @@ func WaitForBlocks(web3 *ethclient.Client, keystore *keystore.Key, blocksToWait 
 		}
 		nonce++
 		time.Sleep(timeGapPerMiningTX)
+		// 持续获取block
 		block, err = web3.BlockByNumber(context.Background(), nil)
 		if err != nil {
 			return err

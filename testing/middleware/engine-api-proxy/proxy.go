@@ -41,6 +41,8 @@ type interceptorConfig struct {
 
 // Proxy server that sits as a middleware between an Ethereum consensus client and an execution client,
 // allowing us to modify in-flight requests and responses for testing purposes.
+// Proxy server在一个Ethereum consensus client和一个execution client之间设置一个middleware
+// 从而允许我们修改in-flight requests以及responses用于测试
 type Proxy struct {
 	cfg              *config
 	address          string
@@ -51,6 +53,7 @@ type Proxy struct {
 }
 
 // New creates a proxy server forwarding requests from a consensus client to an execution client.
+// New创建一个proxy server，将请求从一个consensus client到一个execution client
 func New(opts ...Option) (*Proxy, error) {
 	p := &Proxy{
 		cfg: &config{
@@ -88,6 +91,7 @@ func (p *Proxy) Address() string {
 }
 
 // Start a proxy server.
+// Start启动一个proxy server
 func (p *Proxy) Start(ctx context.Context) error {
 	p.srv.BaseContext = func(listener net.Listener) context.Context {
 		return ctx
@@ -124,6 +128,7 @@ func (p *Proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// If we are not intercepting the request, we proxy as normal.
+	// 如果我们不解析request，按照正常proxy
 	p.proxyRequest(requestBytes, w, r)
 }
 

@@ -22,6 +22,9 @@ import (
 // endpoint, but here we instead replace that with our own http request sink.
 // The request sink receives any requests, raw marshals them and base64-encodes them,
 // then writes them newline-delimited into a file.
+// TracingSink用来从opentracing pushes中获取HTTP requests，这意味着在e2e test中获取所有的
+// opentracing spans，Spans一般发往jaeger endpoint，但是这里我们用自己的http request sink替换它
+// request sink接收任何的requets，raw marshals以及base64-encodes它们，之后将它们以newline分割写入文件中
 //
 // The output file from this component can then be used by tools/replay-http in
 // the Prysm repository to replay requests to a jaeger collector endpoint. This
@@ -34,6 +37,7 @@ type TracingSink struct {
 }
 
 // NewTracingSink initializes the tracing sink component.
+// NewTracingSink初始化tracing sink组件
 func NewTracingSink(endpoint string) *TracingSink {
 	return &TracingSink{
 		started:  make(chan struct{}, 1),
