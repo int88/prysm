@@ -29,6 +29,7 @@ var _ e2etypes.MultipleComponentRunners = (*BeaconNodeSet)(nil)
 var _ e2etypes.BeaconNodeSet = (*BeaconNodeSet)(nil)
 
 // BeaconNodeSet represents set of beacon nodes.
+// BeaconNodeSet代表一系列的beacon nodes
 type BeaconNodeSet struct {
 	e2etypes.ComponentRunner
 	config  *e2etypes.E2EConfig
@@ -161,6 +162,7 @@ type BeaconNode struct {
 }
 
 // NewBeaconNode creates and returns a beacon node.
+// NewBeaconNode创建并且运行一个beacon node
 func NewBeaconNode(config *e2etypes.E2EConfig, index int, enr string) *BeaconNode {
 	return &BeaconNode{
 		config:  config,

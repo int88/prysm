@@ -60,24 +60,30 @@ var BootNodeLogFileName = "bootnode.log"
 var TracingRequestSinkFileName = "tracing-http-requests.log.gz"
 
 // BeaconNodeLogFileName is the file name used for the beacon chain node logs.
+// BeaconNodeLogFileName是文件名用于beacon chain的节点日志
 var BeaconNodeLogFileName = "beacon-%d.log"
 
 // ValidatorLogFileName is the file name used for the validator client logs.
+// ValidatorLogFileName是文件名用于validator client的节点日志
 var ValidatorLogFileName = "vals-%d.log"
 
 // StandardBeaconCount is a global constant for the count of beacon nodes of standard E2E tests.
+// StandardBeaconCount是标准的E2E测试的beacon nodes的数目
 var StandardBeaconCount = 2
 
 // StandardLighthouseNodeCount is a global constant for the count of lighthouse beacon nodes of standard E2E tests.
 var StandardLighthouseNodeCount = 2
 
 // DepositCount is the amount of deposits E2E makes on a separate validator client.
+// DepositCount是E2E在一个独立的validator client中配置的deposits的数目
 var DepositCount = uint64(64)
 
 // NumOfExecEngineTxs is the number of transaction sent to the execution engine.
+// NumOfExecEngineTxs是发送给execution engine的tx的数目
 var NumOfExecEngineTxs = uint64(200)
 
 // ExpectedExecEngineTxsThreshold is the portion of execution engine transactions we expect to find in blocks.
+// ExpectedExecEngineTxsThreshold是我们期望在blocks中找到的execution engine transactions的数目
 var ExpectedExecEngineTxsThreshold = 0.5
 
 // Base port values.

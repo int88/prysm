@@ -28,6 +28,7 @@ type Node struct {
 }
 
 // NewNode creates and returns ETH1 node.
+// NewNode创建并且返回ETH1节点
 func NewNode(index int, enr string) *Node {
 	return &Node{
 		started: make(chan struct{}, 1),
@@ -54,6 +55,7 @@ func (node *Node) Start(ctx context.Context) error {
 		}
 	}
 
+	// 初始化geth的数据库
 	initCmd := exec.CommandContext(
 		ctx,
 		binaryPath,
@@ -99,6 +101,7 @@ func (node *Node) Start(ctx context.Context) error {
 	// work in our setup.
 	// 如果我们正在测试sync，geth需要通过full sync运行，以为你snap sync在我们的设置中不work
 	if node.index == e2e.TestParams.BeaconNodeCount+e2e.TestParams.LighthouseBeaconNodeCount {
+		// 设置同步模式为full
 		args = append(args, []string{"--syncmode=full"}...)
 	}
 	runCmd := exec.CommandContext(ctx, binaryPath, args...) // #nosec G204 -- Safe
@@ -118,6 +121,7 @@ func (node *Node) Start(ctx context.Context) error {
 	}
 
 	// Mark node as ready.
+	// 将节点标记为ready
 	close(node.started)
 	node.cmd = runCmd
 
@@ -125,6 +129,7 @@ func (node *Node) Start(ctx context.Context) error {
 }
 
 // Started checks whether ETH1 node is started and ready to be queried.
+// Started检测是否ETH1节点已经启动并且准备被查询
 func (node *Node) Started() <-chan struct{} {
 	return node.started
 }

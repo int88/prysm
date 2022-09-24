@@ -18,6 +18,7 @@ import (
 var _ e2etypes.ComponentRunner = (*BootNode)(nil)
 
 // BootNode represents boot node.
+// BootNode代表boot node
 type BootNode struct {
 	e2etypes.ComponentRunner
 	started chan struct{}

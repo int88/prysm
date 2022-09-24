@@ -112,6 +112,8 @@ func (p *Proxy) Start(ctx context.Context) error {
 
 // ServeHTTP requests from a consensus client to an execution client, modifying in-flight requests
 // and/or responses as desired. It also processes any backed-up requests.
+// ServeHTTP 从一个consensus client到execution client的请求，修改in-flight requests以及responses如果需要的话
+// 它也处理任何的backed-up requests
 func (p *Proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	requestBytes, err := parseRequestBytes(r)
 	if err != nil {

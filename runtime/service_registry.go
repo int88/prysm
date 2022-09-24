@@ -13,6 +13,7 @@ var log = logrus.WithField("prefix", "registry")
 
 // Service is a struct that can be registered into a ServiceRegistry for
 // easy dependency management.
+// Service是一个可以注册到ServiceRegistry的结构，用于简单的依赖管理
 type Service interface {
 	// Start spawns any goroutines required by the service.
 	Start()

@@ -68,6 +68,7 @@ type ComponentRunner interface {
 	// Start starts a component.
 	Start(ctx context.Context) error
 	// Started checks whether an underlying component is started and ready to be queried.
+	// Started检查底层的component是否启动并且准备好用于查询
 	Started() <-chan struct{}
 	// Pause pauses a component.
 	Pause() error

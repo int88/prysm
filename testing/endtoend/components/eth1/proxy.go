@@ -42,12 +42,15 @@ func (s *ProxySet) Start(ctx context.Context) error {
 	nodes := make([]e2etypes.ComponentRunner, totalNodeCount)
 	for i := 0; i < totalNodeCount; i++ {
 		// We start indexing nodes from 1 because the miner has an implicit 0 index.
+		// 我们对nodes的索引从1开始，因为miner有一个默认的0的索引
 		nodes[i] = NewProxy(i)
 	}
 	s.proxies = nodes
 
 	// Wait for all nodes to finish their job (blocking).
 	// Once nodes are ready passed in handler function will be called.
+	// 等待所有的nodes结束他们的工作（阻塞）
+	// 一旦节点准备好了，传入的handler函数会被调用
 	return helpers.WaitOnNodes(ctx, nodes, func() {
 		// All nodes started, close channel, so that all services waiting on a set, can proceed.
 		close(s.started)

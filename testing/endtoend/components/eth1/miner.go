@@ -32,6 +32,7 @@ const (
 )
 
 // Miner represents an ETH1 node which mines blocks.
+// Miner代表一个ETH1节点，它会mines blocks
 type Miner struct {
 	e2etypes.ComponentRunner
 	started      chan struct{}
