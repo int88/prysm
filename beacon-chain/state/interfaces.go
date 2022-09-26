@@ -14,6 +14,7 @@ import (
 )
 
 // BeaconState has read and write access to beacon state methods.
+// BeaconState有读写权限，对于beacon state方法
 type BeaconState interface {
 	SpecParametersProvider
 	ReadOnlyBeaconState

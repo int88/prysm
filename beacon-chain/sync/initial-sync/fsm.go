@@ -33,6 +33,7 @@ type stateID uint8
 type eventID uint8
 
 // stateMachineManager is a collection of managed FSMs.
+// stateMachineManager是一系列的管理的FSMs
 type stateMachineManager struct {
 	keys     []types.Slot
 	machines map[types.Slot]*stateMachine
@@ -40,7 +41,9 @@ type stateMachineManager struct {
 }
 
 // stateMachine holds a state of a single block processing FSM.
+// stateMachine维护单个的block processing FSM的状态
 // Each FSM allows deterministic state transitions: State(S) x Event(E) -> Actions (A), State(S').
+// 每个FSM允许确定性的状态转换：State(s) x Event(E)到Actions(A), State(S')
 type stateMachine struct {
 	smm     *stateMachineManager
 	start   types.Slot
@@ -54,6 +57,7 @@ type stateMachine struct {
 type eventHandlerFn func(m *stateMachine, data interface{}) (newState stateID, err error)
 
 // newStateMachineManager returns fully initialized state machine manager.
+// newStateMachineManager返回完全初始化的state machine manager
 func newStateMachineManager() *stateMachineManager {
 	return &stateMachineManager{
 		keys:     make([]types.Slot, 0, lookaheadSteps),
@@ -120,6 +124,7 @@ func (smm *stateMachineManager) recalculateMachineAttribs() {
 }
 
 // findStateMachine returns a state machine for a given start slot (if exists).
+// findStateMachine返回一个state machine，对于一个给定的start slot（如果存在的话）
 func (smm *stateMachineManager) findStateMachine(startSlot types.Slot) (*stateMachine, bool) {
 	fsm, ok := smm.machines[startSlot]
 	return fsm, ok
@@ -162,12 +167,15 @@ func (m *stateMachine) setState(name stateID) {
 }
 
 // trigger invokes the event handler on a given state machine.
+// trigger在一个给定的state machin调用event handler
 func (m *stateMachine) trigger(event eventID, data interface{}) error {
+	// 获取对应的handler
 	handlers, ok := m.smm.handlers[m.state]
 	if !ok {
 		return fmt.Errorf("no event handlers registered for event: %v, state: %v", event, m.state)
 	}
 	if handlerFn, ok := handlers[event]; ok {
+		// 调用handler进行处理
 		state, err := handlerFn(m, data)
 		if err != nil {
 			return err

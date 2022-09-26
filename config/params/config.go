@@ -116,15 +116,16 @@ type BeaconChainConfig struct {
 	DomainApplicationBuilder          [4]byte // DomainApplicationBuilder defines the BLS signature domain for application builder.
 
 	// Prysm constants.
-	GweiPerEth                     uint64        // GweiPerEth is the amount of gwei corresponding to 1 eth.
-	BLSSecretKeyLength             int           // BLSSecretKeyLength defines the expected length of BLS secret keys in bytes.
-	BLSPubkeyLength                int           // BLSPubkeyLength defines the expected length of BLS public keys in bytes.
-	DefaultBufferSize              int           // DefaultBufferSize for channels across the Prysm repository.
-	ValidatorPrivkeyFileName       string        // ValidatorPrivKeyFileName specifies the string name of a validator private key file.
-	WithdrawalPrivkeyFileName      string        // WithdrawalPrivKeyFileName specifies the string name of a withdrawal private key file.
-	RPCSyncCheck                   time.Duration // Number of seconds to query the sync service, to find out if the node is synced or not.
-	EmptySignature                 [96]byte      // EmptySignature is used to represent a zeroed out BLS Signature.
-	DefaultPageSize                int           // DefaultPageSize defines the default page size for RPC server request.
+	GweiPerEth                uint64        // GweiPerEth is the amount of gwei corresponding to 1 eth.
+	BLSSecretKeyLength        int           // BLSSecretKeyLength defines the expected length of BLS secret keys in bytes.
+	BLSPubkeyLength           int           // BLSPubkeyLength defines the expected length of BLS public keys in bytes.
+	DefaultBufferSize         int           // DefaultBufferSize for channels across the Prysm repository.
+	ValidatorPrivkeyFileName  string        // ValidatorPrivKeyFileName specifies the string name of a validator private key file.
+	WithdrawalPrivkeyFileName string        // WithdrawalPrivKeyFileName specifies the string name of a withdrawal private key file.
+	RPCSyncCheck              time.Duration // Number of seconds to query the sync service, to find out if the node is synced or not.
+	EmptySignature            [96]byte      // EmptySignature is used to represent a zeroed out BLS Signature.
+	DefaultPageSize           int           // DefaultPageSize defines the default page size for RPC server request.
+	// MaxPeersToSync描述了在round robin sync中peers的数目
 	MaxPeersToSync                 int           // MaxPeersToSync describes the limit for number of peers in round robin sync.
 	SlotsPerArchivedPoint          types.Slot    // SlotsPerArchivedPoint defines the number of slots per one archived point.
 	GenesisCountdownInterval       time.Duration // How often to log the countdown until the genesis time is reached.

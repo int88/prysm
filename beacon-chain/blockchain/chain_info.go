@@ -21,6 +21,7 @@ import (
 
 // ChainInfoFetcher defines a common interface for methods in blockchain service which
 // directly retrieve chain info related data.
+// ChainInfoFetcher定义了一个公共接口，在blockchain service中直接获取chain相关的信息
 type ChainInfoFetcher interface {
 	HeadFetcher
 	FinalizationFetcher

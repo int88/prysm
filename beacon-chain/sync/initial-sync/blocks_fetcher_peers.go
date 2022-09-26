@@ -62,6 +62,7 @@ func (f *blocksFetcher) selectFailOverPeer(excludedPID peer.ID, peers []peer.ID)
 }
 
 // waitForMinimumPeers spins and waits up until enough peers are available.
+// waitForMinimumPeers自旋并且等待有足够的peers可用
 func (f *blocksFetcher) waitForMinimumPeers(ctx context.Context) ([]peer.ID, error) {
 	required := params.BeaconConfig().MaxPeersToSync
 	if flags.Get().MinimumSyncPeers < required {
@@ -86,6 +87,7 @@ func (f *blocksFetcher) waitForMinimumPeers(ctx context.Context) ([]peer.ID, err
 		log.WithFields(logrus.Fields{
 			"suitable": len(peers),
 			"required": required}).Info("Waiting for enough suitable peers before syncing")
+		// 等待五秒
 		time.Sleep(handshakePollingInterval)
 	}
 }

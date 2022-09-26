@@ -27,12 +27,14 @@ import (
 var _ runtime.Service = (*Service)(nil)
 
 // blockchainService defines the interface for interaction with block chain service.
+// blockchainService定义了和block chain service进行交互的接口
 type blockchainService interface {
 	blockchain.BlockReceiver
 	blockchain.ChainInfoFetcher
 }
 
 // Config to set up the initial sync service.
+// 用于初始化sync service的配置
 type Config struct {
 	P2P           p2p.P2P
 	DB            db.ReadOnlyDatabase
@@ -54,6 +56,7 @@ type Service struct {
 
 // NewService configures the initial sync service responsible for bringing the node up to the
 // latest head of the blockchain.
+// NewService配置初始的sync service，负责将node启动并且到blockchain的latest head
 func NewService(ctx context.Context, cfg *Config) *Service {
 	ctx, cancel := context.WithCancel(ctx)
 	s := &Service{

@@ -18,6 +18,7 @@ import (
 )
 
 // P2P represents the full p2p interface composed of all of the sub-interfaces.
+// P2P代表一个完整的p2p接口，由所有的sub-interfaces组成
 type P2P interface {
 	Broadcaster
 	SetStreamHandler

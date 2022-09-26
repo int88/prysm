@@ -70,6 +70,8 @@ type blocksQueueConfig struct {
 
 // blocksQueue is a priority queue that serves as a intermediary between block fetchers (producers)
 // and block processing goroutine (consumer). Consumer can rely on order of incoming blocks.
+// blocksQueue是一个优先级队列，它作为block fetcher（生产者）和block processing goroutine（消费者）之间
+// 的桥梁，消费者可以依赖incoming blocks的有序性
 type blocksQueue struct {
 	ctx                 context.Context
 	cancel              context.CancelFunc
@@ -98,6 +100,7 @@ func newBlocksQueue(ctx context.Context, cfg *blocksQueueConfig) *blocksQueue {
 
 	blocksFetcher := cfg.blocksFetcher
 	if blocksFetcher == nil {
+		// 没有配置block fetcher的话，则新建之
 		blocksFetcher = newBlocksFetcher(ctx, &blocksFetcherConfig{
 			chain: cfg.chain,
 			p2p:   cfg.p2p,
@@ -114,6 +117,7 @@ func newBlocksQueue(ctx context.Context, cfg *blocksQueueConfig) *blocksQueue {
 	}
 
 	// Override fetcher's sync mode.
+	// 覆盖fetcher的同步模式
 	blocksFetcher.mode = cfg.mode
 
 	queue := &blocksQueue{
@@ -129,6 +133,7 @@ func newBlocksQueue(ctx context.Context, cfg *blocksQueueConfig) *blocksQueue {
 	}
 
 	// Configure state machines.
+	// 配置状态机
 	queue.smm = newStateMachineManager()
 	queue.smm.addEventHandler(eventTick, stateNew, queue.onScheduleEvent(ctx))
 	queue.smm.addEventHandler(eventDataReceived, stateScheduled, queue.onDataReceivedEvent(ctx))
@@ -245,6 +250,7 @@ func (q *blocksQueue) loop() {
 				return
 			}
 			// Update state of an epoch for which data is received.
+			// 用接收到的数据更新一个epoch的state
 			if fsm, ok := q.smm.findStateMachine(response.start); ok {
 				if err := fsm.trigger(eventDataReceived, response); err != nil {
 					log.WithFields(logrus.Fields{
@@ -257,6 +263,7 @@ func (q *blocksQueue) loop() {
 				}
 			}
 		case <-q.ctx.Done():
+			// Context被关闭了，跳出goroutine
 			log.Debug("Context closed, exiting goroutine (blocks queue)")
 			return
 		}
@@ -303,6 +310,7 @@ func (q *blocksQueue) onScheduleEvent(ctx context.Context) eventHandlerFn {
 }
 
 // onDataReceivedEvent is an event called when data is received from fetcher.
+// onDataReceivedEvent是在从fetcher获取到数据之后被调用的event
 func (q *blocksQueue) onDataReceivedEvent(ctx context.Context) eventHandlerFn {
 	return func(m *stateMachine, in interface{}) (stateID, error) {
 		if ctx.Err() != nil {

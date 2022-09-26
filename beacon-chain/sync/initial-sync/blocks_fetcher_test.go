@@ -47,6 +47,7 @@ func TestBlocksFetcher_InitStartStop(t *testing.T) {
 	t.Run("check for leaked goroutines", func(t *testing.T) {
 		err := fetcher.start()
 		require.NoError(t, err)
+		// 应该阻塞直到所有资源都被回收
 		fetcher.stop() // should block up until all resources are reclaimed
 		select {
 		case <-fetcher.requestResponses():

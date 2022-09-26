@@ -29,6 +29,7 @@ const (
 	// peersPercentagePerRequest caps percentage of peers to be used in a request.
 	peersPercentagePerRequest = 0.75
 	// handshakePollingInterval is a polling interval for checking the number of received handshakes.
+	// handshakePollingInterval是轮询周期用于检查接收到的handshakes的数目
 	handshakePollingInterval = 5 * time.Second
 	// peerLocksPollingInterval is a polling interval for checking if there are stale peer locks.
 	peerLocksPollingInterval = 5 * time.Minute
@@ -55,6 +56,7 @@ var (
 )
 
 // blocksFetcherConfig is a config to setup the block fetcher.
+// blocksFetcherConfig是一个配置用于建立block fetcher
 type blocksFetcherConfig struct {
 	chain                    blockchainService
 	p2p                      p2p.P2P
@@ -64,8 +66,10 @@ type blocksFetcherConfig struct {
 }
 
 // blocksFetcher is a service to fetch chain data from peers.
+// blocksFetcher是一个service用于从peers获取chain data
 // On an incoming requests, requested block range is evenly divided
 // among available peers (for fair network load distribution).
+// 对于到来的请求，请求的block range会在可用的peers间平分（为了公平的网络负载）
 type blocksFetcher struct {
 	sync.Mutex
 	ctx             context.Context
@@ -98,6 +102,7 @@ type fetchRequestParams struct {
 }
 
 // fetchRequestResponse is a combined type to hold results of both successful executions and errors.
+// fetchRequestResponse是一个组合类型用于维护成功的执行以及错误的结果
 // Valid usage pattern will be to check whether result's `err` is nil, before using `blocks`.
 type fetchRequestResponse struct {
 	pid    peer.ID
@@ -112,6 +117,7 @@ func newBlocksFetcher(ctx context.Context, cfg *blocksFetcherConfig) *blocksFetc
 	blocksPerSecond := flags.Get().BlockBatchLimit
 	allowedBlocksBurst := flags.Get().BlockBatchLimitBurstFactor * flags.Get().BlockBatchLimit
 	// Allow fetcher to go almost to the full burst capacity (less a single batch).
+	// 允许fetcher到达full burst capacity（少于单个batch）
 	rateLimiter := leakybucket.NewCollector(
 		float64(blocksPerSecond), int64(allowedBlocksBurst-blocksPerSecond),
 		false /* deleteEmptyBuckets */)
@@ -141,6 +147,7 @@ func newBlocksFetcher(ctx context.Context, cfg *blocksFetcherConfig) *blocksFetc
 }
 
 // start boots up the fetcher, which starts listening for incoming fetch requests.
+// start启动fetcher，对于incoming fetch requests开始监听
 func (f *blocksFetcher) start() error {
 	select {
 	case <-f.ctx.Done():
@@ -169,10 +176,12 @@ func (f *blocksFetcher) requestResponses() <-chan *fetchRequestResponse {
 }
 
 // loop is a main fetcher loop, listens for incoming requests/cancellations, forwards outgoing responses.
+// loop是一个主的fetcher loop，监听incoming requests/cancellations，转发outgoing responses
 func (f *blocksFetcher) loop() {
 	defer close(f.quit)
 
 	// Wait for all loop's goroutines to finish, and safely release resources.
+	// 等待所有的loop的goroutine结束，并且安全地释放资源
 	wg := &sync.WaitGroup{}
 	defer func() {
 		wg.Wait()
@@ -180,6 +189,7 @@ func (f *blocksFetcher) loop() {
 	}()
 
 	// Periodically remove stale peer locks.
+	// 阶段性的移除老的peer locks
 	go func() {
 		ticker := time.NewTicker(peerLocksPollingInterval)
 		defer ticker.Stop()
@@ -196,6 +206,7 @@ func (f *blocksFetcher) loop() {
 	// Main loop.
 	for {
 		// Make sure there is are available peers before processing requests.
+		// 在处理请求之前确保有可用的peers
 		if _, err := f.waitForMinimumPeers(f.ctx); err != nil {
 			log.Error(err)
 		}
@@ -237,6 +248,7 @@ func (f *blocksFetcher) scheduleRequest(ctx context.Context, start types.Slot, c
 }
 
 // handleRequest parses fetch request and forwards it to response builder.
+// handleRequest解析fetch request并且转发它到response builder
 func (f *blocksFetcher) handleRequest(ctx context.Context, start types.Slot, count uint64) *fetchRequestResponse {
 	ctx, span := trace.StartSpan(ctx, "initialsync.handleRequest")
 	defer span.End()
@@ -274,6 +286,7 @@ func (f *blocksFetcher) handleRequest(ctx context.Context, start types.Slot, cou
 }
 
 // fetchBlocksFromPeer fetches blocks from a single randomly selected peer.
+// fetchBlocksFromPeer从单个的，随机选择的peer中获取blocks
 func (f *blocksFetcher) fetchBlocksFromPeer(
 	ctx context.Context,
 	start types.Slot, count uint64,
@@ -289,6 +302,7 @@ func (f *blocksFetcher) fetchBlocksFromPeer(
 		Step:      1,
 	}
 	for i := 0; i < len(peers); i++ {
+		// 请求blocks
 		blocks, err := f.requestBlocks(ctx, req, peers[i])
 		if err == nil {
 			f.p2p.Peers().Scorers().BlockProviderScorer().Touch(peers[i])

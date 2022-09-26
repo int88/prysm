@@ -19,6 +19,7 @@ import (
 var epochsSinceFinalitySaveHotStateDB = types.Epoch(100)
 
 // BlockReceiver interface defines the methods of chain service for receiving and processing new blocks.
+// BlockReceiver接口定义了chain service的方法用于接收以及处理新的blocks
 type BlockReceiver interface {
 	ReceiveBlock(ctx context.Context, block interfaces.SignedBeaconBlock, blockRoot [32]byte) error
 	ReceiveBlockBatch(ctx context.Context, blocks []interfaces.SignedBeaconBlock, blkRoots [][32]byte) error
