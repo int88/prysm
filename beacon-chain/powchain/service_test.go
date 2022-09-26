@@ -136,6 +136,7 @@ func TestStart_OK(t *testing.T) {
 	hook := logTest.NewGlobal()
 	beaconDB := dbutil.SetupDB(t)
 	testAcc, err := mock.Setup()
+	// 不能建立模拟的backend
 	require.NoError(t, err, "Unable to set up simulated backend")
 	server, endpoint, err := mockPOW.SetupRPCServer()
 	require.NoError(t, err)
@@ -226,6 +227,7 @@ func TestService_Eth1Synced(t *testing.T) {
 		WithDatabase(beaconDB),
 	)
 	require.NoError(t, err, "unable to setup web3 ETH1.0 chain service")
+	// 设置默认的mocks
 	web3Service = setDefaultMocks(web3Service)
 	web3Service.depositContractCaller, err = contracts.NewDepositContractCaller(testAcc.ContractAddr, testAcc.Backend)
 	require.NoError(t, err)
@@ -540,6 +542,7 @@ func TestNewService_EarliestVotingBlock(t *testing.T) {
 	web3Service.chainStartData.GenesisTime = currTime
 
 	// With a current slot of zero, only request follow_blocks behind.
+	// 一个当前的slot是0，只请求follow_blocks
 	blk, err = web3Service.determineEarliestVotingBlock(context.Background(), followBlock)
 	require.NoError(t, err)
 	assert.Equal(t, followBlock-conf.Eth1FollowDistance, blk, "unexpected earliest voting block")
@@ -567,6 +570,7 @@ func TestNewService_Eth1HeaderRequLimit(t *testing.T) {
 		WithHttpEndpoints([]string{endpoint}),
 		WithDepositContractAddress(testAcc.ContractAddr),
 		WithDatabase(beaconDB),
+		// 设置header request limit
 		WithEth1HeaderRequestLimit(uint64(150)),
 	)
 	require.NoError(t, err, "unable to setup web3 ETH1.0 chain service")

@@ -329,12 +329,14 @@ func SendAndMineDeposits(keystorePath string, validatorNum, offset int, partial 
 		return err
 	}
 	defer client.Close()
+	// 构建ethclient
 	web3 := ethclient.NewClient(client)
 
 	keystoreBytes, err := os.ReadFile(keystorePath) // #nosec G304
 	if err != nil {
 		return err
 	}
+	// 发送deposits
 	if err = sendDeposits(web3, keystoreBytes, validatorNum, offset, partial); err != nil {
 		return err
 	}

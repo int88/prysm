@@ -197,6 +197,7 @@ type testETHRPC struct{}
 func (*testETHRPC) NoArgsRets() {}
 
 func (*testETHRPC) ChainId(_ context.Context) *hexutil.Big {
+	// 返回chain ID
 	return (*hexutil.Big)(big.NewInt(int64(params.BeaconConfig().DepositChainID)))
 }
 

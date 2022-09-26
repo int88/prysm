@@ -15,6 +15,7 @@ func AllEpochs(_ types.Epoch) bool {
 }
 
 // OnEpoch runs only for the provided epoch.
+// OnEpoch只在提供的epoch上运行
 func OnEpoch(epoch types.Epoch) func(types.Epoch) bool {
 	return func(currentEpoch types.Epoch) bool {
 		return currentEpoch == epoch

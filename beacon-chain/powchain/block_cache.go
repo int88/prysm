@@ -69,6 +69,7 @@ type headerCache struct {
 
 // newHeaderCache creates a new block cache for storing/accessing headerInfo from
 // memory.
+// newHeaderCache创建一个新的block cache用于存储/访问headerInfo，从内存中
 func newHeaderCache() *headerCache {
 	return &headerCache{
 		hashCache:   cache.NewFIFO(hashKeyFn),

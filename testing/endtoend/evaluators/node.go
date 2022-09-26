@@ -60,6 +60,7 @@ var AllNodesHaveSameHead = e2etypes.Evaluator{
 
 func healthzCheck(conns ...*grpc.ClientConn) error {
 	count := len(conns)
+	// 对beacon node以及validator进行健康检查
 	for i := 0; i < count; i++ {
 		resp, err := http.Get(fmt.Sprintf("http://localhost:%d/healthz", e2e.TestParams.Ports.PrysmBeaconNodeMetricsPort+i))
 		if err != nil {
@@ -106,6 +107,7 @@ func peersConnect(conns ...*grpc.ClientConn) error {
 	}
 	ctx := context.Background()
 	for _, conn := range conns {
+		// 构建eth node client
 		nodeClient := eth.NewNodeClient(conn)
 		peersResp, err := nodeClient.ListPeers(ctx, &emptypb.Empty{})
 		if err != nil {

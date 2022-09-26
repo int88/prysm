@@ -46,7 +46,8 @@ var depositEndEpoch = depositActivationStartEpoch + types.Epoch(math.Ceil(float6
 // ProcessesDepositsInBlocks ensures the expected amount of deposits are accepted into blocks.
 // ProcessesDepositsInBlocks确保期望数目的deposits已经被blocks接受
 var ProcessesDepositsInBlocks = e2etypes.Evaluator{
-	Name:       "processes_deposits_in_blocks_epoch_%d",
+	Name: "processes_deposits_in_blocks_epoch_%d",
+	// 我们期望所有的deposits都进入到一个epoch
 	Policy:     policies.OnEpoch(depositsInBlockStart), // We expect all deposits to enter in one epoch.
 	Evaluation: processesDepositsInBlocks,
 }
@@ -101,6 +102,7 @@ var ValidatorsVoteWithTheMajority = e2etypes.Evaluator{
 func processesDepositsInBlocks(conns ...*grpc.ClientConn) error {
 	conn := conns[0]
 	client := ethpb.NewBeaconChainClient(conn)
+	// 获取chain header
 	chainHead, err := client.GetChainHead(context.Background(), &emptypb.Empty{})
 	if err != nil {
 		return errors.Wrap(err, "failed to get chain head")
@@ -194,6 +196,7 @@ func activatesDepositedValidators(conns ...*grpc.ClientConn) error {
 		PageSize:  int32(params.BeaconConfig().MinGenesisActiveValidatorCount),
 		PageToken: "1",
 	}
+	// 获取validators
 	validators, err := client.ListValidators(context.Background(), validatorRequest)
 	if err != nil {
 		return errors.Wrap(err, "failed to get validators")
@@ -367,6 +370,7 @@ func validatorsVoteWithTheMajority(conns ...*grpc.ClientConn) error {
 	}
 
 	req := &ethpb.ListBlocksRequest{QueryFilter: &ethpb.ListBlocksRequest_Epoch{Epoch: chainHead.HeadEpoch.Sub(1)}}
+	// 获取beacon blocks
 	blks, err := client.ListBeaconBlocks(context.Background(), req)
 	if err != nil {
 		return errors.Wrap(err, "failed to get blocks from beacon-chain")
@@ -394,13 +398,17 @@ func validatorsVoteWithTheMajority(conns ...*grpc.ClientConn) error {
 		slotsPerVotingPeriod := params.E2ETestConfig().SlotsPerEpoch.Mul(uint64(params.E2ETestConfig().EpochsPerEth1VotingPeriod))
 
 		// We treat epoch 1 differently from other epoch for two reasons:
+		// 我们将epoch 1和其他epoch区别对待
 		// - this evaluator is not executed for epoch 0 so we have to calculate the first slot differently
+		// - 这个evaluator对于epoch 0不执行，这样我们可以区别计算first slot
 		// - for some reason the vote for the first slot in epoch 1 is 0x000... so we skip this slot
+		// - 因为一些原因，对于epoch 1的第一个slot的投票是0x000... 因此我们跳过这个slot
 		var isFirstSlotInVotingPeriod bool
 		if chainHead.HeadEpoch == 1 && slot%params.BeaconConfig().SlotsPerEpoch == 0 {
 			continue
 		}
 		// We skipped the first slot so we treat the second slot as the starting slot of epoch 1.
+		// 我们跳过第一个slot，这样我们对待第二个slot作为epoch 1的starting slot
 		if chainHead.HeadEpoch == 1 {
 			isFirstSlotInVotingPeriod = slot%params.BeaconConfig().SlotsPerEpoch == 1
 		} else {

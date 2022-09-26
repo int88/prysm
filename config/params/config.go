@@ -72,8 +72,9 @@ type BeaconChainConfig struct {
 
 	// Ethereum PoW parameters.
 	// Ethereum的PoW参数
-	DepositChainID         uint64 `yaml:"DEPOSIT_CHAIN_ID" spec:"true"`         // DepositChainID of the eth1 network. This used for replay protection.
-	DepositNetworkID       uint64 `yaml:"DEPOSIT_NETWORK_ID" spec:"true"`       // DepositNetworkID of the eth1 network. This used for replay protection.
+	DepositChainID   uint64 `yaml:"DEPOSIT_CHAIN_ID" spec:"true"`   // DepositChainID of the eth1 network. This used for replay protection.
+	DepositNetworkID uint64 `yaml:"DEPOSIT_NETWORK_ID" spec:"true"` // DepositNetworkID of the eth1 network. This used for replay protection.
+	// DepositContractAddress是部署deposit contract的地址
 	DepositContractAddress string `yaml:"DEPOSIT_CONTRACT_ADDRESS" spec:"true"` // DepositContractAddress is the address of the deposit contract.
 
 	// Validator parameters.

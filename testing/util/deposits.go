@@ -27,10 +27,13 @@ var privKeys []bls.SecretKey
 var t *trie.SparseMerkleTrie
 
 // DeterministicDepositsAndKeys returns the entered amount of deposits and secret keys.
+// DeterministicDepositsAndKeys返回输入的deposits的数目以及secret keys
 // The deposits are configured such that for deposit n the validator
 // account is key n and the withdrawal account is key n+1.  As such,
 // if all secret keys for n validators are required then numDeposits
 // should be n+1.
+// deposits被配置为，对于deposit n，validator是key n并且withdrawal account为key n+1
+// 对于n validators所有secret keys都是需要的，之后numDeposits应该为n+1
 func DeterministicDepositsAndKeys(numDeposits uint64) ([]*ethpb.Deposit, []bls.SecretKey, error) {
 	resetCache()
 	lock.Lock()

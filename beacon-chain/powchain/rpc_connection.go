@@ -22,6 +22,7 @@ func (s *Service) setupExecutionClientConnections(ctx context.Context, currEndpo
 		return errors.Wrap(err, "could not dial execution node")
 	}
 	// Attach the clients to the service struct.
+	// 将clients关联到service结构
 	fetcher := ethclient.NewClient(client)
 	s.rpcClient = client
 	s.httpLogger = fetcher
@@ -35,6 +36,7 @@ func (s *Service) setupExecutionClientConnections(ctx context.Context, currEndpo
 	s.depositContractCaller = depositContractCaller
 
 	// Ensure we have the correct chain and deposit IDs.
+	// 确保我们有正确的chain以及deposit IDs
 	if err := ensureCorrectExecutionChain(ctx, fetcher); err != nil {
 		client.Close()
 		return errors.Wrap(err, "could not make initial request to verify execution chain ID")

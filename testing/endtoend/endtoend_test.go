@@ -186,7 +186,9 @@ func (r *testRunner) testDepositsAndTx(ctx context.Context, g *errgroup.Group,
 	keystorePath string, requiredNodes []e2etypes.ComponentRunner) {
 	minGenesisActiveCount := int(params.BeaconConfig().MinGenesisActiveValidatorCount)
 	// prysm web3signer doesn't support deposits
+	// prysm的web3signer不支持deposits
 	r.config.UseWeb3RemoteSigner = false
+	// 构建depositCheckValidator
 	depositCheckValidator := components.NewValidatorNode(r.config, int(e2e.DepositCount), e2e.TestParams.BeaconNodeCount, minGenesisActiveCount)
 	g.Go(func() error {
 		if err := helpers.ComponentsStarted(ctx, requiredNodes); err != nil {
@@ -195,6 +197,7 @@ func (r *testRunner) testDepositsAndTx(ctx context.Context, g *errgroup.Group,
 		go func() {
 			if r.config.TestDeposits {
 				log.Info("Running deposit tests")
+				// 发送并且挖掘Deposit
 				err := components.SendAndMineDeposits(keystorePath, int(e2e.DepositCount), minGenesisActiveCount, false /* partial */)
 				if err != nil {
 					r.t.Fatal(err)
@@ -464,6 +467,7 @@ func (r *testRunner) defaultEndToEndRun() error {
 		return errors.New("incorrect component type")
 	}
 
+	// 测试deposits以及tx
 	r.testDepositsAndTx(ctx, g, eth1Miner.KeystorePath(), []e2etypes.ComponentRunner{beaconNodes})
 
 	// Create GRPC connection to beacon nodes.

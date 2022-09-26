@@ -190,9 +190,11 @@ func (c *componentHandler) setup() {
 		if config.UseWeb3RemoteSigner {
 			comps = append(comps, web3RemoteSigner)
 		}
+		// 等待组件启动
 		if err := helpers.ComponentsStarted(ctx, comps); err != nil {
 			return errors.Wrap(err, "validator nodes require components to run")
 		}
+		// 启动validator
 		if err := validatorNodes.Start(ctx); err != nil {
 			return errors.Wrap(err, "failed to start validator nodes")
 		}

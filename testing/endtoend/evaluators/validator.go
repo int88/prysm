@@ -129,6 +129,7 @@ func validatorsParticipating(conns ...*grpc.ClientConn) error {
 		expected = 0.95
 	}
 	if partRate < expected {
+		// 获取beacon state
 		st, err := debugClient.GetBeaconStateV2(context.Background(), &eth.StateRequestV2{StateId: []byte("head")})
 		if err != nil {
 			return errors.Wrap(err, "failed to get beacon state")

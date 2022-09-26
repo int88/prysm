@@ -61,6 +61,7 @@ func WithHttpEndpointsAndJWTSecret(endpointStrings []string, secret []byte) Opti
 }
 
 // WithDepositContractAddress for the deposit contract.
+// WithDepositContractAddress用于deposit contract
 func WithDepositContractAddress(addr common.Address) Option {
 	return func(s *Service) error {
 		s.cfg.depositContractAddr = addr
@@ -77,6 +78,7 @@ func WithDatabase(database db.HeadAccessDatabase) Option {
 }
 
 // WithDepositCache for caching deposits.
+// WithDepositCache用于缓存的deposits
 func WithDepositCache(cache *depositcache.DepositCache) Option {
 	return func(s *Service) error {
 		s.cfg.depositCache = cache
@@ -85,6 +87,7 @@ func WithDepositCache(cache *depositcache.DepositCache) Option {
 }
 
 // WithStateNotifier for subscribing to state changes.
+// WithStateNotifier用于订阅状态的变更
 func WithStateNotifier(notifier statefeed.Notifier) Option {
 	return func(s *Service) error {
 		s.cfg.stateNotifier = notifier
@@ -101,6 +104,7 @@ func WithStateGen(gen *stategen.State) Option {
 }
 
 // WithEth1HeaderRequestLimit to set the upper limit of eth1 header requests.
+// WithEth1HeaderRequestLimit用于设置eth1 header requests的upper limit
 func WithEth1HeaderRequestLimit(limit uint64) Option {
 	return func(s *Service) error {
 		s.cfg.eth1HeaderReqLimit = limit

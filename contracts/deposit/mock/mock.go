@@ -24,6 +24,8 @@ var (
 
 // TestAccount represents a test account in the simulated backend,
 // through which we can perform actions on the eth1.0 chain.
+// TestAccount代表了一个test account，在模拟的后端，通过它我们可以在eth1.0 chain
+// 中执行actions
 type TestAccount struct {
 	Addr         common.Address
 	ContractAddr common.Address
@@ -33,6 +35,7 @@ type TestAccount struct {
 }
 
 // Setup creates the simulated backend with the deposit contract deployed
+// Setup创建模拟的backend，其中部署了deposit contract
 func Setup() (*TestAccount, error) {
 	genesis := make(core.GenesisAlloc)
 	privKey, err := crypto.GenerateKey()
@@ -56,6 +59,7 @@ func Setup() (*TestAccount, error) {
 	}
 	startingBalance, _ := new(big.Int).SetString("100000000000000000000000000000000000000", 10)
 	genesis[addr] = core.GenesisAccount{Balance: startingBalance}
+	// 构建模拟的backend
 	backend := backends.NewSimulatedBackend(genesis, 210000000000)
 
 	contractAddr, _, contract, err := DeployDepositContract(txOpts, backend)

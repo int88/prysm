@@ -66,6 +66,7 @@ var (
 	// amount of times before we log the status of the eth1 dial attempt.
 	logThreshold = 8
 	// period to log chainstart related information
+	// 用于记录chainstart相关信息的时间间隔
 	logPeriod = 1 * time.Minute
 	// threshold of how old we will accept an eth1 node's head to be.
 	eth1Threshold = 20 * time.Minute
@@ -93,6 +94,7 @@ type ChainInfoFetcher interface {
 }
 
 // POWBlockFetcher defines a struct that can retrieve mainchain blocks.
+// POWBlockFetcher定义了一个结构可以获取mainchain blocks
 type POWBlockFetcher interface {
 	BlockTimeByHeight(ctx context.Context, height *big.Int) (uint64, error)
 	BlockByTimestamp(ctx context.Context, time uint64) (*types.HeaderInfo, error)
@@ -101,6 +103,7 @@ type POWBlockFetcher interface {
 }
 
 // Chain defines a standard interface for the powchain service in Prysm.
+// Chain定义了一个标准接口用于Prysm的powchain服务
 type Chain interface {
 	ChainStartFetcher
 	ChainInfoFetcher
@@ -109,6 +112,8 @@ type Chain interface {
 
 // RPCDataFetcher defines a subset of methods conformed to by ETH1.0 RPC clients for
 // fetching eth1 data from the clients.
+// RPCDataFetcher定义了一系列和ETH1.0 RPC clients相符的方法，用于通过clients获取
+// eth1数据
 type RPCDataFetcher interface {
 	Close()
 	HeaderByNumber(ctx context.Context, number *big.Int) (*gethTypes.Header, error)
@@ -138,10 +143,13 @@ type config struct {
 
 // Service fetches important information about the canonical
 // eth1 chain via a web3 endpoint using an ethclient.
+// Service获取关于canonical eth1 chain的关键信息，通过使用ethclient的web3 endpoint
 // The beacon chain requires synchronization with the eth1 chain's current
 // block hash, block number, and access to logs within the
 // Validator Registration Contract on the eth1 chain to kick off the beacon
 // chain's validator registration process.
+// beacon chain需要和eth1 chain当前的block hash，block number以及访问Validator
+// Registration Contract的logs来启动beacon chain的validator注册流程
 type Service struct {
 	connectedETH1           bool
 	isRunning               bool
@@ -225,6 +233,7 @@ func NewService(ctx context.Context, opts ...Option) (*Service, error) {
 }
 
 // Start the powchain service's main event loop.
+// 启动powchain service的main event loop
 func (s *Service) Start() {
 	if err := s.setupExecutionClientConnections(s.ctx, s.cfg.currHttpEndpoint); err != nil {
 		log.WithError(err).Error("Could not connect to execution endpoint")
@@ -246,6 +255,7 @@ func (s *Service) Start() {
 	s.isRunning = true
 
 	// Poll the execution client connection and fallback if errors occur.
+	// 轮询execution client连接并且fallback如果有错误发生的话
 	s.pollConnectionStatus(s.ctx)
 
 	// Check transition configuration for the engine API client in the background.
@@ -620,6 +630,7 @@ func (s *Service) initPOWService() {
 }
 
 // run subscribes to all the services for the eth1 chain.
+// run订阅eth1 chain的所有services
 func (s *Service) run(done <-chan struct{}) {
 	s.runError = nil
 
@@ -741,6 +752,7 @@ func (s *Service) cacheBlockHeaders(start, end uint64) error {
 }
 
 // Determines the earliest voting block from which to start caching all our previous headers from.
+// 决定最早的voting block，从它开始缓存所有之前的headers
 func (s *Service) determineEarliestVotingBlock(ctx context.Context, followBlock uint64) (uint64, error) {
 	genesisTime := s.chainStartData.GenesisTime
 	currSlot := slots.CurrentSlot(genesisTime)
@@ -768,6 +780,7 @@ func (s *Service) determineEarliestVotingBlock(ctx context.Context, followBlock 
 
 // initializes our service from the provided eth1data object by initializing all the relevant
 // fields and data.
+// 初始化我们的service，通过提供的eth1data对象，来初始化所有相关的字段和数据
 func (s *Service) initializeEth1Data(ctx context.Context, eth1DataInDB *ethpb.ETH1ChainData) error {
 	// The node has no eth1data persisted on disk, so we exit and instead
 	// request from contract logs.
