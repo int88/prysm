@@ -81,6 +81,7 @@ type ComponentRunner interface {
 type MultipleComponentRunners interface {
 	ComponentRunner
 	// ComponentAtIndex returns the component at index
+	// ComponentAtIndex返回在索引index的组件
 	ComponentAtIndex(i int) (ComponentRunner, error)
 	// PauseAtIndex pauses the grouped component element at the desired index.
 	PauseAtIndex(i int) error

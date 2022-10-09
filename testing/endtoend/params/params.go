@@ -57,6 +57,7 @@ var TestParams *params
 var BootNodeLogFileName = "bootnode.log"
 
 // TracingRequestSinkFileName is the file name for writing raw trace requests.
+// TracingRequestSinkFileName是文件名用于写入raw trace requests
 var TracingRequestSinkFileName = "tracing-http-requests.log.gz"
 
 // BeaconNodeLogFileName is the file name used for the beacon chain node logs.

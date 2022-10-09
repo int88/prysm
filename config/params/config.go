@@ -201,8 +201,10 @@ type BeaconChainConfig struct {
 }
 
 // InitializeForkSchedule initializes the schedules forks baked into the config.
+// InitializeForkSchedule初始化schedules forks，
 func (b *BeaconChainConfig) InitializeForkSchedule() {
 	// Reset Fork Version Schedule.
+	// 重置Frok Version Schedule
 	b.ForkVersionSchedule = configForkSchedule(b)
 	b.ForkVersionNames = configForkNames(b)
 }

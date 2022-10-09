@@ -16,17 +16,21 @@ import (
 )
 
 type componentHandler struct {
-	t                        *testing.T
-	cfg                      *e2etypes.E2EConfig
-	ctx                      context.Context
-	done                     func()
-	group                    *errgroup.Group
-	keygen                   e2etypes.ComponentRunner
-	tracingSink              e2etypes.ComponentRunner
-	web3Signer               e2etypes.ComponentRunner
-	bootnode                 e2etypes.ComponentRunner
-	eth1Miner                e2etypes.ComponentRunner
-	eth1Proxy                e2etypes.MultipleComponentRunners
+	t      *testing.T
+	cfg    *e2etypes.E2EConfig
+	ctx    context.Context
+	done   func()
+	group  *errgroup.Group
+	keygen e2etypes.ComponentRunner
+	// 用于prysm发出的tracing
+	tracingSink e2etypes.ComponentRunner
+	web3Signer  e2etypes.ComponentRunner
+	bootnode    e2etypes.ComponentRunner
+	// eth1的miner
+	eth1Miner e2etypes.ComponentRunner
+	// eth1的proxy
+	eth1Proxy e2etypes.MultipleComponentRunners
+	// eth1的nodes
 	eth1Nodes                e2etypes.MultipleComponentRunners
 	beaconNodes              e2etypes.MultipleComponentRunners
 	validatorNodes           e2etypes.MultipleComponentRunners
@@ -63,6 +67,7 @@ func (c *componentHandler) setup() {
 		keyGen = components.NewKeystoreGenerator()
 
 		// Generate lighthouse keystores.
+		// 生成lighthouse keystores
 		g.Go(func() error {
 			return keyGen.Start(ctx)
 		})

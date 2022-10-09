@@ -256,17 +256,23 @@ func NewKeystoreGenerator() *KeystoreGenerator {
 }
 
 func (k *KeystoreGenerator) Start(_ context.Context) error {
+	// validator的数目
 	validatorNum := int(params.BeaconConfig().MinGenesisActiveValidatorCount)
+	// lighthouse beacon node的数目
 	lighthouseBeaconNum := e2e.TestParams.LighthouseBeaconNodeCount
 	prysmBeaconNum := e2e.TestParams.BeaconNodeCount
+	// beacon node的总数
 	beaconNodeNum := lighthouseBeaconNum + prysmBeaconNum
 	if validatorNum%beaconNodeNum != 0 {
+		// validatorNum必须能被beacon node整除
 		return errors.New("validator count is not easily divisible by beacon node count")
 	}
+	// 确定每个beacon node的validator的数目
 	validatorsPerNode := validatorNum / beaconNodeNum
 
 	for i := 0; i < lighthouseBeaconNum; i++ {
 		offsetIdx := i + prysmBeaconNum
+		// 设置keystores
 		_, err := setupKeystores(i, validatorsPerNode*offsetIdx, validatorsPerNode)
 		if err != nil {
 			return err
@@ -274,6 +280,7 @@ func (k *KeystoreGenerator) Start(_ context.Context) error {
 		log.Infof("Generated lighthouse keystores from %d onwards with %d keys", validatorsPerNode*offsetIdx, validatorsPerNode)
 	}
 	// Mark component as ready.
+	// 将component标记为ready
 	close(k.started)
 	return nil
 }

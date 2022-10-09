@@ -53,18 +53,22 @@ func NewWeb3RemoteSigner() *Web3RemoteSigner {
 
 // Start the web3remotesigner component with a keystore populated with the deterministic validator
 // keys.
+// 启动web3remotesigner组件，有一个keystore，用确定性的validator keys填充
 func (w *Web3RemoteSigner) Start(ctx context.Context) error {
 	w.ctx = ctx
 
+	// 找到web3signer的路径
 	binaryPath, found := bazel.FindBinary("", "web3signer")
 	if !found {
 		return errors.New("web3signer binary not found")
 	}
 
+	// keystore的路径
 	keystorePath := path.Join(bazel.TestTmpDir(), "web3signerkeystore")
 	if err := writeKeystoreKeys(ctx, keystorePath, params.BeaconConfig().MinGenesisActiveValidatorCount); err != nil {
 		return err
 	}
+	// websigner的路径
 	websignerDataDir := path.Join(bazel.TestTmpDir(), "web3signerdata")
 	if err := os.MkdirAll(websignerDataDir, 0750); err != nil {
 		return err
@@ -78,6 +82,7 @@ func (w *Web3RemoteSigner) Start(ctx context.Context) error {
 	network := "minimal"
 	if len(testDir) > 0 {
 		// A file path to yaml config file is acceptable network argument.
+		// 一个到yaml配置文件的路径，有network相关的参数
 		network = testDir
 	}
 
@@ -147,6 +152,7 @@ func (w *Web3RemoteSigner) Stop() error {
 }
 
 // monitorStart by polling server until it returns a 200 at /upcheck.
+// monitorStart通过轮询server，直到它返回一个200.在/upcheck接口
 func (w *Web3RemoteSigner) monitorStart() {
 	client := &http.Client{}
 	for {
@@ -157,6 +163,7 @@ func (w *Web3RemoteSigner) monitorStart() {
 		res, err := client.Do(req)
 		_ = err
 		if res != nil && res.StatusCode == 200 {
+			// 如果返回了res并且StatusCode为200，则标志启动
 			close(w.started)
 			return
 		}
@@ -261,6 +268,7 @@ func (w *Web3RemoteSigner) createTestnetDir() (string, error) {
 	configPath := filepath.Join(testNetDir, "config.yaml")
 	rawYaml := params.E2ETestConfigYaml()
 	// Add in deposit contract in yaml
+	// 在yaml中添加deposit contract
 	depContractStr := fmt.Sprintf("\nDEPOSIT_CONTRACT_ADDRESS: %#x", e2e.TestParams.ContractAddress)
 	rawYaml = append(rawYaml, []byte(depContractStr)...)
 

@@ -62,11 +62,14 @@ func DeleteAndCreateFile(tmpPath, fileName string) (*os.File, error) {
 // WaitForTextInFile checks a file every polling interval for the text requested.
 // WaitForTextInFile每polling interval都检查请求的text是否存在
 func WaitForTextInFile(file *os.File, text string) error {
+	// 轮询时间是1分钟
 	d := time.Now().Add(maxPollingWaitTime)
 	ctx, cancel := context.WithDeadline(context.Background(), d)
 	defer cancel()
 
 	// Use a ticker with a deadline to poll a given file.
+	// 有一个ticker并且有一个deadline用于轮询一个给定的文件
+	// 500ms轮询一次
 	ticker := time.NewTicker(filePollingInterval)
 	defer ticker.Stop()
 	for {
@@ -83,6 +86,7 @@ func WaitForTextInFile(file *os.File, text string) error {
 			fileScanner.Buffer(buf, maxFileBufferSize)
 			for fileScanner.Scan() {
 				scanned := fileScanner.Text()
+				// 扫描的内容中是否包含指定的text
 				if strings.Contains(scanned, text) {
 					return nil
 				}
@@ -90,6 +94,7 @@ func WaitForTextInFile(file *os.File, text string) error {
 			if err := fileScanner.Err(); err != nil {
 				return err
 			}
+			// 重新回到文件的开头
 			_, err := file.Seek(0, io.SeekStart)
 			if err != nil {
 				return err

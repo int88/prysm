@@ -27,6 +27,7 @@ type BootNode struct {
 }
 
 // NewBootNode creates and returns boot node.
+// NewBootNode创建并且返回boot node
 func NewBootNode() *BootNode {
 	return &BootNode{
 		started: make(chan struct{}, 1),
@@ -63,6 +64,7 @@ func (node *BootNode) Start(ctx context.Context) error {
 	cmd := exec.CommandContext(ctx, binaryPath, args...) // #nosec G204 -- Safe
 	cmd.Stdout = stdOutFile
 	cmd.Stderr = stdOutFile
+	// 启动boot node
 	log.Infof("Starting boot node with flags: %s", strings.Join(args[1:], " "))
 	if err = cmd.Start(); err != nil {
 		return fmt.Errorf("failed to start beacon node: %w", err)
@@ -115,12 +117,15 @@ func enrFromLogFile(name string) (string, error) {
 	searchText := "Running bootnode: "
 	startIdx := strings.Index(contents, searchText)
 	if startIdx == -1 {
+		// 没有找到ENR text
 		return "", fmt.Errorf("did not find ENR text in %s", contents)
 	}
 	startIdx += len(searchText)
 	endIdx := strings.Index(contents[startIdx:], " prefix=bootnode")
 	if endIdx == -1 {
+		// 不能找到enr
 		return "", fmt.Errorf("did not find ENR text in %s", contents)
 	}
+	// 返回enr
 	return contents[startIdx : startIdx+endIdx-1], nil
 }
