@@ -54,6 +54,7 @@ type ValidatorNodeSet struct {
 }
 
 // NewValidatorNodeSet creates and returns a set of validator nodes.
+// NewValidatorNodeSet创建并且返回一系列的validator nodes
 func NewValidatorNodeSet(config *e2etypes.E2EConfig) *ValidatorNodeSet {
 	return &ValidatorNodeSet{
 		config:  config,
@@ -65,6 +66,7 @@ func NewValidatorNodeSet(config *e2etypes.E2EConfig) *ValidatorNodeSet {
 // Start启动配置的validators的数目，同时发送以及mining它们的deposits
 func (s *ValidatorNodeSet) Start(ctx context.Context) error {
 	// Always using genesis count since using anything else would be difficult to test for.
+	// 总是使用genesis count，因为使用其他的会非常难测试
 	validatorNum := int(params.BeaconConfig().MinGenesisActiveValidatorCount)
 	prysmBeaconNodeNum := e2e.TestParams.BeaconNodeCount
 	beaconNodeNum := prysmBeaconNodeNum + e2e.TestParams.LighthouseBeaconNodeCount
@@ -202,6 +204,7 @@ func (v *ValidatorNode) Start(ctx context.Context) error {
 	beaconRPCPort := e2e.TestParams.Ports.PrysmBeaconNodeRPCPort + index
 	if beaconRPCPort >= e2e.TestParams.Ports.PrysmBeaconNodeRPCPort+e2e.TestParams.BeaconNodeCount {
 		// Point any extra validator clients to a node we know is running.
+		// 将任何额外的validator clients指向一个我们知道在运行的node
 		beaconRPCPort = e2e.TestParams.Ports.PrysmBeaconNodeRPCPort
 	}
 
@@ -295,6 +298,7 @@ func (v *ValidatorNode) Start(ctx context.Context) error {
 	}
 
 	// Mark node as ready.
+	// 将节点标记为ready
 	close(v.started)
 	v.cmd = cmd
 
@@ -360,6 +364,7 @@ func sendDeposits(web3 *ethclient.Client, keystoreBytes []byte, num, offset int,
 	}
 	txOps.GasLimit = depositGasLimit
 	txOps.Context = context.Background()
+	// 获取对应地址的nonce
 	nonce, err := web3.PendingNonceAt(context.Background(), txOps.From)
 	if err != nil {
 		return err
@@ -407,6 +412,7 @@ func sendDeposits(web3 *ethclient.Client, keystoreBytes []byte, num, offset int,
 			// 发送transaction到contract失败
 			return errors.Wrap(err, "unable to send transaction to contract")
 		}
+		// 增加nonce
 		txOps.Nonce = txOps.Nonce.Add(txOps.Nonce, big.NewInt(1))
 	}
 	return nil

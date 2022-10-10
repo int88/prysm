@@ -44,6 +44,7 @@ func NewComponentHandler(cfg *e2etypes.E2EConfig, t *testing.T) *componentHandle
 
 func (c *componentHandler) setup() {
 	t, config := c.t, c.cfg
+	// shard的索引
 	t.Logf("Shard index: %d\n", e2e.TestParams.TestShardIndex)
 	t.Logf("Starting time: %s\n", time.Now().String())
 	t.Logf("Log Path: %s\n", e2e.TestParams.LogPath)
@@ -104,6 +105,7 @@ func (c *componentHandler) setup() {
 	eth1Miner := eth1.NewMiner()
 	g.Go(func() error {
 		if err := helpers.ComponentsStarted(ctx, []e2etypes.ComponentRunner{bootNode}); err != nil {
+			// 发送以及mining deposits需要ETH1的节点运行
 			return errors.Wrap(err, "sending and mining deposits require ETH1 nodes to run")
 		}
 		// 设置bootnode的enr
@@ -122,6 +124,7 @@ func (c *componentHandler) setup() {
 		if err := helpers.ComponentsStarted(ctx, []e2etypes.ComponentRunner{eth1Miner}); err != nil {
 			return errors.Wrap(err, "sending and mining deposits require ETH1 nodes to run")
 		}
+		// 设置miner的ENR
 		eth1Nodes.SetMinerENR(eth1Miner.ENR())
 		if err := eth1Nodes.Start(ctx); err != nil {
 			return errors.Wrap(err, "failed to start ETH1 nodes")
@@ -134,6 +137,7 @@ func (c *componentHandler) setup() {
 		if err := helpers.ComponentsStarted(ctx, []e2etypes.ComponentRunner{eth1Nodes}); err != nil {
 			return errors.Wrap(err, "sending and mining deposits require ETH1 nodes to run")
 		}
+		// 发送并且挖掘deposits
 		if err := components.SendAndMineDeposits(eth1Miner.KeystorePath(), minGenesisActiveCount, 0, true /* partial */); err != nil {
 			return errors.Wrap(err, "failed to send and mine deposits")
 		}
@@ -174,6 +178,7 @@ func (c *componentHandler) setup() {
 	c.beaconNodes = beaconNodes
 
 	if multiClientActive {
+		// 启动lighthouse nodes
 		lighthouseNodes = components.NewLighthouseBeaconNodes(config)
 		g.Go(func() error {
 			if err := helpers.ComponentsStarted(ctx, []e2etypes.ComponentRunner{eth1Nodes, proxies, bootNode, beaconNodes}); err != nil {
@@ -209,6 +214,7 @@ func (c *componentHandler) setup() {
 
 	if multiClientActive {
 		// Lighthouse Validator nodes.
+		// 轻量的validator nodes
 		lighthouseValidatorNodes = components.NewLighthouseValidatorNodeSet(config)
 		g.Go(func() error {
 			if err := helpers.ComponentsStarted(ctx, []e2etypes.ComponentRunner{keyGen, lighthouseNodes}); err != nil {

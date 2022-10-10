@@ -70,6 +70,7 @@ func New(opts ...Option) (*Proxy, error) {
 		}
 	}
 	if p.cfg.destinationUrl == nil {
+		// 必须提供一个destination address，对于请求的代理
 		return nil, errors.New("must provide a destination address for request proxying")
 	}
 	mux := http.NewServeMux()
@@ -121,6 +122,7 @@ func (p *Proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// Check if we need to intercept the request with a custom response.
+	// 检查是否我们需要截取请求并且返回一个custom response
 	hasIntercepted, err := p.interceptIfNeeded(requestBytes, w, r)
 	if err != nil {
 		p.cfg.logger.WithError(err).Error("Could not intercept request")
@@ -211,11 +213,13 @@ func (p *Proxy) interceptIfNeeded(requestBytes []byte, w http.ResponseWriter, r 
 }
 
 // Create a new proxy request to the execution client.
+// 创建一个新的proxy request到execution client
 func (p *Proxy) proxyRequest(requestBytes []byte, w http.ResponseWriter, r *http.Request) {
 	jreq, err := unmarshalRPCObject(requestBytes)
 	if err != nil {
 		p.cfg.logger.WithError(err).Error("Could not unmarshal request")
 		// Continue and mark it as unknown.
+		// 继续并且将它标记为unknown
 		jreq = &jsonRPCObject{Method: "unknown"}
 	}
 	p.cfg.logger.Infof("Forwarding %s request for method %s to %s", r.Method, jreq.Method, p.cfg.destinationUrl.String())
@@ -233,6 +237,7 @@ func (p *Proxy) proxyRequest(requestBytes []byte, w http.ResponseWriter, r *http
 	}()
 
 	// Pipe the proxy responseGen to the original caller.
+	// 将proxy  responseGen导入到original caller
 	if _, err = io.Copy(w, proxyRes.Body); err != nil {
 		p.cfg.logger.WithError(err).Error("Could not copy proxy request body")
 		return
@@ -250,6 +255,7 @@ func (p *Proxy) sendHttpRequest(req *http.Request, requestBytes []byte) (*http.R
 	proxyReq.Body = ioutil.NopCloser(bytes.NewBuffer(requestBytes))
 
 	// Required proxy headers for forwarding JSON-RPC requests to the execution client.
+	// 需要的proxy headers用于转发JSON-RPC请求到execution client
 	proxyReq.Header.Set("Host", req.Host)
 	proxyReq.Header.Set("X-Forwarded-For", req.RemoteAddr)
 	proxyReq.Header.Set("Content-Type", "application/json")
@@ -267,6 +273,7 @@ func (p *Proxy) sendHttpRequest(req *http.Request, requestBytes []byte) (*http.R
 }
 
 // Peek into the bytes of an HTTP request's body.
+// 窥探一个HTTP请求的body的字节
 func parseRequestBytes(req *http.Request) ([]byte, error) {
 	requestBytes, err := ioutil.ReadAll(req.Body)
 	if err != nil {

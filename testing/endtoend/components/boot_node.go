@@ -93,6 +93,7 @@ func (node *BootNode) Started() <-chan struct{} {
 }
 
 // Pause pauses the component and its underlying process.
+// Pause暂停component以及底层的进程
 func (node *BootNode) Pause() error {
 	return node.cmd.Process.Signal(syscall.SIGSTOP)
 }

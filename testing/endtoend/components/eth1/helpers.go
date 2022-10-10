@@ -12,9 +12,11 @@ import (
 )
 
 // NetworkId is the ID of the ETH1 chain.
+// NetworkId是ETH1 chain的ID
 const NetworkId = 1337
 
 // KeystorePassword is the password used to decrypt ETH1 keystores.
+// KeystorePassword是用于解密ETH1 keystores的密码
 const KeystorePassword = "password"
 
 const minerPasswordFile = "password.txt"
@@ -49,6 +51,7 @@ func WaitForBlocks(web3 *ethclient.Client, keystore *keystore.Key, blocksToWait 
 	finishBlock := block.NumberU64() + blocksToWait
 
 	for block.NumberU64() <= finishBlock {
+		// 发送transaction
 		spamTX := types.NewTransaction(nonce, keystore.Address, big.NewInt(0), 21000, big.NewInt(1e6), []byte{})
 		signed, err := types.SignTx(spamTX, types.NewEIP155Signer(chainID), keystore.PrivateKey)
 		if err != nil {
@@ -58,6 +61,7 @@ func WaitForBlocks(web3 *ethclient.Client, keystore *keystore.Key, blocksToWait 
 			return err
 		}
 		nonce++
+		// 等待250ms
 		time.Sleep(timeGapPerMiningTX)
 		// 持续获取block
 		block, err = web3.BlockByNumber(context.Background(), nil)

@@ -43,6 +43,7 @@ type Miner struct {
 }
 
 // NewMiner creates and returns an ETH1 node miner.
+// NewMiner创建并且返回一个ETH1 node miner
 func NewMiner() *Miner {
 	return &Miner{
 		started: make(chan struct{}, 1),
@@ -60,6 +61,7 @@ func (m *Miner) ENR() string {
 }
 
 // SetBootstrapENR sets the bootstrap record.
+// SetBootstrapENR设置bootstrap的record
 func (m *Miner) SetBootstrapENR(bootstrapEnr string) {
 	m.bootstrapEnr = bootstrapEnr
 }
@@ -76,6 +78,7 @@ func (m *Miner) Start(ctx context.Context) error {
 
 	eth1Path := path.Join(e2e.TestParams.TestPath, "eth1data/miner/")
 	// Clear out potentially existing dir to prevent issues.
+	// 清理可能存在的dir来防止issues
 	if _, err := os.Stat(eth1Path); !os.IsNotExist(err) {
 		if err = os.RemoveAll(eth1Path); err != nil {
 			return err
@@ -178,6 +181,7 @@ func (m *Miner) Start(ctx context.Context) error {
 		return fmt.Errorf("P2P log not found, this means the eth1 chain had issues starting: %w", err)
 	}
 
+	// 获取miner的enode
 	enode, err := enodeFromLogFile(file.Name())
 	if err != nil {
 		return err
@@ -192,6 +196,7 @@ func (m *Miner) Start(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("failed to connect to ipc: %w", err)
 	}
+	// 一个ethereum的client
 	web3 := ethclient.NewClient(client)
 
 	// Deploy the contract.
@@ -229,6 +234,7 @@ func (m *Miner) Start(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
+		// 等到部署cotnract的tx被挖出，否则等待100ms
 		time.Sleep(timeGapPerTX)
 	}
 

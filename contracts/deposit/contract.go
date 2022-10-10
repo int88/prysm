@@ -31,8 +31,11 @@ const DepositContractABI = "[{\"inputs\":[],\"stateMutability\":\"nonpayable\",\
 // DepositContract is an auto generated Go binding around an Ethereum contract.
 // DepositContract是一个自动生成的Go binding，对于一个Ethereum contract
 type DepositContract struct {
+	// 对于contract只读的binding
 	DepositContractCaller     // Read-only binding to the contract
+	// 对于contract只写的binding
 	DepositContractTransactor // Write-only binding to the contract
+	// 对于contract events的Log filter
 	DepositContractFilterer   // Log filterer for contract events
 }
 

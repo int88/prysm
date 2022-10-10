@@ -19,6 +19,7 @@ type NodeSet struct {
 }
 
 // NewNodeSet creates and returns a set of Eth1 nodes.
+// NewNodeSet创建并且返回一系列的Eth1 nodes
 func NewNodeSet() *NodeSet {
 	return &NodeSet{
 		started: make(chan struct{}, 1),
@@ -39,6 +40,7 @@ func (s *NodeSet) Start(ctx context.Context) error {
 	// 我们想要每个beacon node都连接到它自己的Eth1 node
 	// We start up one Eth1 node less than the beacon node count because the first
 	// beacon node will connect to the already existing Eth1 miner.
+	// 我们启动的的Eth1节点的数量少于beacon node count，因为第一个beacon node会连接已经存在的Eth1 miner
 	totalNodeCount := e2e.TestParams.BeaconNodeCount + e2e.TestParams.LighthouseBeaconNodeCount - 1
 	nodes := make([]e2etypes.ComponentRunner, totalNodeCount)
 	for i := 0; i < totalNodeCount; i++ {
@@ -61,6 +63,7 @@ func (s *NodeSet) Start(ctx context.Context) error {
 }
 
 // Started checks whether beacon node set is started and all nodes are ready to be queried.
+// Started见擦汗是否beacon node set已经启动了并且所有nodes都准备好用于query
 func (s *NodeSet) Started() <-chan struct{} {
 	return s.started
 }

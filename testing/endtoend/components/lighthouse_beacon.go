@@ -41,6 +41,7 @@ func (s *LighthouseBeaconNodeSet) SetENR(enr string) {
 }
 
 // NewLighthouseBeaconNodes creates and returns a set of lighthouse beacon nodes.
+// NewLighthouseBeaconNodes创建并且返回一系列的lighthouse beacon nodes
 func NewLighthouseBeaconNodes(config *e2etypes.E2EConfig) *LighthouseBeaconNodeSet {
 	return &LighthouseBeaconNodeSet{
 		config:  config,
@@ -137,6 +138,7 @@ func (s *LighthouseBeaconNodeSet) ComponentAtIndex(i int) (e2etypes.ComponentRun
 }
 
 // LighthouseBeaconNode represents a lighthouse beacon node.
+// LighthouseBeaconNode代表了一个lighthouse beacon node
 type LighthouseBeaconNode struct {
 	e2etypes.ComponentRunner
 	config  *e2etypes.E2EConfig
@@ -157,6 +159,7 @@ func NewLighthouseBeaconNode(config *e2etypes.E2EConfig, index int, enr string) 
 }
 
 // Start starts a fresh beacon node, connecting to all passed in beacon nodes.
+// Start启动一个新的beacon node，连接到所有传入的beacon nodes
 func (node *LighthouseBeaconNode) Start(ctx context.Context) error {
 	binaryPath, found := bazel.FindBinary("external/lighthouse", "lighthouse")
 	if !found {
@@ -203,6 +206,7 @@ func (node *LighthouseBeaconNode) Start(ctx context.Context) error {
 	}
 	cmd := exec.CommandContext(ctx, binaryPath, args...) /* #nosec G204 */
 	// Write stdout and stderr to log files.
+	// 将stdout和stderr写入到log文件
 	stdout, err := os.Create(path.Join(e2e.TestParams.LogPath, fmt.Sprintf("lighthouse_beacon_node_%d_stdout.log", index)))
 	if err != nil {
 		return err
@@ -231,6 +235,7 @@ func (node *LighthouseBeaconNode) Start(ctx context.Context) error {
 	}
 
 	// Mark node as ready.
+	// 将node标记为ready
 	close(node.started)
 	node.cmd = cmd
 

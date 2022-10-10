@@ -37,6 +37,7 @@ type LighthouseValidatorNodeSet struct {
 }
 
 // NewLighthouseValidatorNodeSet creates and returns a set of lighthouse validator nodes.
+// NewLighthouseValidatorNodeSet创建并且返回一系列的lighthouse validator nodes
 func NewLighthouseValidatorNodeSet(config *e2etypes.E2EConfig) *LighthouseValidatorNodeSet {
 	return &LighthouseValidatorNodeSet{
 		config:  config,
@@ -45,6 +46,7 @@ func NewLighthouseValidatorNodeSet(config *e2etypes.E2EConfig) *LighthouseValida
 }
 
 // Start starts the configured amount of validators, also sending and mining their deposits.
+// Start启动配置数目的validators，同时发送并且挖掘它们的deposits
 func (s *LighthouseValidatorNodeSet) Start(ctx context.Context) error {
 	// Always using genesis count since using anything else would be difficult to test for.
 	validatorNum := int(params.BeaconConfig().MinGenesisActiveValidatorCount)
@@ -57,6 +59,7 @@ func (s *LighthouseValidatorNodeSet) Start(ctx context.Context) error {
 	validatorsPerNode := validatorNum / beaconNodeNum
 
 	// Create validator nodes.
+	// 创建validator nodes
 	nodes := make([]e2etypes.ComponentRunner, lighthouseBeaconNum)
 	for i := 0; i < lighthouseBeaconNum; i++ {
 		offsetIdx := i + prysmBeaconNum
@@ -151,6 +154,7 @@ type LighthouseValidatorNode struct {
 }
 
 // NewLighthouseValidatorNode creates and returns a lighthouse validator node.
+// NewLighthouseValidatorNode创建并且返回一个lighthouse validator node
 func NewLighthouseValidatorNode(config *e2etypes.E2EConfig, validatorNum, index, offset int) *LighthouseValidatorNode {
 	return &LighthouseValidatorNode{
 		config:       config,
@@ -162,6 +166,7 @@ func NewLighthouseValidatorNode(config *e2etypes.E2EConfig, validatorNum, index,
 }
 
 // Start starts a validator client.
+// Start启动一个validator client
 func (v *LighthouseValidatorNode) Start(ctx context.Context) error {
 	binaryPath, found := bazel.FindBinary("external/lighthouse", "lighthouse")
 	if !found {
@@ -173,6 +178,7 @@ func (v *LighthouseValidatorNode) Start(ctx context.Context) error {
 	beaconRPCPort := e2e.TestParams.Ports.PrysmBeaconNodeRPCPort + index
 	if beaconRPCPort >= e2e.TestParams.Ports.PrysmBeaconNodeRPCPort+e2e.TestParams.BeaconNodeCount {
 		// Point any extra validator clients to a node we know is running.
+		// 将任何额外的validator clients指向我们知道在运行的节点
 		beaconRPCPort = e2e.TestParams.Ports.PrysmBeaconNodeRPCPort
 	}
 	kPath := e2e.TestParams.TestPath + fmt.Sprintf("/lighthouse-validator-%d", index)
@@ -181,6 +187,8 @@ func (v *LighthouseValidatorNode) Start(ctx context.Context) error {
 	// In the event we want to run a LH validator with a non LH
 	// beacon node, we split half the validators to run with
 	// lighthouse and the other half with prysm.
+	// 我们想要运行一个LH validator和一个non LH beacon node，我们将一半的validators
+	// 以lighthouse运行，另一半以prysm运行
 	if v.config.UseValidatorCrossClient && index%2 == 0 {
 		httpPort = e2e.TestParams.Ports.PrysmBeaconNodeGatewayPort
 	}
@@ -221,6 +229,7 @@ func (v *LighthouseValidatorNode) Start(ctx context.Context) error {
 	}
 
 	// Mark node as ready.
+	// 将node标记为ready
 	close(v.started)
 	v.cmd = cmd
 

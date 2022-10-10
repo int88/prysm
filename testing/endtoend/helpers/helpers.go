@@ -151,6 +151,7 @@ func FindFollowingTextInFile(file *os.File, text string) (string, error) {
 }
 
 // GraffitiYamlFile outputs graffiti YAML file into a testing directory.
+// GraffitiYamlFile输出graffiti YAML文件到一个测试目录
 func GraffitiYamlFile(testDir string) (string, error) {
 	b := []byte(`default: "Rice"
 random:
@@ -296,6 +297,7 @@ func ComponentsStarted(ctx context.Context, comps []e2etypes.ComponentRunner) er
 		case <-ctx.Done():
 			return ctx.Err()
 		case <-comp.Started():
+			// 确保所有component都已经启动
 			continue
 		}
 	}

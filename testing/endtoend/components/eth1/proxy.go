@@ -53,11 +53,13 @@ func (s *ProxySet) Start(ctx context.Context) error {
 	// 一旦节点准备好了，传入的handler函数会被调用
 	return helpers.WaitOnNodes(ctx, nodes, func() {
 		// All nodes started, close channel, so that all services waiting on a set, can proceed.
+		// 所有nodes都已经启动了，关闭channel，这样所有等待这个set的services，可以进行处理
 		close(s.started)
 	})
 }
 
 // Started checks whether proxy set is started and all proxies are ready to be queried.
+// Started检查是否proxy set已经启动并且所有的proxies已经准备好被查询
 func (s *ProxySet) Started() <-chan struct{} {
 	return s.started
 }
@@ -125,6 +127,7 @@ func (s *ProxySet) ComponentAtIndex(i int) (e2etypes.ComponentRunner, error) {
 }
 
 // Proxy represents an engine-api proxy.
+// Proxy代表了一个engine-api proxy
 type Proxy struct {
 	e2etypes.ComponentRunner
 	started     chan struct{}
@@ -134,6 +137,7 @@ type Proxy struct {
 }
 
 // NewProxy creates and returns an engine-api proxy.
+// NewProxy创建并且返回一个engine-api proxy
 func NewProxy(index int) *Proxy {
 	return &Proxy{
 		started: make(chan struct{}, 1),
@@ -170,10 +174,12 @@ func (node *Proxy) Start(ctx context.Context) error {
 	log.Infof("Starting eth1 proxy %d with port: %d and file %s", node.index, e2e.TestParams.Ports.Eth1ProxyPort+node.index, f.Name())
 
 	// Set cancel into context.
+	// 在context中设置cancel
 	ctx, cancel := context.WithCancel(ctx)
 	node.cancel = cancel
 	node.engineProxy = nProxy
 	// Mark node as ready.
+	// 将node标记为ready
 	close(node.started)
 	return nProxy.Start(ctx)
 }

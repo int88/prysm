@@ -312,6 +312,7 @@ func DepositTrieFromDeposits(deposits []*ethpb.Deposit) (*trie.SparseMerkleTrie,
 }
 
 // resetCache clears out the old trie, private keys and deposits.
+// resetCache清理old trie, private keys以及deposits
 func resetCache() {
 	lock.Lock()
 	defer lock.Unlock()
@@ -338,6 +339,7 @@ func DeterministicDepositsAndKeysSameValidator(numDeposits uint64) ([]*ethpb.Dep
 	}
 
 	// If more deposits requested than cached, generate more.
+	// 如果请求的deposits超过缓存的，则生成更多
 	if numDeposits > uint64(len(cachedDeposits)) {
 		numExisting := uint64(len(cachedDeposits))
 		numRequired := numDeposits - uint64(len(cachedDeposits))
@@ -349,6 +351,7 @@ func DeterministicDepositsAndKeysSameValidator(numDeposits uint64) ([]*ethpb.Dep
 		privKeys = append(privKeys, secretKeys[:len(secretKeys)-1]...)
 
 		// Create the new deposits and add them to the trie. Always use the first validator to create deposit
+		// 创建新的deposits并且将它们添加到trie，总是使用第一个validator来创建deposit
 		for i := uint64(0); i < numRequired; i++ {
 			withdrawalCreds := hash.Hash(publicKeys[1].Marshal())
 			withdrawalCreds[0] = params.BeaconConfig().BLSWithdrawalPrefixByte
@@ -372,6 +375,7 @@ func DeterministicDepositsAndKeysSameValidator(numDeposits uint64) ([]*ethpb.Dep
 				return nil, nil, errors.Wrap(err, "could not get signing root of deposit data and domain")
 			}
 			// Always use the same validator to sign
+			// 总是使用同一个validator去签名
 			depositData := &ethpb.Deposit_Data{
 				PublicKey:             depositMessage.PublicKey,
 				Amount:                depositMessage.Amount,

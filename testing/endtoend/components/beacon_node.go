@@ -46,6 +46,7 @@ func (s *BeaconNodeSet) SetENR(enr string) {
 }
 
 // NewBeaconNodes creates and returns a set of beacon nodes.
+// NewBeaconNodes创建并且返回一系列的beacon nodes
 func NewBeaconNodes(config *e2etypes.E2EConfig) *BeaconNodeSet {
 	return &BeaconNodeSet{
 		config:  config,
@@ -54,6 +55,7 @@ func NewBeaconNodes(config *e2etypes.E2EConfig) *BeaconNodeSet {
 }
 
 // Start starts all the beacon nodes in set.
+// Start启动集合中的所有beacon nodes
 func (s *BeaconNodeSet) Start(ctx context.Context) error {
 	if s.enr == "" {
 		return errors.New("empty ENR")
@@ -79,6 +81,7 @@ func (s *BeaconNodeSet) Start(ctx context.Context) error {
 			s.config.PeerIDs = s.ids
 		}
 		// All nodes stated, close channel, so that all services waiting on a set, can proceed.
+		// 所有nodes都已经启动了，关闭channel，这样所有等待这个集合的服务，可以继续处理
 		close(s.started)
 	})
 }
@@ -236,6 +239,7 @@ func (node *BeaconNode) Start(ctx context.Context) error {
 
 	cmd := exec.CommandContext(ctx, binaryPath, args...) // #nosec G204 -- Safe
 	// Write stdout and stderr to log files.
+	// 将stdout和stderr写到log files
 	stdout, err := os.Create(path.Join(e2e.TestParams.LogPath, fmt.Sprintf("beacon_node_%d_stdout.log", index)))
 	if err != nil {
 		return err
@@ -273,6 +277,7 @@ func (node *BeaconNode) Start(ctx context.Context) error {
 	}
 
 	// Mark node as ready.
+	// 将node标记为ready
 	close(node.started)
 
 	node.cmd = cmd
@@ -280,6 +285,7 @@ func (node *BeaconNode) Start(ctx context.Context) error {
 }
 
 // Started checks whether beacon node is started and ready to be queried.
+// Started检查是否beacon node已经启动并且准备好被查询
 func (node *BeaconNode) Started() <-chan struct{} {
 	return node.started
 }
