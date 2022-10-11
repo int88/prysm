@@ -41,6 +41,8 @@ type validatorContainerJson struct {
 
 // APIMiddlewareVerifyIntegrity tests our API Middleware for the official Ethereum API.
 // This ensures our API Middleware returns good data compared to gRPC.
+// APIMiddlewareVerifyIntegrity测试我们的API Middleware，用于官方的Ethereum API
+// 这确保我们的API Middleware返回good data，跟gRPC相比较
 var APIMiddlewareVerifyIntegrity = e2etypes.Evaluator{
 	Name:       "api_middleware_verify_integrity_epoch_%d",
 	Policy:     policies.OnEpoch(helpers.AltairE2EForkEpoch),

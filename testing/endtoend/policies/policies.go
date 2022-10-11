@@ -10,6 +10,7 @@ func AfterNthEpoch(afterEpoch types.Epoch) func(epoch types.Epoch) bool {
 }
 
 // AllEpochs runs for all epochs.
+// AllEpochs在所有epochs都运行
 func AllEpochs(_ types.Epoch) bool {
 	return true
 }

@@ -296,6 +296,7 @@ func depositedValidatorsAreActive(conns ...*grpc.ClientConn) error {
 
 func proposeVoluntaryExit(conns ...*grpc.ClientConn) error {
 	conn := conns[0]
+	// 获取一个validator的client
 	valClient := ethpb.NewBeaconNodeValidatorClient(conn)
 	beaconClient := ethpb.NewBeaconChainClient(conn)
 
@@ -355,6 +356,7 @@ func validatorIsExited(conns ...*grpc.ClientConn) error {
 	if err != nil {
 		return errors.Wrap(err, "failed to get validators")
 	}
+	// validator的ExitEpoch不应该再等于FaFutureEpoch
 	if validator.ExitEpoch == params.BeaconConfig().FarFutureEpoch {
 		return fmt.Errorf("expected validator %d to be submitted for exit", exitedIndex)
 	}

@@ -85,6 +85,7 @@ func (r *testRunner) run() {
 	// 运行e2e evaluators以及tests
 	r.addEvent(r.defaultEndToEndRun)
 
+	// 等待group中的所有goroutine运行完成
 	if err := r.comHandler.group.Wait(); err != nil && !errors.Is(err, context.Canceled) {
 		// At the end of the main evaluator goroutine all nodes are killed, no need to fail the test.
 		// 在main evaluator goroutine的最后，所有的nodes都会被killed，不需要再fail the test
@@ -146,6 +147,7 @@ func (r *testRunner) waitForChainStart() {
 	// Sleep depending on the count of validators, as generating the genesis state could take some time.
 	// Sleep基于validators的数目，因为生成genesis state需要一些时间
 	time.Sleep(time.Duration(params.BeaconConfig().GenesisDelay) * time.Second)
+	// 获取beacon的日志文件
 	beaconLogFile, err := os.Open(path.Join(e2e.TestParams.LogPath, fmt.Sprintf(e2e.BeaconNodeLogFileName, 0)))
 	require.NoError(r.t, err)
 
@@ -159,6 +161,7 @@ func (r *testRunner) waitForChainStart() {
 // runEvaluators执行被赋值的evaluators
 func (r *testRunner) runEvaluators(conns []*grpc.ClientConn, tickingStartTime time.Time) error {
 	t, config := r.t, r.config
+	// 每个epoch的秒数
 	secondsPerEpoch := uint64(params.BeaconConfig().SlotsPerEpoch.Mul(params.BeaconConfig().SecondsPerSlot))
 	ticker := helpers.NewEpochTicker(tickingStartTime, secondsPerEpoch)
 	for currentEpoch := range ticker.C() {
@@ -321,10 +324,12 @@ func (r *testRunner) testCheckpointSync(ctx context.Context, g *errgroup.Group, 
 }
 
 // testBeaconChainSync creates another beacon node, and tests whether it can sync to head using previous nodes.
+// testBeaconChainSync创建另外一个beacon node，并且测试是否它可以同步到head，使用之前的nodes
 func (r *testRunner) testBeaconChainSync(ctx context.Context, g *errgroup.Group,
 	conns []*grpc.ClientConn, tickingStartTime time.Time, bootnodeEnr, minerEnr string) error {
 	t, config := r.t, r.config
 	index := e2e.TestParams.BeaconNodeCount + e2e.TestParams.LighthouseBeaconNodeCount
+	// 创建一个eth1 node
 	ethNode := eth1.NewNode(index, minerEnr)
 	g.Go(func() error {
 		return ethNode.Start(ctx)
@@ -351,11 +356,13 @@ func (r *testRunner) testBeaconChainSync(ctx context.Context, g *errgroup.Group,
 	conns = append(conns, syncConn)
 
 	// Sleep a second for every 4 blocks that need to be synced for the newly started node.
+	// 每4个blocks需要Sleep一秒钟，对于新启动的node需要进行同步
 	secondsPerEpoch := uint64(params.BeaconConfig().SlotsPerEpoch.Mul(params.BeaconConfig().SecondsPerSlot))
 	extraSecondsToSync := (config.EpochsToRun)*secondsPerEpoch + uint64(params.BeaconConfig().SlotsPerEpoch.Div(4).Mul(config.EpochsToRun))
 	waitForSync := tickingStartTime.Add(time.Duration(extraSecondsToSync) * time.Second)
 	time.Sleep(time.Until(waitForSync))
 
+	// 获取日志文件
 	syncLogFile, err := os.Open(path.Join(e2e.TestParams.LogPath, fmt.Sprintf(e2e.BeaconNodeLogFileName, index)))
 	require.NoError(t, err)
 	defer helpers.LogErrorOutput(t, syncLogFile, "beacon chain node", index)
@@ -367,8 +374,10 @@ func (r *testRunner) testBeaconChainSync(ctx context.Context, g *errgroup.Group,
 	}
 
 	// Sleep a slot to make sure the synced state is made.
+	// Sleep一个slot来确保已经构建了synced state
 	time.Sleep(time.Duration(params.BeaconConfig().SecondsPerSlot) * time.Second)
 	syncEvaluators := []e2etypes.Evaluator{ev.FinishedSyncing, ev.AllNodesHaveSameHead}
+	// 运行evaluator
 	for _, evaluator := range syncEvaluators {
 		t.Run(evaluator.Name, func(t *testing.T) {
 			assert.NoError(t, evaluator.Evaluation(conns...), "Evaluation failed for sync node")
@@ -420,6 +429,7 @@ func (r *testRunner) testDoppelGangerProtection(ctx context.Context) error {
 func (r *testRunner) defaultEndToEndRun() error {
 	t, config, ctx, g := r.t, r.config, r.comHandler.ctx, r.comHandler.group
 	// When everything is done, cancel parent context (will stop all spawned nodes).
+	// 当所有都完成的时候，取消parent context（会停止所有生成的nodes）
 	defer func() {
 		log.Info("All E2E evaluations are finished, cleaning up")
 		// 所有E2E evaluations都已经结束了，清理
@@ -477,7 +487,7 @@ func (r *testRunner) defaultEndToEndRun() error {
 	defer closeConns()
 
 	// Calculate genesis time.
-	// 计算genesis时间
+	// 构建到beacon chain的连接，计算genesis时间
 	nodeClient := eth.NewNodeClient(conns[0])
 	genesis, err := nodeClient.GetGenesis(context.Background(), &emptypb.Empty{})
 	require.NoError(t, err)
@@ -579,11 +589,13 @@ func (r *testRunner) executeProvidedEvaluators(currentEpoch uint64, conns []*grp
 		// in a separate goroutine.
 		evaluator := eval
 		// Only run if the policy says so.
+		// 只有在policy允许的时候才运行
 		if !evaluator.Policy(types.Epoch(currentEpoch)) {
 			continue
 		}
 		wg.Add(1)
 		go r.t.Run(fmt.Sprintf(evaluator.Name, currentEpoch), func(t *testing.T) {
+			// 进行Evaluation
 			err := evaluator.Evaluation(conns...)
 			assert.NoError(t, err, "Evaluation failed for epoch %d: %v", currentEpoch, err)
 			wg.Done()

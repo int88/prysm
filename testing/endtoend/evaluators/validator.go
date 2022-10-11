@@ -63,7 +63,7 @@ func validatorsAreActive(conns ...*grpc.ClientConn) error {
 		PageSize: int32(params.BeaconConfig().MinGenesisActiveValidatorCount),
 		Active:   true,
 	}
-	// 获取实际的validator的数量
+	// 获取实际的validator的数量，以及validator的相关信息
 	validators, err := client.ListValidators(context.Background(), validatorRequest)
 	if err != nil {
 		return errors.Wrap(err, "failed to get validators")
@@ -121,6 +121,7 @@ func validatorsParticipating(conns ...*grpc.ClientConn) error {
 	}
 
 	partRate := participation.Participation.GlobalParticipationRate
+	// 期望的参与率是0.99
 	expected := float32(expectedParticipation)
 	if participation.Epoch > 0 && participation.Epoch.Sub(1) == helpers.BellatrixE2EForkEpoch {
 		// Reduce Participation requirement to 95% to account for longer EE calls for

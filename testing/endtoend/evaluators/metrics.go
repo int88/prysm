@@ -26,6 +26,8 @@ const maxMemStatsBytes = 2000000000 // 2 GiB.
 
 // MetricsCheck performs a check on metrics to make sure caches are functioning, and
 // overall health is good. Not checking the first epoch so the sample size isn't too small.
+// MetricsCheck对metrics执行一次检查，来确保caches在正常工作，并且整体的健康状况是好的，第一个epoch
+// 不检查，这样sample size不会太小
 var MetricsCheck = types.Evaluator{
 	Name:       "metrics_check_epoch_%d",
 	Policy:     policies.AfterNthEpoch(0),

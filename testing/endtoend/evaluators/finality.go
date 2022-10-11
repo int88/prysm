@@ -35,6 +35,7 @@ func finalizationOccurs(conns ...*grpc.ClientConn) error {
 	}
 	// 获取当前的epoch和finalized epoch
 	currentEpoch := chainHead.HeadEpoch
+	// 从chain head获取finalized epoch
 	finalizedEpoch := chainHead.FinalizedEpoch
 
 	expectedFinalizedEpoch := currentEpoch - 2
@@ -45,6 +46,7 @@ func finalizationOccurs(conns ...*grpc.ClientConn) error {
 			finalizedEpoch,
 		)
 	}
+	// 从chain head中获取justified epoch和previous justified epoch
 	previousJustifiedEpoch := chainHead.PreviousJustifiedEpoch
 	currentJustifiedEpoch := chainHead.JustifiedEpoch
 	if previousJustifiedEpoch+1 != currentJustifiedEpoch {

@@ -10,6 +10,7 @@ import (
 	"google.golang.org/grpc"
 )
 
+// 必须大于46，32个hot states以及16个chkpt interval
 const epochToCheck = 50 // must be more than 46 (32 hot states + 16 chkpt interval)
 
 // ColdStateCheckpoint checks data from the database using cold state storage.
@@ -36,7 +37,9 @@ func checkColdStateCheckpoint(conns ...*grpc.ClientConn) error {
 			return err
 		}
 		// A simple check to ensure we received some data.
+		// 一个简单的检查来确保我们收到一些数据
 		if res == nil || res.Epoch != i {
+			// 对于一个old epoch返回validator assignments response失败，使用来自数据库的cold state storage
 			return errors.New("failed to return a validator assignments response for an old epoch " +
 				"using cold state storage from the database")
 		}

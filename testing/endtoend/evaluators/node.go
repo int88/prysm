@@ -80,6 +80,7 @@ func healthzCheck(conns ...*grpc.ClientConn) error {
 		time.Sleep(connTimeDelay)
 	}
 
+	// 对validator进行健康检查
 	for i := 0; i < count; i++ {
 		resp, err := http.Get(fmt.Sprintf("http://localhost:%d/healthz", e2e.TestParams.Ports.ValidatorMetricsPort+i))
 		if err != nil {
@@ -113,6 +114,7 @@ func peersConnect(conns ...*grpc.ClientConn) error {
 		if err != nil {
 			return err
 		}
+		// 总的连接数 + lighthouse beacon nodes的数目
 		expectedPeers := len(conns) - 1 + e2e.TestParams.LighthouseBeaconNodeCount
 		if expectedPeers != len(peersResp.Peers) {
 			return fmt.Errorf("unexpected amount of peers, expected %d, received %d", expectedPeers, len(peersResp.Peers))
@@ -123,6 +125,7 @@ func peersConnect(conns ...*grpc.ClientConn) error {
 }
 
 func finishedSyncing(conns ...*grpc.ClientConn) error {
+	// 只取第一个连接？
 	conn := conns[0]
 	syncNodeClient := eth.NewNodeClient(conn)
 	// 获取sync status
@@ -148,6 +151,8 @@ func allNodesHaveSameHead(conns ...*grpc.ClientConn) error {
 		if err != nil {
 			return errors.Wrapf(err, "connection number=%d", i)
 		}
+		// 确保HeadEpoch, JustifiedBlockRoot, PreviousJustifiedBlockRoot以及FinalizedBlockRoot
+		// 都相等
 		headEpochs[i] = chainHead.HeadEpoch
 		justifiedRoots[i] = chainHead.JustifiedBlockRoot
 		prevJustifiedRoots[i] = chainHead.PreviousJustifiedBlockRoot

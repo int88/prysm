@@ -233,6 +233,7 @@ func (c *componentHandler) setup() {
 func (c *componentHandler) required() []e2etypes.ComponentRunner {
 	multiClientActive := e2e.TestParams.LighthouseBeaconNodeCount > 0
 	requiredComponents := []e2etypes.ComponentRunner{
+		// tracing sink, eth1nodes, bootnode, beacon nodes, validator nodes以及eth1Proxy是必须启动的
 		c.tracingSink, c.eth1Nodes, c.bootnode, c.beaconNodes, c.validatorNodes, c.eth1Proxy,
 	}
 	if multiClientActive {

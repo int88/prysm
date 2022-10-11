@@ -271,6 +271,7 @@ func NewLocalConnections(ctx context.Context, numConns int) ([]*grpc.ClientConn,
 		conns[i] = conn
 	}
 	return conns, func() {
+		// 允许关闭所有的连接
 		for _, conn := range conns {
 			if err := conn.Close(); err != nil {
 				log.Error(err)

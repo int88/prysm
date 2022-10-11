@@ -14,6 +14,7 @@ import (
 )
 
 // AltairForkTransition ensures that the Altair hard fork has occurred successfully.
+// AltairForkTransition确保Altair hard fork已经成功到来
 var AltairForkTransition = types.Evaluator{
 	Name:       "altair_fork_transition_%d",
 	Policy:     policies.OnEpoch(helpers.AltairE2EForkEpoch),
@@ -21,6 +22,7 @@ var AltairForkTransition = types.Evaluator{
 }
 
 // BellatrixForkTransition ensures that the Bellatrix hard fork has occurred successfully.
+// BellatrixForkTransition确保Bellatrix hard fork已经成功到来
 var BellatrixForkTransition = types.Evaluator{
 	Name:       "bellatrix_fork_transition_%d",
 	Policy:     policies.OnEpoch(helpers.BellatrixE2EForkEpoch),
