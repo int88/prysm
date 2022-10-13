@@ -140,6 +140,7 @@ type Service struct {
 }
 
 // NewService initializes new regular sync service.
+// NewService初始化新的regular sync service
 func NewService(ctx context.Context, opts ...Option) *Service {
 	c := gcache.New(pendingBlockExpTime /* exp time */, 2*pendingBlockExpTime /* prune time */)
 	ctx, cancel := context.WithCancel(ctx)

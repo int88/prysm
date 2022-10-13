@@ -67,6 +67,7 @@ type ValidatorMonitorConfig struct {
 
 // Service is the main structure that tracks validators and reports logs and
 // metrics of their performances throughout their lifetime.
+// Service是主要结构用于追踪validators并且汇报lgos以及metrics，对于他们的性能，在它们的生命周期内
 type Service struct {
 	config    *ValidatorMonitorConfig
 	ctx       context.Context
@@ -85,6 +86,7 @@ type Service struct {
 }
 
 // NewService sets up a new validator monitor service instance when given a list of validator indices to track.
+// NewService构建一个新的validator monitor服务实例，当给定一个validator indices的列表进行追踪的时候
 func NewService(ctx context.Context, config *ValidatorMonitorConfig, tracked []types.ValidatorIndex) (*Service, error) {
 	ctx, cancel := context.WithCancel(ctx)
 	r := &Service{

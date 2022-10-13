@@ -23,6 +23,7 @@ var defaultHotStateDBInterval types.Slot = 128
 
 // StateManager represents a management object that handles the internal
 // logic of maintaining both hot and cold states in DB.
+// StateManager实现了一个管理对象，处理内部逻辑，关于维护DB中的hot以及cold states
 type StateManager interface {
 	Resume(ctx context.Context, fState state.BeaconState) (state.BeaconState, error)
 	SaveFinalizedState(fSlot types.Slot, fRoot [32]byte, fState state.BeaconState)
@@ -43,6 +44,7 @@ type StateManager interface {
 }
 
 // State is a concrete implementation of StateManager.
+// State是StateManager的具体实现
 type State struct {
 	beaconDB                db.NoHeadAccessDatabase
 	slotsPerArchivedPoint   types.Slot

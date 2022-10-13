@@ -35,11 +35,13 @@ type Pool interface {
 	DeleteSeenUnaggregatedAttestations() (int, error)
 	UnaggregatedAttestationCount() int
 	// For attestations that were included in the block.
+	// 对于已经包含在block中的attestations
 	SaveBlockAttestation(att *ethpb.Attestation) error
 	SaveBlockAttestations(atts []*ethpb.Attestation) error
 	BlockAttestations() []*ethpb.Attestation
 	DeleteBlockAttestation(att *ethpb.Attestation) error
 	// For attestations to be passed to fork choice.
+	// 对于需要传输给fork choice的attestation
 	SaveForkchoiceAttestation(att *ethpb.Attestation) error
 	SaveForkchoiceAttestations(atts []*ethpb.Attestation) error
 	ForkchoiceAttestations() []*ethpb.Attestation
@@ -48,6 +50,7 @@ type Pool interface {
 }
 
 // NewPool initializes a new attestation pool.
+// NewPool初始化一个新的attestation pool
 func NewPool() *kv.AttCaches {
 	return kv.NewAttCaches()
 }

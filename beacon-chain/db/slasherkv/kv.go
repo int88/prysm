@@ -30,6 +30,7 @@ type Config struct {
 
 // Store defines an implementation of the Prysm Database interface
 // using BoltDB as the underlying persistent kv-store for Ethereum consensus.
+// Store定义了一个Prysm Database接口的实现，使用BoltDB作为底层的持久化键值存储，对于Ethereum共识
 type Store struct {
 	db           *bolt.DB
 	databasePath string
@@ -39,6 +40,8 @@ type Store struct {
 // NewKVStore initializes a new boltDB key-value store at the directory
 // path specified, creates the kv-buckets based on the schema, and stores
 // an open connection db object as a property of the Store struct.
+// NewKVStore初始化一个新的boltDB的键值存储，在指定的路径，基于schema创建kv-buckets
+// 并且存储以及打开connection db对象，作为Store结构的一个特性
 func NewKVStore(ctx context.Context, dirPath string, config *Config) (*Store, error) {
 	hasDir, err := file.HasDir(dirPath)
 	if err != nil {

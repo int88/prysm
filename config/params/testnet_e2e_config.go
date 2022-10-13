@@ -77,6 +77,7 @@ func E2EMainnetTestConfig() *BeaconChainConfig {
 	e2eConfig.BellatrixForkEpoch = bellatrixE2EForkEpoch
 
 	// Terminal Total Difficulty.
+	// 终止时的Total Difficulty
 	e2eConfig.TerminalTotalDifficulty = "616"
 
 	// Prysm constants.

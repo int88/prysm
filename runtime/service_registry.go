@@ -25,14 +25,18 @@ type Service interface {
 }
 
 // ServiceRegistry provides a useful pattern for managing services.
+// ServiceRegistry提供了一个有用的模式用于管理services
 // It allows for ease of dependency management and ensures services
 // dependent on others use the same references in memory.
+// 它应该方便用于依赖管理并且确保依赖其他人的services在内存中使用同样的引用
 type ServiceRegistry struct {
-	services     map[reflect.Type]Service // map of types to services.
-	serviceTypes []reflect.Type           // keep an ordered slice of registered service types.
+	services map[reflect.Type]Service // map of types to services.
+	// 注册的服务保持一个有序的slices
+	serviceTypes []reflect.Type // keep an ordered slice of registered service types.
 }
 
 // NewServiceRegistry starts a registry instance for convenience
+// NewServiceRegistry为了方便，启动一个registry实例
 func NewServiceRegistry() *ServiceRegistry {
 	return &ServiceRegistry{
 		services: make(map[reflect.Type]Service),

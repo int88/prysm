@@ -86,14 +86,16 @@ type serviceFlagOpts struct {
 // BeaconNode定义了一个结构处理运行在一个随机的beacon chain full PoS节点的services
 // 它处理整个系统的生命周期并且注册services到一个service registry
 type BeaconNode struct {
-	cliCtx                  *cli.Context
-	ctx                     context.Context
-	cancel                  context.CancelFunc
-	services                *runtime.ServiceRegistry
-	lock                    sync.RWMutex
-	stop                    chan struct{} // Channel to wait for termination notifications.
-	db                      db.Database
-	slasherDB               db.SlasherDatabase
+	cliCtx   *cli.Context
+	ctx      context.Context
+	cancel   context.CancelFunc
+	services *runtime.ServiceRegistry
+	lock     sync.RWMutex
+	// 用于等待终止信号的channel
+	stop      chan struct{} // Channel to wait for termination notifications.
+	db        db.Database
+	slasherDB db.SlasherDatabase
+	// attestation, voluntary exits, slashing以及sync committee的池子
 	attestationPool         attestations.Pool
 	exitPool                voluntaryexits.PoolManager
 	slashingsPool           slashings.PoolManager
@@ -155,20 +157,23 @@ func New(cliCtx *cli.Context, opts ...Option) (*BeaconNode, error) {
 	configureFastSSZHashingAlgorithm()
 
 	// Initializes any forks here.
+	// 在这里初始化任何的forks
 	params.BeaconConfig().InitializeForkSchedule()
 
+	// 构建service registry
 	registry := runtime.NewServiceRegistry()
 
 	ctx, cancel := context.WithCancel(cliCtx.Context)
 	beacon := &BeaconNode{
-		cliCtx:                  cliCtx,
-		ctx:                     ctx,
-		cancel:                  cancel,
-		services:                registry,
-		stop:                    make(chan struct{}),
-		stateFeed:               new(event.Feed),
-		blockFeed:               new(event.Feed),
-		opFeed:                  new(event.Feed),
+		cliCtx:    cliCtx,
+		ctx:       ctx,
+		cancel:    cancel,
+		services:  registry,
+		stop:      make(chan struct{}),
+		stateFeed: new(event.Feed),
+		blockFeed: new(event.Feed),
+		opFeed:    new(event.Feed),
+		// 构建各个pool
 		attestationPool:         attestations.NewPool(),
 		exitPool:                voluntaryexits.NewPool(),
 		slashingsPool:           slashings.NewPool(),
@@ -185,6 +190,7 @@ func New(cliCtx *cli.Context, opts ...Option) (*BeaconNode, error) {
 		}
 	}
 
+	// 获取deposit address
 	depositAddress, err := powchain.DepositContractAddress()
 	if err != nil {
 		return nil, err
@@ -203,6 +209,7 @@ func New(cliCtx *cli.Context, opts ...Option) (*BeaconNode, error) {
 
 	bfs := backfill.NewStatus(beacon.db)
 	if err := bfs.Reload(ctx); err != nil {
+		// 回填status intialization错误
 		return nil, errors.Wrap(err, "backfill status initialization error")
 	}
 
@@ -242,16 +249,19 @@ func New(cliCtx *cli.Context, opts ...Option) (*BeaconNode, error) {
 	}
 
 	log.Debugln("Registering Intial Sync Service")
+	// 启动初始的同步服务
 	if err := beacon.registerInitialSyncService(); err != nil {
 		return nil, err
 	}
 
 	log.Debugln("Registering Sync Service")
+	// 注册日常的同步服务
 	if err := beacon.registerSyncService(); err != nil {
 		return nil, err
 	}
 
 	log.Debugln("Registering Slasher Service")
+	// 启动slasher服务
 	if err := beacon.registerSlasherService(); err != nil {
 		return nil, err
 	}
@@ -286,6 +296,8 @@ func New(cliCtx *cli.Context, opts ...Option) (*BeaconNode, error) {
 	// db.DatabasePath is the path to the containing directory
 	// db.NewDBFilename expands that to the canonical full path using
 	// the same construction as NewDB()
+	// db.DatabasePath是到包含目录的路径，db.NewDBFilename扩展canonical full path
+	// 使用和NewDB()同样的结构
 	c, err := newBeaconNodePromCollector(db.NewDBFilename(beacon.db.DatabasePath()))
 	if err != nil {
 		return nil, err
@@ -375,6 +387,7 @@ func (b *BeaconNode) startDB(cliCtx *cli.Context, depositAddress string) error {
 
 	log.WithField("database-path", dbPath).Info("Checking DB")
 
+	// 构建新的db
 	d, err := db.NewDB(b.ctx, dbPath, &kv.Config{
 		InitialMMapSize: cliCtx.Int(cmd.BoltMMapInitialSizeFlag.Name),
 	})
@@ -407,6 +420,7 @@ func (b *BeaconNode) startDB(cliCtx *cli.Context, depositAddress string) error {
 		}
 	}
 
+	// 运行任何必要的数据库迁移
 	if err := d.RunMigrations(b.ctx); err != nil {
 		return err
 	}
@@ -440,12 +454,14 @@ func (b *BeaconNode) startDB(cliCtx *cli.Context, depositAddress string) error {
 		}
 	}
 
+	// 获取已知的contract
 	knownContract, err := b.db.DepositContractAddress(b.ctx)
 	if err != nil {
 		return err
 	}
 	addr := common.HexToAddress(depositAddress)
 	if len(knownContract) == 0 {
+		// 如果已知的contract为0，先保存deposit contract
 		if err := b.db.SaveDepositContractAddress(b.ctx, addr); err != nil {
 			return errors.Wrap(err, "could not save deposit contract")
 		}
@@ -471,6 +487,7 @@ func (b *BeaconNode) startSlasherDB(cliCtx *cli.Context) error {
 
 	log.WithField("database-path", dbPath).Info("Checking DB")
 
+	// 构建slash db
 	d, err := slasherkv.NewKVStore(b.ctx, dbPath, &slasherkv.Config{
 		InitialMMapSize: cliCtx.Int(cmd.BoltMMapInitialSizeFlag.Name),
 	})
@@ -546,6 +563,7 @@ func (b *BeaconNode) registerP2P(cliCtx *cli.Context) error {
 		return err
 	}
 
+	// 创建p2p service
 	svc, err := p2p.NewService(b.ctx, &p2p.Config{
 		NoDiscovery:       cliCtx.Bool(cmd.NoDiscovery.Name),
 		StaticPeers:       slice.SplitCommaSeparated(cliCtx.StringSlice(cmd.StaticPeers.Name)),
@@ -638,6 +656,7 @@ func (b *BeaconNode) registerBlockchainService() error {
 
 func (b *BeaconNode) registerPOWChainService() error {
 	if b.cliCtx.Bool(testSkipPowFlag) {
+		// 跳过pow
 		return b.services.RegisterService(&powchain.Service{})
 	}
 	bs, err := powchain.NewPowchainCollector(b.ctx)
@@ -660,6 +679,7 @@ func (b *BeaconNode) registerPOWChainService() error {
 		powchain.WithBeaconNodeStatsUpdater(bs),
 		powchain.WithFinalizedStateAtStartup(b.finalizedStateAtStartUp),
 	)
+	// 构建pow service
 	web3Service, err := powchain.NewService(b.ctx, opts...)
 	if err != nil {
 		return errors.Wrap(err, "could not register proof-of-work chain web3Service")
@@ -952,6 +972,8 @@ func (b *BeaconNode) registerDeterminsticGenesisService() error {
 
 		// Register genesis state as start-up state when interop mode.
 		// The start-up state gets reused across services.
+		// 注册genesis state组我诶start-up state，当处于interop mode时
+		// start-up状态跨服务重用
 		st, err := b.db.GenesisState(b.ctx)
 		if err != nil {
 			return err

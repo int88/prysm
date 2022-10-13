@@ -52,6 +52,7 @@ type FinalizedDeposits struct {
 // 它们是beacon-node需要的
 type DepositCache struct {
 	// Beacon chain deposits in memory.
+	// 内存中的Beacon chain deposits
 	pendingDeposits   []*ethpb.DepositContainer
 	deposits          []*ethpb.DepositContainer
 	finalizedDeposits *FinalizedDeposits

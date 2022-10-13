@@ -151,17 +151,18 @@ type config struct {
 // beacon chain需要和eth1 chain当前的block hash，block number以及访问Validator
 // Registration Contract的logs来启动beacon chain的validator注册流程
 type Service struct {
-	connectedETH1           bool
-	isRunning               bool
-	processingLock          sync.RWMutex
-	latestEth1DataLock      sync.RWMutex
-	cfg                     *config
-	ctx                     context.Context
-	cancel                  context.CancelFunc
-	eth1HeadTicker          *time.Ticker
-	httpLogger              bind.ContractFilterer
-	eth1DataFetcher         RPCDataFetcher
-	rpcClient               RPCClient
+	connectedETH1      bool
+	isRunning          bool
+	processingLock     sync.RWMutex
+	latestEth1DataLock sync.RWMutex
+	cfg                *config
+	ctx                context.Context
+	cancel             context.CancelFunc
+	eth1HeadTicker     *time.Ticker
+	httpLogger         bind.ContractFilterer
+	eth1DataFetcher    RPCDataFetcher
+	rpcClient          RPCClient
+	// 用于缓存block hash/block height的缓存
 	headerCache             *headerCache // cache to store block hash/block height.
 	latestEth1Data          *ethpb.LatestETH1Data
 	depositContractCaller   *contracts.DepositContractCaller
@@ -221,6 +222,7 @@ func NewService(ctx context.Context, opts ...Option) (*Service, error) {
 		return nil, errors.Wrap(err, "unable to validate powchain data")
 	}
 
+	// 获取eth1的数据
 	eth1Data, err := s.cfg.beaconDB.PowchainData(ctx)
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to retrieve eth1 data")
@@ -784,6 +786,7 @@ func (s *Service) determineEarliestVotingBlock(ctx context.Context, followBlock 
 func (s *Service) initializeEth1Data(ctx context.Context, eth1DataInDB *ethpb.ETH1ChainData) error {
 	// The node has no eth1data persisted on disk, so we exit and instead
 	// request from contract logs.
+	// node没有持久化eth1data在缓存中，因此我们退出并且从contract logs中请求
 	if eth1DataInDB == nil {
 		return nil
 	}
@@ -810,6 +813,7 @@ func (s *Service) initializeEth1Data(ctx context.Context, eth1DataInDB *ethpb.ET
 
 // Validates that all deposit containers are valid and have their relevant indices
 // in order.
+// 校验所有depoists containers都是合法的并且他们相关的索引都是有序的
 func validateDepositContainers(ctrs []*ethpb.DepositContainer) bool {
 	ctrLen := len(ctrs)
 	// Exit for empty containers.
@@ -833,6 +837,7 @@ func validateDepositContainers(ctrs []*ethpb.DepositContainer) bool {
 
 // Validates the current powchain data is saved and makes sure that any
 // embedded genesis state is correctly accounted for.
+// 检查当前的powchain数据已经保存了并且确保任何内置的genesis state已经被正确的accounted for
 func (s *Service) ensureValidPowchainData(ctx context.Context) error {
 	genState, err := s.cfg.beaconDB.GenesisState(ctx)
 	if err != nil {

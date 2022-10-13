@@ -11,6 +11,7 @@ import (
 )
 
 // ForkChoicer represents the full fork choice interface composed of all the sub-interfaces.
+// ForkChoicer代表了由所有sub-interface组合而成的完整的fork choice接口
 type ForkChoicer interface {
 	HeadRetriever        // to compute head.
 	BlockProcessor       // to track new block for fork choice.

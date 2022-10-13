@@ -26,10 +26,13 @@ func TestNodeClose_OK(t *testing.T) {
 
 	app := cli.App{}
 	set := flag.NewFlagSet("test", 0)
+	// 跳过dial pow
 	set.Bool("test-skip-pow", true, "skip pow dial")
 	set.String("datadir", tmp, "node data directory")
 	set.String("p2p-encoding", "ssz", "p2p encoding scheme")
+	// demo配置
 	set.Bool("demo-config", true, "demo configuration")
+	// deposit contract的地址
 	set.String("deposit-contract", "0x0000000000000000000000000000000000000000", "deposit contract address")
 
 	context := cli.NewContext(&app, set, nil)

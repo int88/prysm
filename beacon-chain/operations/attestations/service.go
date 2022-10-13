@@ -15,6 +15,7 @@ import (
 var forkChoiceProcessedRootsSize = 1 << 16
 
 // Service of attestation pool operations.
+// attestation pool操作的Service
 type Service struct {
 	cfg                      *Config
 	ctx                      context.Context
@@ -32,11 +33,13 @@ type Config struct {
 
 // NewService instantiates a new attestation pool service instance that will
 // be registered into a running beacon node.
+// NewService初始化一个新的attestation pool service实例，会在一个运行的beacon node中注册
 func NewService(ctx context.Context, cfg *Config) (*Service, error) {
 	cache := lruwrpr.New(forkChoiceProcessedRootsSize)
 
 	if cfg.pruneInterval == 0 {
 		// Prune expired attestations from the pool every slot interval.
+		// 每个slot interval从pool中移除过期的attestations
 		cfg.pruneInterval = time.Duration(params.BeaconConfig().SecondsPerSlot) * time.Second
 	}
 
@@ -50,6 +53,7 @@ func NewService(ctx context.Context, cfg *Config) (*Service, error) {
 }
 
 // Start an attestation pool service's main event loop.
+// 在main event loop总启动一个attestation pool服务
 func (s *Service) Start() {
 	go s.prepareForkChoiceAtts()
 	go s.pruneAttsPool()

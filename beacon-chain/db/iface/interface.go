@@ -60,7 +60,7 @@ type ReadOnlyDatabase interface {
 }
 
 // NoHeadAccessDatabase defines a struct without access to chain head data.
-// NoHeadAccessDatabase定义了一个结构不能反问chain head data
+// NoHeadAccessDatabase定义了一个结构不能访问chain head data
 type NoHeadAccessDatabase interface {
 	ReadOnlyDatabase
 

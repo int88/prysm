@@ -183,6 +183,7 @@ func OptimizedGenesisBeaconState(genesisTime uint64, preState state.BeaconState,
 }
 
 // EmptyGenesisState returns an empty beacon state object.
+// EmptyGenesisState返回一个空的beacon state对象
 func EmptyGenesisState() (state.BeaconState, error) {
 	st := &ethpb.BeaconState{
 		// Misc fields.

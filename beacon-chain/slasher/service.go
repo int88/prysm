@@ -52,6 +52,7 @@ type SlashingChecker interface {
 
 // Service defining a slasher implementation as part of
 // the beacon node, able to detect eth2 slashable offenses.
+// Service定义了一个slasher实现，作为beacon node实现的一部分，能够检测eth2 slashable offenses
 type Service struct {
 	params                         *Parameters
 	serviceCfg                     *ServiceConfig
@@ -69,6 +70,7 @@ type Service struct {
 }
 
 // New instantiates a new slasher from configuration values.
+// New实例化一个新的slasher，基于配置的值
 func New(ctx context.Context, srvCfg *ServiceConfig) (*Service, error) {
 	ctx, cancel := context.WithCancel(ctx)
 	return &Service{

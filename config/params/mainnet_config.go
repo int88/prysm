@@ -9,6 +9,7 @@ import (
 )
 
 // MainnetConfig returns the configuration to be used in the main network.
+// MainnetConfig返回配置在main network中使用
 func MainnetConfig() *BeaconChainConfig {
 	if mainnetBeaconConfig.ForkVersionSchedule == nil {
 		mainnetBeaconConfig.InitializeForkSchedule()
@@ -118,6 +119,7 @@ var mainnetBeaconConfig = &BeaconChainConfig{
 	IntervalsPerSlot:   3,
 
 	// Ethereum PoW parameters.
+	// PoW的参数
 	DepositChainID:         1, // Chain ID of eth1 mainnet.
 	DepositNetworkID:       1, // Network ID of eth1 mainnet.
 	DepositContractAddress: "0x00000000219ab540356cBB839Cbe05303d7705Fa",
@@ -128,6 +130,7 @@ var mainnetBeaconConfig = &BeaconChainConfig{
 
 	// While eth1 mainnet block times are closer to 13s, we must conform with other clients in
 	// order to vote on the correct eth1 blocks.
+	// 因为eth1的mainnet block时间更接近13s，我们必须和其他clients保持一致，为了对正确的eth1 blocks进行投票
 	//
 	// Additional context: https://github.com/ethereum/consensus-specs/issues/2132
 	// Bug prompting this change: https://github.com/prysmaticlabs/prysm/issues/7856

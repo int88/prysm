@@ -18,6 +18,7 @@ import (
 )
 
 // BlockBuilder defines the interface for interacting with the block builder
+// BlockBuilder定义了接口用于和block builder进行交互
 type BlockBuilder interface {
 	SubmitBlindedBlock(ctx context.Context, block *ethpb.SignedBlindedBeaconBlockBellatrix) (*v1.ExecutionPayload, error)
 	GetHeader(ctx context.Context, slot types.Slot, parentHash [32]byte, pubKey [48]byte) (*ethpb.SignedBuilderBid, error)
@@ -34,6 +35,7 @@ type config struct {
 }
 
 // Service defines a service that provides a client for interacting with the beacon chain and MEV relay network.
+// Service定义了一个service，提供一个client用于和beacon chain进行交互以及MEV relay network
 type Service struct {
 	cfg    *config
 	c      *builder.Client
