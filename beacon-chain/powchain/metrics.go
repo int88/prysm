@@ -8,6 +8,7 @@ import (
 var (
 	totalTerminalDifficulty = promauto.NewGauge(prometheus.GaugeOpts{
 		Name: "total_terminal_difficulty",
+		// 在merge之前总的terminal difficulty
 		Help: "The total terminal difficulty of the execution chain before merge",
 	})
 	newPayloadLatency = promauto.NewHistogram(

@@ -108,6 +108,7 @@ type HeadAccessDatabase interface {
 	EnsureEmbeddedGenesis(ctx context.Context) error
 
 	// initialization method needed for origin checkpoint sync
+	// 原始的checkpoint sync需要的初始化方法
 	SaveOrigin(ctx context.Context, serState, serBlock []byte) error
 	SaveBackfillBlockRoot(ctx context.Context, blockRoot [32]byte) error
 }
@@ -161,6 +162,7 @@ type SlasherDatabase interface {
 }
 
 // Database interface with full access.
+// 有着完全访问权限的Database接口
 type Database interface {
 	io.Closer
 	backup.BackupExporter

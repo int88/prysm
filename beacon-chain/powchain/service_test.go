@@ -150,6 +150,7 @@ func TestStart_OK(t *testing.T) {
 	)
 	require.NoError(t, err, "unable to setup web3 ETH1.0 chain service")
 	web3Service = setDefaultMocks(web3Service)
+	// 构建web3Service的rpcClient
 	web3Service.rpcClient = &mockPOW.RPCClient{Backend: testAcc.Backend}
 	web3Service.depositContractCaller, err = contracts.NewDepositContractCaller(testAcc.ContractAddr, testAcc.Backend)
 	require.NoError(t, err)
@@ -203,6 +204,7 @@ func TestStop_OK(t *testing.T) {
 
 	testAcc.Backend.Commit()
 
+	// 停止web3 service
 	err = web3Service.Stop()
 	require.NoError(t, err, "Unable to stop web3 ETH1.0 chain service")
 
@@ -257,6 +259,7 @@ func TestFollowBlock_OK(t *testing.T) {
 
 	// simulated backend sets eth1 block
 	// time as 10 seconds
+	// 模拟backend设置eth1的block time为10s
 	params.SetupTestConfigCleanup(t)
 	conf := params.BeaconConfig().Copy()
 	conf.SecondsPerETH1Block = 10
@@ -279,6 +282,7 @@ func TestFollowBlock_OK(t *testing.T) {
 	numToForward := uint64(2)
 	expectedHeight := numToForward + baseHeight
 	// forward 2 blocks
+	// 前进两个blocks
 	for i := uint64(0); i < numToForward; i++ {
 		testAcc.Backend.Commit()
 	}
@@ -380,6 +384,7 @@ func TestLogTillGenesis_OK(t *testing.T) {
 	}
 	web3Service.latestEth1Data = &ethpb.LatestETH1Data{LastRequestedBlock: 0}
 	// Spin off to a separate routine
+	// 分拆到另一个goroutine
 	go web3Service.run(web3Service.ctx.Done())
 	// Wait for 2 seconds so that the
 	// info is logged.
@@ -848,9 +853,11 @@ func TestETH1Endpoints(t *testing.T) {
 	require.NoError(t, err)
 
 	// Check default endpoint is set to current.
+	// 检查默认的endpoint设置为current
 	assert.Equal(t, firstEndpoint, s1.CurrentETH1Endpoint(), "Unexpected http endpoint")
 
 	// Check endpoints are all present.
+	// 检查endpoints都存在
 	assert.DeepSSZEqual(t, endpoints, s1.ETH1Endpoints(), "Unexpected http endpoint slice")
 }
 

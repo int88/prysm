@@ -9,6 +9,7 @@ import (
 )
 
 // DefaultRPCHTTPTimeout for HTTP requests via an RPC connection to an execution node.
+// DefaultRPCHTTPTimeout对于通过一个RPC连接到一个execution node的HTTP请求的超时时间
 const DefaultRPCHTTPTimeout = time.Second * 6
 
 // This creates a custom HTTP transport which we can attach to our HTTP client

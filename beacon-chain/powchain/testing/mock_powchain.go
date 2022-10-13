@@ -23,6 +23,7 @@ import (
 )
 
 // POWChain defines a properly functioning mock for the powchain service.
+// POWChain定义了一个能正确工作的mock用于powchain service
 type POWChain struct {
 	ChainFeed         *event.Feed
 	LatestBlockNumber *big.Int
@@ -42,6 +43,7 @@ type POWChain struct {
 var GenesisTime = time.Date(2000, 1, 1, 0, 0, 0, 0, time.UTC).Unix()
 
 // NewPOWChain creates a new mock chain with empty block info.
+// NewPOWChain用空的block info创建一个新的mock chain
 func NewPOWChain() *POWChain {
 	return &POWChain{
 		HashesByHeight:    make(map[int][]byte),
@@ -140,6 +142,7 @@ func (m *POWChain) ETH1ConnectionErrors() []error {
 }
 
 // RPCClient defines the mock rpc client.
+// RPCClient定义了mock的rpc方法
 type RPCClient struct {
 	Backend *backends.SimulatedBackend
 }

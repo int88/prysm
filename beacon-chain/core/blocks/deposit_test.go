@@ -21,6 +21,7 @@ import (
 
 func TestProcessDeposits_SameValidatorMultipleDepositsSameBlock(t *testing.T) {
 	// Same validator created 3 valid deposits within the same block
+	// 同一个validator创建三个合法的deposits，在同一个block中
 
 	dep, _, err := util.DeterministicDepositsAndKeysSameValidator(3)
 	require.NoError(t, err)

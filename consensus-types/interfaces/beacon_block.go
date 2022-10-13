@@ -31,6 +31,7 @@ type SignedBeaconBlock interface {
 
 // BeaconBlock describes an interface which states the methods
 // employed by an object that is a beacon block.
+// BeaconBlock描述了一个接口，描述了一个对象使用的方法，这是一个beacon block
 type BeaconBlock interface {
 	Slot() types.Slot
 	ProposerIndex() types.ValidatorIndex
@@ -50,6 +51,7 @@ type BeaconBlock interface {
 
 // BeaconBlockBody describes the method set employed by an object
 // that is a beacon block body.
+// BeaconBlockBody描述了一个方法集合，由一个对象使用，它是一个beacon block body
 type BeaconBlockBody interface {
 	RandaoReveal() []byte
 	Eth1Data() *ethpb.Eth1Data
@@ -63,6 +65,7 @@ type BeaconBlockBody interface {
 	IsNil() bool
 	HashTreeRoot() ([32]byte, error)
 	Proto() proto.Message
+	// Execution的block的信息，包括payload和header
 	ExecutionPayload() (*enginev1.ExecutionPayload, error)
 	ExecutionPayloadHeader() (*enginev1.ExecutionPayloadHeader, error)
 }

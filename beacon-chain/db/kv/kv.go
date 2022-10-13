@@ -23,7 +23,9 @@ var _ iface.Database = (*Store)(nil)
 
 const (
 	// NumOfValidatorEntries is the size of the validator cache entries.
+	// NumOfValidatorEntries是validator cache entries的大小
 	// we expect to hold a max of 200K validators, so setting it to 2 million (10x the capacity).
+	// 我们期望维护最大200k的validators，因此设置为2 million（体量的十倍）
 	NumOfValidatorEntries = 1 << 21
 	// ValidatorEntryMaxCost is set to ~64Mb to allow 200K validators entries to be cached.
 	ValidatorEntryMaxCost = 1 << 26
@@ -74,6 +76,7 @@ type Config struct {
 }
 
 // Store defines an implementation of the Prysm Database interface
+// Store定义了Prysm Database接口的实现，使用BoltDB作为底层持久的键值存储，用于Ethereum Beacon Nodes
 // using BoltDB as the underlying persistent kv-store for Ethereum Beacon Nodes.
 type Store struct {
 	db                  *bolt.DB
@@ -106,6 +109,7 @@ func NewKVStore(ctx context.Context, dirPath string, config *Config) (*Store, er
 			return nil, err
 		}
 	}
+	// KVStore的存储路径
 	datafile := KVStoreDatafilePath(dirPath)
 	log.Infof("Opening Bolt DB at %s", datafile)
 	boltDB, err := bolt.Open(
@@ -123,6 +127,7 @@ func NewKVStore(ctx context.Context, dirPath string, config *Config) (*Store, er
 		return nil, err
 	}
 	boltDB.AllocSize = boltAllocSize
+	// block cache
 	blockCache, err := ristretto.NewCache(&ristretto.Config{
 		NumCounters: 1000,           // number of keys to track frequency of (1000).
 		MaxCost:     BlockCacheSize, // maximum cost of cache (1000 Blocks).
@@ -132,6 +137,7 @@ func NewKVStore(ctx context.Context, dirPath string, config *Config) (*Store, er
 		return nil, err
 	}
 
+	// validator cache
 	validatorCache, err := ristretto.NewCache(&ristretto.Config{
 		NumCounters: NumOfValidatorEntries, // number of entries in cache (2 Million).
 		MaxCost:     ValidatorEntryMaxCost, // maximum size of the cache (64Mb)

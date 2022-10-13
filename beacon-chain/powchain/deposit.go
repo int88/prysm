@@ -31,6 +31,7 @@ func (s *Service) processDeposit(ctx context.Context, eth1Data *ethpb.Eth1Data, 
 	}
 	beaconState, err := blocks.ProcessPreGenesisDeposits(ctx, s.preGenesisState, []*ethpb.Deposit{deposit})
 	if err != nil {
+		// 不能处理genesis之前的deposits
 		return errors.Wrap(err, "could not process pre-genesis deposits")
 	}
 	if beaconState != nil && !beaconState.IsNil() {

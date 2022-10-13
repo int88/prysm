@@ -58,6 +58,7 @@ func (s *Service) Eth2GenesisPowchainInfo() (uint64, *big.Int) {
 }
 
 // ProcessETH1Block processes logs from the provided eth1 block.
+// ProcessETH1Block处理来自提供的eth1 block中的日志
 func (s *Service) ProcessETH1Block(ctx context.Context, blkNum *big.Int) error {
 	query := ethereum.FilterQuery{
 		Addresses: []common.Address{
@@ -72,6 +73,7 @@ func (s *Service) ProcessETH1Block(ctx context.Context, blkNum *big.Int) error {
 	}
 	for _, filterLog := range logs {
 		// ignore logs that are not of the required block number
+		// 忽略不是正常block number的logs
 		if filterLog.BlockNumber != blkNum.Uint64() {
 			continue
 		}
@@ -89,10 +91,12 @@ func (s *Service) ProcessETH1Block(ctx context.Context, blkNum *big.Int) error {
 
 // ProcessLog is the main method which handles the processing of all
 // logs from the deposit contract on the eth1 chain.
+// ProcessLog是主要的方法用于处理所有来自eth1 chain的deposit contract的日志
 func (s *Service) ProcessLog(ctx context.Context, depositLog gethtypes.Log) error {
 	s.processingLock.RLock()
 	defer s.processingLock.RUnlock()
 	// Process logs according to their event signature.
+	// 根据它们的event signature处理logs
 	if depositLog.Topics[0] == depositEventSignature {
 		if err := s.ProcessDepositLog(ctx, depositLog); err != nil {
 			return errors.Wrap(err, "Could not process deposit log")
@@ -109,6 +113,7 @@ func (s *Service) ProcessLog(ctx context.Context, depositLog gethtypes.Log) erro
 // ProcessDepositLog processes the log which had been received from
 // the eth1 chain by trying to ascertain which participant deposited
 // in the contract.
+// ProcessDepositLog处理从eth1 chain中接收到的日志，试着确定哪个participant在contract中押注
 func (s *Service) ProcessDepositLog(ctx context.Context, depositLog gethtypes.Log) error {
 	pubkey, withdrawalCredentials, amount, signature, merkleTreeIndex, err := contracts.UnpackDepositLogData(depositLog.Data)
 	if err != nil {
@@ -164,6 +169,7 @@ func (s *Service) ProcessDepositLog(ctx context.Context, depositLog gethtypes.Lo
 	}
 
 	// We always store all historical deposits in the DB.
+	// 我们总是存储所有历史的deposits到DB中
 	root, err := s.depositTrie.HashTreeRoot()
 	if err != nil {
 		return errors.Wrap(err, "unable to determine root of deposit trie")
@@ -202,6 +208,7 @@ func (s *Service) ProcessDepositLog(ctx context.Context, depositLog gethtypes.Lo
 		}).Debug("Deposit registered from deposit contract")
 		validDepositsCount.Inc()
 		// Notify users what is going on, from time to time.
+		// 通知用户发生了什么
 		if !s.chainStartData.Chainstarted {
 			deposits := len(s.chainStartData.ChainstartDeposits)
 			if deposits%512 == 0 {
@@ -227,6 +234,7 @@ func (s *Service) ProcessDepositLog(ctx context.Context, depositLog gethtypes.Lo
 
 // ProcessChainStart processes the log which had been received from
 // the eth1 chain by trying to determine when to start the beacon chain.
+// ProcessChainStart处理来自eth1 chain的log，通过试着决定什么时候开始beacon chain
 func (s *Service) ProcessChainStart(genesisTime uint64, eth1BlockHash [32]byte, blockNumber *big.Int) {
 	s.chainStartData.Chainstarted = true
 	s.chainStartData.GenesisBlock = blockNumber.Uint64()
@@ -256,6 +264,7 @@ func (s *Service) ProcessChainStart(genesisTime uint64, eth1BlockHash [32]byte, 
 		"ChainStartTime": chainStartTime,
 	}).Info("Minimum number of validators reached for beacon-chain to start")
 	s.cfg.stateNotifier.StateFeed().Send(&feed.Event{
+		// chain启动了
 		Type: statefeed.ChainStarted,
 		Data: &statefeed.ChainStartedData{
 			StartTime: chainStartTime,
@@ -435,9 +444,12 @@ func (s *Service) processBlockInBatch(ctx context.Context, currentBlockNum uint6
 
 // requestBatchedHeadersAndLogs requests and processes all the headers and
 // logs from the period last polled to now.
+// requestBatchedHeadersAndLogs请求并且处理从上次拉取到现在为止所有的headers以及logs
 func (s *Service) requestBatchedHeadersAndLogs(ctx context.Context) error {
 	// We request for the nth block behind the current head, in order to have
 	// stabilized logs when we retrieve it from the eth1 chain.
+	// 我们处理当前header后面的第n个block，为了有稳定的日志，当我们从eth1 chain
+	// 获取它的时候
 
 	requestedBlock, err := s.followedBlockHeight(ctx)
 	if err != nil {
@@ -450,6 +462,7 @@ func (s *Service) requestBatchedHeadersAndLogs(ctx context.Context) error {
 	}
 	for i := s.latestEth1Data.LastRequestedBlock + 1; i <= requestedBlock; i++ {
 		// Cache eth1 block header here.
+		// 在这里缓存eth1 block header
 		_, err := s.BlockHashByHeight(ctx, big.NewInt(0).SetUint64(i))
 		if err != nil {
 			return err
@@ -540,6 +553,7 @@ func (s *Service) processChainStartIfReady(ctx context.Context, blockHash [32]by
 }
 
 // savePowchainData saves all powchain related metadata to disk.
+// savePowchainData将所有powchain相关的元数据保存到磁盘中
 func (s *Service) savePowchainData(ctx context.Context) error {
 	var pbState *ethpb.BeaconState
 	var err error

@@ -28,12 +28,16 @@ var (
 
 // Checks the transition configuration between Prysm and the connected execution node to ensure
 // there are no differences in terminal block difficulty and block hash.
+// 检查在Prysm以及连接的execution node之间的transition配置，来确保terminal block difficulty和block hash
+// 之间没有区别
 // If there are any discrepancies, we must log errors to ensure users can resolve
 //the problem and be ready for the merge transition.
+// 如果有任何的差异，我们必须记录errors来确保用户可以解决问题并且准备merge transition
 func (s *Service) checkTransitionConfiguration(
 	ctx context.Context, blockNotifications chan *feed.Event,
 ) {
 	// If Bellatrix fork epoch is not set, we do not run this check.
+	// 如果没有设置Bellatrix fork，我们不会运行这个检查
 	if params.BeaconConfig().BellatrixForkEpoch == math.MaxUint64 {
 		return
 	}
@@ -57,6 +61,8 @@ func (s *Service) checkTransitionConfiguration(
 	// We poll the execution client to see if the transition configuration has changed.
 	// This serves as a heartbeat to ensure the execution client and Prysm are ready for the
 	// Bellatrix hard-fork transition.
+	// 我们轮询execution client来看是否transition配置是否发生变更，这作为一个heartbeat来确保execution client
+	// 和Prysm准备好Bellatrix hard-fork transition
 	ticker := time.NewTicker(checkTransitionPollingInterval)
 	hasTtdReached := false
 	defer ticker.Stop()
@@ -79,6 +85,7 @@ func (s *Service) checkTransitionConfiguration(
 				continue
 			}
 			if isExecutionBlock {
+				// PoS transition已经完成，不需要再检查配置变更
 				log.Debug("PoS transition is complete, no longer checking for configuration changes")
 				return
 			}

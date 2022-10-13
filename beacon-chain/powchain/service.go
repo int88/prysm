@@ -64,6 +64,7 @@ var (
 	// time to wait before trying to reconnect with the eth1 node.
 	backOffPeriod = 15 * time.Second
 	// amount of times before we log the status of the eth1 dial attempt.
+	// 在我们记录eth1 dial状态前的尝试次数
 	logThreshold = 8
 	// period to log chainstart related information
 	// 用于记录chainstart相关信息的时间间隔
@@ -121,6 +122,7 @@ type RPCDataFetcher interface {
 }
 
 // RPCClient defines the rpc methods required to interact with the eth1 node.
+// RPCClient定义了和eth1 node进行交互的rpc方法
 type RPCClient interface {
 	Close()
 	BatchCall(b []gethRPC.BatchElem) error
@@ -128,6 +130,7 @@ type RPCClient interface {
 }
 
 // config defines a config struct for dependencies into the service.
+// config定义了一个配置结构，用于service的依赖
 type config struct {
 	depositContractAddr     common.Address
 	beaconDB                db.HeadAccessDatabase
@@ -237,19 +240,23 @@ func NewService(ctx context.Context, opts ...Option) (*Service, error) {
 // Start the powchain service's main event loop.
 // 启动powchain service的main event loop
 func (s *Service) Start() {
+	// 连接到execution endpoint
 	if err := s.setupExecutionClientConnections(s.ctx, s.cfg.currHttpEndpoint); err != nil {
 		log.WithError(err).Error("Could not connect to execution endpoint")
 	}
 	// If the chain has not started already and we don't have access to eth1 nodes, we will not be
 	// able to generate the genesis state.
+	// 如果chain还没有启动并且我们没有对于eht1 nodes的访问权限，我们不能产生genesis state
 	if !s.chainStartData.Chainstarted && s.cfg.currHttpEndpoint.Url == "" {
 		// check for genesis state before shutting down the node,
 		// if a genesis state exists, we can continue on.
+		// 在关闭节点之前检查genesis state，如果一个genesis state已经存在，我们可以继续
 		genState, err := s.cfg.beaconDB.GenesisState(s.ctx)
 		if err != nil {
 			log.Fatal(err)
 		}
 		if genState == nil || genState.IsNil() {
+			// 不能创建genesis state，没有定义eth1的http endpoint
 			log.Fatal("cannot create genesis state: no eth1 http endpoint defined")
 		}
 	}
@@ -261,6 +268,7 @@ func (s *Service) Start() {
 	s.pollConnectionStatus(s.ctx)
 
 	// Check transition configuration for the engine API client in the background.
+	// 检查transition的配置，对于在后端的engine API client
 	go s.checkTransitionConfiguration(s.ctx, make(chan *feed.Event, 1))
 
 	go s.run(s.ctx.Done())
@@ -383,6 +391,7 @@ func (s *Service) ETH1ConnectionErrors() []error {
 
 // refers to the latest eth1 block which follows the condition: eth1_timestamp +
 // SECONDS_PER_ETH1_BLOCK * ETH1_FOLLOW_DISTANCE <= current_unix_time
+// 引用最新的eth1 block
 func (s *Service) followedBlockHeight(ctx context.Context) (uint64, error) {
 	followTime := params.BeaconConfig().Eth1FollowDistance * params.BeaconConfig().SecondsPerETH1Block
 	latestBlockTime := uint64(0)
@@ -454,6 +463,8 @@ func (s *Service) initDepositCaches(ctx context.Context, ctrs []*ethpb.DepositCo
 
 // processBlockHeader adds a newly observed eth1 block to the block cache and
 // updates the latest blockHeight, blockHash, and blockTime properties of the service.
+// processBlockHeader添加一个新发现的eth1 block到block cache并且更新服务最新的blockHeight, blockHash
+// blockTime properties
 func (s *Service) processBlockHeader(header *gethTypes.Header) {
 	defer safelyHandlePanic()
 	blockNumberGauge.Set(float64(header.Number.Int64()))
@@ -530,8 +541,10 @@ func (s *Service) handleETH1FollowDistance() {
 
 	// use a 5 minutes timeout for block time, because the max mining time is 278 sec (block 7208027)
 	// (analyzed the time of the block from 2018-09-01 to 2019-02-13)
+	// 对于block time使用5分钟，因为最大的mining时间是278秒
 	fiveMinutesTimeout := prysmTime.Now().Add(-5 * time.Minute)
 	// check that web3 client is syncing
+	// 检查web3 client正在同步
 	if time.Unix(int64(s.latestEth1Data.BlockTime), 0).Before(fiveMinutesTimeout) {
 		log.Warn("Execution client is not syncing")
 	}
@@ -546,6 +559,8 @@ func (s *Service) handleETH1FollowDistance() {
 	// we do not request batched logs as this means there are no new
 	// logs for the powchain service to process. Also it is a potential
 	// failure condition as would mean we have not respected the protocol threshold.
+	// 如果最后请求的block没有改变，我们不要请求batched logs，因为这意味着powchain service没有新的logs
+	// 需要处理，这也可能是一个潜在的失败场景，可能意味着我们没有尊重protocol threshold
 	if s.latestEth1Data.LastRequestedBlock == s.latestEth1Data.BlockHeight {
 		log.Error("Beacon node is not respecting the follow distance")
 		return
@@ -556,6 +571,7 @@ func (s *Service) handleETH1FollowDistance() {
 		return
 	}
 	// Reset the Status.
+	// 重置Status
 	if s.runError != nil {
 		s.runError = nil
 	}
@@ -654,11 +670,13 @@ func (s *Service) run(done <-chan struct{}) {
 			head, err := s.eth1DataFetcher.HeaderByNumber(s.ctx, nil)
 			if err != nil {
 				s.pollConnectionStatus(s.ctx)
+				// 不能获取最新的eth1 header
 				log.WithError(err).Debug("Could not fetch latest eth1 header")
 				continue
 			}
 			if eth1HeadIsBehind(head.Time) {
 				s.pollConnectionStatus(s.ctx)
+				// 不能获取一个up to date的header
 				log.WithError(errFarBehind).Debug("Could not get an up to date eth1 header")
 				continue
 			}
@@ -667,6 +685,7 @@ func (s *Service) run(done <-chan struct{}) {
 			s.checkDefaultEndpoint(s.ctx)
 		case <-chainstartTicker.C:
 			if s.chainStartData.Chainstarted {
+				// 停掉chain start ticker，如果eth1 chain已经启动的话
 				chainstartTicker.Stop()
 				continue
 			}
@@ -676,6 +695,7 @@ func (s *Service) run(done <-chan struct{}) {
 }
 
 // logs the current thresholds required to hit chainstart every minute.
+// 记录当前的thresholds，需要到达chainstart，每分钟
 func (s *Service) logTillChainStart(ctx context.Context) {
 	if s.chainStartData.Chainstarted {
 		return
@@ -896,9 +916,11 @@ func dedupEndpoints(endpoints []string) []string {
 
 // Checks if the provided timestamp is beyond the prescribed bound from
 // the current wall clock time.
+// 检查是否提供的时间戳超过了规定的，来自于当前的wall clock time的bound
 func eth1HeadIsBehind(timestamp uint64) bool {
 	timeout := prysmTime.Now().Add(-eth1Threshold)
 	// check that web3 client is syncing
+	// 检查web3 client正在同步
 	return time.Unix(int64(timestamp), 0).Before(timeout) // lint:ignore uintcast -- timestamp will not exceed int64 in your lifetime.
 }
 

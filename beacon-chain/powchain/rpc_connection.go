@@ -48,12 +48,16 @@ func (s *Service) setupExecutionClientConnections(ctx context.Context, currEndpo
 
 // Every N seconds, defined as a backoffPeriod, attempts to re-establish an execution client
 // connection and if this does not work, we fallback to the next endpoint if defined.
+// 每N秒，作为一个backoffPeriod被定义，试着和一个execution client重新建立连接，如果不能正常工作的话，
+// 我们回落到下一个endpoint，如果定义了的话
 func (s *Service) pollConnectionStatus(ctx context.Context) {
 	// Use a custom logger to only log errors
+	// 使用一个custom logger，只记录errors
 	logCounter := 0
 	errorLogger := func(err error, msg string) {
 		if logCounter > logThreshold {
 			log.Errorf("%s: %v", msg, err)
+			// 重新设置logCount
 			logCounter = 0
 		}
 		logCounter++
@@ -72,9 +76,11 @@ func (s *Service) pollConnectionStatus(ctx context.Context) {
 				continue
 			}
 			// Close previous client, if connection was successful.
+			// 关闭之前的client，如果连接成功的话
 			if currClient != nil {
 				currClient.Close()
 			}
+			// 连接到新的endpoint
 			log.Infof("Connected to new endpoint: %s", logs.MaskCredentialsLogging(s.cfg.currHttpEndpoint.Url))
 			return
 		case <-s.ctx.Done():
@@ -183,6 +189,7 @@ func (s *Service) newRPCClientWithAuth(ctx context.Context, endpoint network.End
 
 // Checks the chain ID of the execution client to ensure
 // it matches local parameters of what Prysm expects.
+// 检查execution client的chain ID来确保它匹配Prysm期望的local参数
 func ensureCorrectExecutionChain(ctx context.Context, client *ethclient.Client) error {
 	cID, err := client.ChainID(ctx)
 	if err != nil {

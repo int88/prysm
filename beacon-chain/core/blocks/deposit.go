@@ -18,6 +18,7 @@ import (
 )
 
 // ProcessPreGenesisDeposits processes a deposit for the beacon state before chainstart.
+// ProcessPreGenesisDeposits处理一个deposit，对于beacon state，在chainstart之前
 func ProcessPreGenesisDeposits(
 	ctx context.Context,
 	beaconState state.BeaconState,
@@ -69,6 +70,8 @@ func ActivateValidatorWithEffectiveBalance(beaconState state.BeaconState, deposi
 // ProcessDeposits is one of the operations performed on each processed
 // beacon block to verify queued validators from the Ethereum 1.0 Deposit Contract
 // into the beacon chain.
+// ProcessDeposits是每个处理的beacon block需要执行的操作，来确认queued validators，从Ethereum 1.0的Deposit
+// Contract到beacon chain
 //
 // Spec pseudocode definition:
 //   For each deposit in block.body.deposits:
@@ -80,6 +83,8 @@ func ProcessDeposits(
 ) (state.BeaconState, error) {
 	// Attempt to verify all deposit signatures at once, if this fails then fall back to processing
 	// individual deposits with signature verification enabled.
+	// 试着一次性校验所有的deposit signatures，如果这个失败，那么试着回退到处理单个的deposits，使能signature
+	// verification enabled
 	batchVerified, err := BatchVerifyDepositsSignatures(ctx, deposits)
 	if err != nil {
 		return nil, err
@@ -115,8 +120,11 @@ func BatchVerifyDepositsSignatures(ctx context.Context, deposits []*ethpb.Deposi
 
 // ProcessDeposit takes in a deposit object and inserts it
 // into the registry as a new validator or balance change.
+// ProcessDeposit拿一个deposit对象并且插入到registry，作为一个新的validator或者balance change
 // Returns the resulting state, a boolean to indicate whether or not the deposit
 // resulted in a new validator entry into the beacon state, and any error.
+// 返回resulting state，一个boolean用来表示是否deposit导致一个新的validator entry在beacon state中
+// 以及任何的error
 //
 // Spec pseudocode definition:
 // def process_deposit(state: BeaconState, deposit: Deposit) -> None:
@@ -156,6 +164,7 @@ func BatchVerifyDepositsSignatures(ctx context.Context, deposits []*ethpb.Deposi
 //        increase_balance(state, index, amount)
 func ProcessDeposit(beaconState state.BeaconState, deposit *ethpb.Deposit, verifySignature bool) (state.BeaconState, bool, error) {
 	var newValidator bool
+	// 校验depoist
 	if err := verifyDeposit(beaconState, deposit); err != nil {
 		if deposit == nil || deposit.Data == nil {
 			return nil, newValidator, err
@@ -165,6 +174,7 @@ func ProcessDeposit(beaconState state.BeaconState, deposit *ethpb.Deposit, verif
 	if err := beaconState.SetEth1DepositIndex(beaconState.Eth1DepositIndex() + 1); err != nil {
 		return nil, newValidator, err
 	}
+	// 从deposit中获取数据
 	pubKey := deposit.Data.PublicKey
 	amount := deposit.Data.Amount
 	index, ok := beaconState.ValidatorIndexByPubkey(bytesutil.ToBytes48(pubKey))
@@ -185,6 +195,7 @@ func ProcessDeposit(beaconState state.BeaconState, deposit *ethpb.Deposit, verif
 		if params.BeaconConfig().MaxEffectiveBalance < effectiveBalance {
 			effectiveBalance = params.BeaconConfig().MaxEffectiveBalance
 		}
+		// 扩展validator
 		if err := beaconState.AppendValidator(&ethpb.Validator{
 			PublicKey:                  pubKey,
 			WithdrawalCredentials:      deposit.Data.WithdrawalCredentials,
@@ -197,6 +208,7 @@ func ProcessDeposit(beaconState state.BeaconState, deposit *ethpb.Deposit, verif
 			return nil, newValidator, err
 		}
 		newValidator = true
+		// 扩展balance
 		if err := beaconState.AppendBalance(amount); err != nil {
 			return nil, newValidator, err
 		}

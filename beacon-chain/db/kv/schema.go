@@ -1,6 +1,7 @@
 package kv
 
 // The schema will define how to store and retrieve data from the db.
+// schema定义了如何从数据库存储以及获取
 // we can prefix or suffix certain values such as `block` with attributes
 // for prefix-wide scans across the underlying BoltDB buckets when filtering data.
 // For example, we might store attestations as shard + attestation_root -> attestation, making

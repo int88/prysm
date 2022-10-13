@@ -56,6 +56,7 @@ func IsMergeTransitionBlockUsingPreStatePayloadHeader(h *enginev1.ExecutionPaylo
 }
 
 // IsExecutionBlock returns whether the block has a non-empty ExecutionPayload.
+// IsExecutionBlock返回是否block有一个非空的ExecutionPayload
 //
 // Spec code:
 // def is_execution_block(block: BeaconBlock) -> bool:
@@ -65,6 +66,7 @@ func IsExecutionBlock(body interfaces.BeaconBlockBody) (bool, error) {
 		return false, errors.New("nil block body")
 	}
 	payload, err := body.ExecutionPayload()
+	// 判断是不是包含一个execution payload
 	switch {
 	case errors.Is(err, wrapper.ErrUnsupportedField):
 		return false, nil

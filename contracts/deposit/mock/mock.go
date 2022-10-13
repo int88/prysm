@@ -62,6 +62,7 @@ func Setup() (*TestAccount, error) {
 	// 构建模拟的backend
 	backend := backends.NewSimulatedBackend(genesis, 210000000000)
 
+	// 部署contract
 	contractAddr, _, contract, err := DeployDepositContract(txOpts, backend)
 	if err != nil {
 		return nil, err
@@ -96,6 +97,7 @@ func DeployDepositContract(auth *bind.TransactOpts, backend bind.ContractBackend
 	if err != nil {
 		return common.Address{}, nil, nil, err
 	}
+	// 返回部署的contract信息
 	return address, tx, &deposit.DepositContract{
 		DepositContractCaller:     deposit.NewDepositContractCallerFromBoundContract(contract),
 		DepositContractTransactor: deposit.NewDepositContractTransactorFromBoundContract(contract),

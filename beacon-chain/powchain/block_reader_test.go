@@ -19,6 +19,7 @@ import (
 )
 
 func setDefaultMocks(service *Service) *Service {
+	// 设置eth1 data fetcher，http logger以及State Notifier
 	service.eth1DataFetcher = &goodFetcher{}
 	service.httpLogger = &goodLogger{}
 	service.cfg.stateNotifier = &goodNotifier{}

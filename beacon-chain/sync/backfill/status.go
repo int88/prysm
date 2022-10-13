@@ -11,6 +11,7 @@ import (
 )
 
 // NewStatus correctly initializes a Status value with the required database value.
+// NewStatus正确地初始化一个Status的值，用要求的database值
 func NewStatus(store BackfillDB) *Status {
 	return &Status{
 		store: store,
@@ -22,6 +23,10 @@ func NewStatus(store BackfillDB) *Status {
 // until the checkpoint sync origin block. Status provides the means to update the value keeping track of the lower
 // end of the missing block range via the Advance() method, to check whether a Slot is missing from the database
 // via the SlotCovered() method, and to see the current StartGap() and EndGap().
+// Status提供了一个方法用于更新以及查询一个backfill process的status，可能在追踪一个node通过checkpoint sync初始化的时候有用
+// 对于checkpoint sync，可能会有一个gap在node history中，从gensis到checkpoint sync origin block，Status提供了方法用于更新
+// value追踪lower end of the missing block range，通过Advance()方法，用来检查是否一个Slot在database中缺失，通过SlotCovered()方法
+// 以及查看当前的StartGap()和EndGap()
 type Status struct {
 	start       types.Slot
 	end         types.Slot
@@ -113,6 +118,7 @@ func (s *Status) Reload(ctx context.Context) error {
 }
 
 // BackfillDB describes the set of DB methods that the Status type needs to function.
+// BackfillDB描述了一系列DB的方法，Status类型需要作用
 type BackfillDB interface {
 	SaveBackfillBlockRoot(ctx context.Context, blockRoot [32]byte) error
 	GenesisBlockRoot(ctx context.Context) ([32]byte, error)

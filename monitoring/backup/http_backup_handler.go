@@ -9,6 +9,7 @@ import (
 )
 
 // BackupExporter defines a backup exporter methods.
+// BackupExporter定义了一个backup exporter方法
 type BackupExporter interface {
 	Backup(ctx context.Context, outputPath string, permissionOverride bool) error
 }
