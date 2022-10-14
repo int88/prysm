@@ -49,6 +49,8 @@ func (dc *DepositCache) InsertPendingDeposit(ctx context.Context, d *ethpb.Depos
 // PendingDeposits returns a list of deposits until the given block number
 // (inclusive). If no block is specified then this method returns all pending
 // deposits.
+// PendingDeposits返回一系列的deposits，直到给定的block number（包括在内），如果没有指定block
+// 那么之后这个方法返回所有的pending deposits
 func (dc *DepositCache) PendingDeposits(ctx context.Context, untilBlk *big.Int) []*ethpb.Deposit {
 	ctx, span := trace.StartSpan(ctx, "DepositsCache.PendingDeposits")
 	defer span.End()

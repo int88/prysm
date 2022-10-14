@@ -31,6 +31,7 @@ func TestProcessDeposits_SameValidatorMultipleDepositsSameBlock(t *testing.T) {
 	b.Block = &ethpb.BeaconBlock{
 		Body: &ethpb.BeaconBlockBody{
 			// 3 deposits from the same validator
+			// 来自同一个validator的三个deposits
 			Deposits: []*ethpb.Deposit{dep[0], dep[1], dep[2]},
 		},
 	}
@@ -54,6 +55,7 @@ func TestProcessDeposits_SameValidatorMultipleDepositsSameBlock(t *testing.T) {
 	newState, err := blocks.ProcessDeposits(context.Background(), beaconState, b.Block.Body.Deposits)
 	require.NoError(t, err, "Expected block deposits to process correctly")
 
+	// 确保validator的数目正确
 	assert.Equal(t, 2, len(newState.Validators()), "Incorrect validator count")
 }
 
@@ -138,7 +140,8 @@ func TestProcessDeposits_RepeatedDeposit_IncreasesValidatorBalance(t *testing.T)
 	require.NoError(t, err)
 	deposit := &ethpb.Deposit{
 		Data: &ethpb.Deposit_Data{
-			PublicKey:             sk.PublicKey().Marshal(),
+			PublicKey: sk.PublicKey().Marshal(),
+			// Depoist的数量是1000
 			Amount:                1000,
 			WithdrawalCredentials: make([]byte, 32),
 			Signature:             make([]byte, fieldparams.BLSSignatureLength),
@@ -187,11 +190,13 @@ func TestProcessDeposits_RepeatedDeposit_IncreasesValidatorBalance(t *testing.T)
 	require.NoError(t, err)
 	newState, err := blocks.ProcessDeposits(context.Background(), beaconState, b.Block.Body.Deposits)
 	require.NoError(t, err, "Process deposit failed")
+	// 最后期望拿到的balance是1000+50
 	assert.Equal(t, uint64(1000+50), newState.Balances()[1], "Expected balance at index 1 to be 1050")
 }
 
 func TestProcessDeposit_AddsNewValidatorDeposit(t *testing.T) {
 	// Similar to TestProcessDeposits_AddsNewValidatorDeposit except that this test directly calls ProcessDeposit
+	// 跟TestProcessDeposits_AddsNewValidatorDeposit类似，除了这个测试直接调用ProcessDeposit
 	dep, _, err := util.DeterministicDepositsAndKeys(1)
 	require.NoError(t, err)
 	eth1Data, err := util.DeterministicEth1Data(len(dep))
@@ -230,6 +235,7 @@ func TestProcessDeposit_AddsNewValidatorDeposit(t *testing.T) {
 
 func TestProcessDeposit_SkipsInvalidDeposit(t *testing.T) {
 	// Same test settings as in TestProcessDeposit_AddsNewValidatorDeposit, except that we use an invalid signature
+	// 和TestProcessDeposit_AddsNewValidatorDeposit的测试设置相同，除了我们使用一个非法的signature
 	dep, _, err := util.DeterministicDepositsAndKeys(1)
 	require.NoError(t, err)
 	dep[0].Data.Signature = make([]byte, 96)
@@ -365,6 +371,7 @@ func TestProcessDeposit_RepeatedDeposit_IncreasesValidatorBalance(t *testing.T) 
 	require.NoError(t, err)
 
 	// We then create a merkle branch for the test.
+	// 我们创建一个merkle branch用于测试
 	depositTrie, err := trie.GenerateTrieFromItems([][]byte{leaf[:]}, params.BeaconConfig().DepositContractTreeDepth)
 	require.NoError(t, err, "Could not generate trie")
 	proof, err := depositTrie.MerkleProof(0)

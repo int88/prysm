@@ -61,6 +61,7 @@ func TestProcessDepositLog_OK(t *testing.T) {
 
 	testAcc.TxOpts.Value = mock.Amount32Eth()
 	testAcc.TxOpts.GasLimit = 1000000
+	// 部署一个deposit contract
 	_, err = testAcc.Contract.Deposit(testAcc.TxOpts, data.PublicKey, data.WithdrawalCredentials, data.Signature, depositRoots[0])
 	require.NoError(t, err, "Could not deposit to deposit contract")
 
@@ -72,6 +73,7 @@ func TestProcessDepositLog_OK(t *testing.T) {
 		},
 	}
 
+	// 获取到logs
 	logs, err := testAcc.Backend.FilterLogs(web3Service.ctx, query)
 	require.NoError(t, err, "Unable to retrieve logs")
 
@@ -149,11 +151,13 @@ func TestProcessDepositLog_InsertsPendingDeposit(t *testing.T) {
 
 	web3Service.chainStartData.Chainstarted = true
 
+	// 处理deposit logs
 	err = web3Service.ProcessDepositLog(context.Background(), logs[0])
 	require.NoError(t, err)
 	err = web3Service.ProcessDepositLog(context.Background(), logs[1])
 	require.NoError(t, err)
 
+	// 获取pending deposits
 	pendingDeposits := web3Service.cfg.depositCache.PendingDeposits(context.Background(), nil /*blockNum*/)
 	require.Equal(t, 2, len(pendingDeposits), "Unexpected number of deposits")
 
@@ -255,8 +259,11 @@ func TestProcessETH2GenesisLog_8DuplicatePubkeys(t *testing.T) {
 	// 64 Validators are used as size required for beacon-chain to start. This number
 	// is defined in the deposit contract as the number required for the testnet. The actual number
 	// is 2**14
+	// beacon-chain启动需要64个validators，这个数字定义在deposit contract中，是testnet需要的，真正的number
+	// 是2**14
 	for i := 0; i < depositsReqForChainStart; i++ {
 		testAcc.TxOpts.Value = mock.Amount32Eth()
+		// 部署64个deposit contract
 		_, err = testAcc.Contract.Deposit(testAcc.TxOpts, data.PublicKey, data.WithdrawalCredentials, data.Signature, depositRoots[0])
 		require.NoError(t, err, "Could not deposit to deposit contract")
 
@@ -346,6 +353,7 @@ func TestProcessETH2GenesisLog(t *testing.T) {
 	require.Equal(t, depositsReqForChainStart, len(logs))
 
 	// Set up our subscriber now to listen for the chain started event.
+	// 设置我们的subscriber，现在监听chain started event
 	stateChannel := make(chan *feed.Event, 1)
 	stateSub := web3Service.cfg.stateNotifier.StateFeed().Subscribe(stateChannel)
 	defer stateSub.Unsubscribe()
@@ -362,6 +370,7 @@ func TestProcessETH2GenesisLog(t *testing.T) {
 	require.Equal(t, depositsReqForChainStart, len(cachedDeposits))
 
 	// Receive the chain started event.
+	// 接收chain started event
 	for started := false; !started; {
 		event := <-stateChannel
 		if event.Type == statefeed.ChainStarted {
@@ -533,17 +542,20 @@ func TestProcessETH2GenesisLog_LargePeriodOfNoLogs(t *testing.T) {
 		require.NoError(t, err, "Could not deposit to deposit contract")
 		// pack 8 deposits into a block with an offset of
 		// 5
+		// 将8个deposits打包到一个block，偏移量为5
 		if (i+1)%8 == depositOffset {
 			testAcc.Backend.Commit()
 		}
 	}
 	// Forward the chain to 'mine' blocks without logs
+	// 迁移chain，来挖掘blocks并且没有logs
 	for i := uint64(0); i < 1500; i++ {
 		testAcc.Backend.Commit()
 	}
 	wantedGenesisTime := testAcc.Backend.Blockchain().CurrentBlock().Time()
 
 	// Forward the chain to account for the follow distance
+	// 前进chain来计算follow distance
 	for i := uint64(0); i < params.BeaconConfig().Eth1FollowDistance; i++ {
 		testAcc.Backend.Commit()
 	}
@@ -552,6 +564,7 @@ func TestProcessETH2GenesisLog_LargePeriodOfNoLogs(t *testing.T) {
 
 	// Set the genesis time 500 blocks ahead of the last
 	// deposit log.
+	// 设置genesis time，在最后的deposit log的500个blocks之前
 	bConfig = params.MinimalSpecConfig().Copy()
 	bConfig.MinGenesisTime = wantedGenesisTime - 10
 	params.OverrideBeaconConfig(bConfig)

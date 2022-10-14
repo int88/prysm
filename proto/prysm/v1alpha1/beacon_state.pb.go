@@ -41,7 +41,9 @@ type BeaconState struct {
 	Eth1Data                    *Eth1Data                                                      `protobuf:"bytes,3001,opt,name=eth1_data,json=eth1Data,proto3" json:"eth1_data,omitempty"`
 	Eth1DataVotes               []*Eth1Data                                                    `protobuf:"bytes,3002,rep,name=eth1_data_votes,json=eth1DataVotes,proto3" json:"eth1_data_votes,omitempty" ssz-max:"2048"`
 	Eth1DepositIndex            uint64                                                         `protobuf:"varint,3003,opt,name=eth1_deposit_index,json=eth1DepositIndex,proto3" json:"eth1_deposit_index,omitempty"`
+	// Validators的集合
 	Validators                  []*Validator                                                   `protobuf:"bytes,4001,rep,name=validators,proto3" json:"validators,omitempty" ssz-max:"1099511627776"`
+	// Balances的集合
 	Balances                    []uint64                                                       `protobuf:"varint,4002,rep,packed,name=balances,proto3" json:"balances,omitempty" ssz-max:"1099511627776"`
 	RandaoMixes                 [][]byte                                                       `protobuf:"bytes,5001,rep,name=randao_mixes,json=randaoMixes,proto3" json:"randao_mixes,omitempty" ssz-size:"65536,32"`
 	Slashings                   []uint64                                                       `protobuf:"varint,6001,rep,packed,name=slashings,proto3" json:"slashings,omitempty" ssz-size:"8192"`

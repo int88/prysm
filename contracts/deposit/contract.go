@@ -130,6 +130,7 @@ func NewDepositContractFilterer(address common.Address, filterer bind.ContractFi
 }
 
 // bindDepositContract binds a generic wrapper to an already deployed contract.
+// bindDepositContract绑定一个generic wrapper到一个已经部署的contract
 func bindDepositContract(address common.Address, caller bind.ContractCaller, transactor bind.ContractTransactor, filterer bind.ContractFilterer) (*bind.BoundContract, error) {
 	parsed, err := abi.JSON(strings.NewReader(DepositContractABI))
 	if err != nil {
@@ -167,6 +168,7 @@ func (_DepositContract *DepositContractCallerRaw) Call(opts *bind.CallOpts, resu
 
 // Transfer initiates a plain transaction to move funds to the contract, calling
 // its default method if one is available.
+// Transfer初始化一个plain transaction，将funds移动到contract，调用它的默认方法，如果可用的话
 func (_DepositContract *DepositContractTransactorRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
 	return _DepositContract.Contract.contract.Transfer(opts)
 }

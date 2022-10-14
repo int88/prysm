@@ -53,6 +53,7 @@ func clientTimedOutError(err error) bool {
 
 // Eth2GenesisPowchainInfo retrieves the genesis time and eth1 block number of the beacon chain
 // from the deposit contract.
+// Eth2GenesisPowchainInfo从deposit contract获取beacon chain的genesis time以及eth1 block number
 func (s *Service) Eth2GenesisPowchainInfo() (uint64, *big.Int) {
 	return s.chainStartData.GenesisTime, big.NewInt(int64(s.chainStartData.GenesisBlock))
 }
@@ -279,22 +280,28 @@ func (s *Service) ProcessChainStart(genesisTime uint64, eth1BlockHash [32]byte, 
 
 // createGenesisTime adds in the genesis delay to the eth1 block time
 // on which it was triggered.
+// createGenesisTime添加genesis delay到eth1 block time，在它触发的时候
 func createGenesisTime(timeStamp uint64) uint64 {
 	return timeStamp + params.BeaconConfig().GenesisDelay
 }
 
 // processPastLogs processes all the past logs from the deposit contract and
 // updates the deposit trie with the data from each individual log.
+// processPastLogs处理所有的past logs，从deposit contract，并且更新deposit trie，用
+// 来自每个individual log的数据
 func (s *Service) processPastLogs(ctx context.Context) error {
 	currentBlockNum := s.latestEth1Data.LastRequestedBlock
 	deploymentBlock := params.BeaconNetworkConfig().ContractDeploymentBlock
 	// Start from the deployment block if our last requested block
 	// is behind it. This is as the deposit logs can only start from the
 	// block of the deployment of the deposit contract.
+	// 从deployment block开始，如果我们最后请求的block在它之后，因为deposit logs
+	// 只能从部署deposit contract的block中获取
 	if deploymentBlock > currentBlockNum {
 		currentBlockNum = deploymentBlock
 	}
 	// To store all blocks.
+	// 存储所有的blocks
 	headersMap := make(map[uint64]*gethtypes.Header)
 	rawLogCount, err := s.depositContractCaller.GetDepositCount(&bind.CallOpts{})
 	if err != nil {
@@ -327,6 +334,7 @@ func (s *Service) processPastLogs(ctx context.Context) error {
 	}
 	fRoot := bytesutil.ToBytes32(c.Root)
 	// Return if no checkpoint exists yet.
+	// 返回如果没有checkpoint存在
 	if fRoot == params.BeaconConfig().ZeroHash {
 		return nil
 	}
@@ -337,8 +345,11 @@ func (s *Service) processPastLogs(ctx context.Context) error {
 	// need to check if this is the correct finalized
 	// state we are referring to and whether our cached
 	// finalized state is referring to our current finalized checkpoint.
+	// 如果处理past logs花费了太多时间，我们需要检查是否我们引用了正确的finalized state
+	// 是否我们缓存的finalized state引用我们当前的finalized checkpoint
 	// The current code does ignore an edge case where the finalized
 	// block is in a different epoch from the checkpoint's epoch.
+	// 当前的代码会忽略一个edge case，当finalized block在一个不同的epoch，对于checkpoint的epoch
 	// This only happens in skipped slots, so pruning it is not an issue.
 	if isNil || slots.ToEpoch(fState.Slot()) != c.Epoch {
 		fState, err = s.cfg.stateGen.StateByRoot(ctx, fRoot)
@@ -355,6 +366,7 @@ func (s *Service) processPastLogs(ctx context.Context) error {
 func (s *Service) processBlockInBatch(ctx context.Context, currentBlockNum uint64, latestFollowHeight uint64, batchSize uint64, additiveFactor uint64, logCount uint64, headersMap map[uint64]*gethtypes.Header) (uint64, uint64, error) {
 	// Batch request the desired headers and store them in a
 	// map for quick access.
+	// 批量请求需要的headers并且存储它们到一个map用于快速访问
 	requestHeaders := func(startBlk uint64, endBlk uint64) error {
 		headers, err := s.batchRequestHeaders(startBlk, endBlk)
 		if err != nil {
@@ -372,6 +384,7 @@ func (s *Service) processBlockInBatch(ctx context.Context, currentBlockNum uint6
 	end := currentBlockNum + batchSize
 	// Appropriately bound the request, as we do not
 	// want request blocks beyond the current follow distance.
+	// 恰当地绑定request，因为我们不想要请求超过当前的follow distance的blocks
 	if end > latestFollowHeight {
 		end = latestFollowHeight
 	}
@@ -385,6 +398,7 @@ func (s *Service) processBlockInBatch(ctx context.Context, currentBlockNum uint6
 	remainingLogs := logCount - uint64(s.lastReceivedMerkleIndex+1)
 	// only change the end block if the remaining logs are below the required log limit.
 	// reset our query and end block in this case.
+	// 只改变end block，如果剩余的logs低于请求的log limit，重置我们的query并且end block，在这种情况下
 	withinLimit := remainingLogs < depositLogRequestLimit
 	aboveFollowHeight := end >= latestFollowHeight
 	if withinLimit && aboveFollowHeight {
@@ -406,6 +420,7 @@ func (s *Service) processBlockInBatch(ctx context.Context, currentBlockNum uint6
 	}
 	// Only request headers before chainstart to correctly determine
 	// genesis.
+	// 只有请求headers，在chainstart来正确决定genesis
 	if !s.chainStartData.Chainstarted {
 		if err := requestHeaders(start, end); err != nil {
 			return 0, 0, err
@@ -418,6 +433,7 @@ func (s *Service) processBlockInBatch(ctx context.Context, currentBlockNum uint6
 				return 0, 0, err
 			}
 			// set new block number after checking for chainstart for previous block.
+			// 设置新的block number，在对之前的block检查chainstart之后
 			s.latestEth1DataLock.Lock()
 			s.latestEth1Data.LastRequestedBlock = currentBlockNum
 			s.latestEth1DataLock.Unlock()

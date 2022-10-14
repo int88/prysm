@@ -41,6 +41,7 @@ func DeterministicDepositsAndKeys(numDeposits uint64) ([]*ethpb.Deposit, []bls.S
 	var err error
 
 	// Populate trie cache, if not initialized yet.
+	// 填充trie cache，如果没有初始化完成的话
 	if t == nil {
 		t, err = trie.NewTrie(params.BeaconConfig().DepositContractTreeDepth)
 		if err != nil {
@@ -324,6 +325,8 @@ func resetCache() {
 // DeterministicDepositsAndKeysSameValidator returns the entered amount of deposits and secret keys
 // of the same validator. This is for negative test cases such as same deposits from same validators in a block don't
 // result in duplicated validator indices.
+// DeterministicDepositsAndKeysSameValidator返回同一个validator的输入的存款金额以及secret keys
+// 这用于negative test cases，例如在一个block里面来自同一个validtor的同样的deposits，不会导致重复的validator indices
 func DeterministicDepositsAndKeysSameValidator(numDeposits uint64) ([]*ethpb.Deposit, []bls.SecretKey, error) {
 	resetCache()
 	lock.Lock()
@@ -331,6 +334,7 @@ func DeterministicDepositsAndKeysSameValidator(numDeposits uint64) ([]*ethpb.Dep
 	var err error
 
 	// Populate trie cache, if not initialized yet.
+	// 填充trie cache，如果还没有初始化完成的话
 	if t == nil {
 		t, err = trie.NewTrie(params.BeaconConfig().DepositContractTreeDepth)
 		if err != nil {
@@ -344,6 +348,7 @@ func DeterministicDepositsAndKeysSameValidator(numDeposits uint64) ([]*ethpb.Dep
 		numExisting := uint64(len(cachedDeposits))
 		numRequired := numDeposits - uint64(len(cachedDeposits))
 		// Fetch the required number of keys.
+		// 获取需要的keys的数目
 		secretKeys, publicKeys, err := interop.DeterministicallyGenerateKeys(numExisting, numRequired+1)
 		if err != nil {
 			return nil, nil, errors.Wrap(err, "could not create deterministic keys: ")
