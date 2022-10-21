@@ -39,6 +39,8 @@ import (
 // providing RPC endpoints for obtaining validator assignments per epoch, the slots
 // and committees in which particular validators need to perform their responsibilities,
 // and more.
+// Server定义了一个server实现了gRPC Validator服务，提供RPC endpoints用于获取每个epoch的validator
+// assignments，slots以及committees，某个特定的validators需要执行它们的responsibilities
 type Server struct {
 	Ctx                    context.Context
 	AttestationCache       *cache.AttestationCache

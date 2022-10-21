@@ -66,6 +66,7 @@ type Getter interface {
 }
 
 // Setter allows to set forkchoice information
+// Setter允许设置forkchoice信息
 type Setter interface {
 	SetOptimisticToValid(context.Context, [fieldparams.RootLength]byte) error
 	SetOptimisticToInvalid(context.Context, [fieldparams.RootLength]byte, [fieldparams.RootLength]byte, [fieldparams.RootLength]byte) ([][32]byte, error)

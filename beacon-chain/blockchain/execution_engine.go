@@ -152,6 +152,8 @@ func (s *Service) getPayloadHash(ctx context.Context, root []byte) ([32]byte, er
 
 // notifyForkchoiceUpdate signals execution engine on a new payload.
 // It returns true if the EL has returned VALID for the block
+// notifyForkchoiceUpdate通知execution engine，对于新的payload
+// 它返回true，如果EL对于block返回了VALID
 func (s *Service) notifyNewPayload(ctx context.Context, postStateVersion int,
 	postStateHeader *enginev1.ExecutionPayloadHeader, blk interfaces.SignedBeaconBlock) (bool, error) {
 	ctx, span := trace.StartSpan(ctx, "blockChain.notifyNewPayload")
@@ -159,6 +161,7 @@ func (s *Service) notifyNewPayload(ctx context.Context, postStateVersion int,
 
 	// Execution payload is only supported in Bellatrix and beyond. Pre
 	// merge blocks are never optimistic
+	// Execution payload只有在Bellatrix以及之后才被支持，Premerge的blocks都不乐观
 	if blocks.IsPreBellatrixVersion(postStateVersion) {
 		return true, nil
 	}

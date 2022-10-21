@@ -516,6 +516,7 @@ func TestNewService_EarliestVotingBlock(t *testing.T) {
 	web3Service.eth1DataFetcher = &goodFetcher{backend: testAcc.Backend}
 	// simulated backend sets eth1 block
 	// time as 10 seconds
+	// 模拟的backend设置eth1 block时间为10s
 	params.SetupTestConfigCleanup(t)
 	conf := params.BeaconConfig().Copy()
 	conf.SecondsPerETH1Block = 10
@@ -523,9 +524,11 @@ func TestNewService_EarliestVotingBlock(t *testing.T) {
 	params.OverrideBeaconConfig(conf)
 
 	// Genesis not set
+	// Genesis没有设置
 	followBlock := uint64(2000)
 	blk, err := web3Service.determineEarliestVotingBlock(context.Background(), followBlock)
 	require.NoError(t, err)
+	// 意料之外的最早的voting block
 	assert.Equal(t, followBlock-conf.Eth1FollowDistance, blk, "unexpected earliest voting block")
 
 	// Genesis is set.

@@ -193,6 +193,7 @@ func (s *Service) ExchangeTransitionConfiguration(
 }
 
 // GetTerminalBlockHash returns the valid terminal block hash based on total difficulty.
+// GetTerminalBlockHash基于td返回合法的terminal block hash
 //
 // Spec code:
 // def get_pow_block_at_terminal_total_difficulty(pow_chain: Dict[Hash32, PowBlock]) -> Optional[PowBlock]:
@@ -266,6 +267,7 @@ func (s *Service) GetTerminalBlockHash(ctx context.Context) ([]byte, bool, error
 
 // LatestExecutionBlock fetches the latest execution engine block by calling
 // eth_blockByNumber via JSON-RPC.
+// LatestExecutionBlock获取最新执行的block
 func (s *Service) LatestExecutionBlock(ctx context.Context) (*pb.ExecutionBlock, error) {
 	ctx, span := trace.StartSpan(ctx, "powchain.engine-api-client.LatestExecutionBlock")
 	defer span.End()

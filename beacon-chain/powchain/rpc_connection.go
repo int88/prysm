@@ -41,6 +41,7 @@ func (s *Service) setupExecutionClientConnections(ctx context.Context, currEndpo
 		client.Close()
 		return errors.Wrap(err, "could not make initial request to verify execution chain ID")
 	}
+	// 设置连接完成
 	s.updateConnectedETH1(true)
 	s.runError = nil
 	return nil

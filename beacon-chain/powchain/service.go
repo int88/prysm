@@ -70,6 +70,7 @@ var (
 	// 用于记录chainstart相关信息的时间间隔
 	logPeriod = 1 * time.Minute
 	// threshold of how old we will accept an eth1 node's head to be.
+	// 关于我们能接受的eth1 node的最老的时间
 	eth1Threshold = 20 * time.Minute
 	// error when eth1 node is too far behind.
 	errFarBehind = errors.Errorf("eth1 head is more than %s behind from current wall clock time", eth1Threshold.String())
@@ -780,6 +781,7 @@ func (s *Service) determineEarliestVotingBlock(ctx context.Context, followBlock 
 	currSlot := slots.CurrentSlot(genesisTime)
 
 	// In the event genesis has not occurred yet, we just request to go back follow_distance blocks.
+	// 当event genesis还没有到来的时候，我们请求回到follow_distance blocks
 	if genesisTime == 0 || currSlot == 0 {
 		earliestBlk := uint64(0)
 		if followBlock > params.BeaconConfig().Eth1FollowDistance {
@@ -864,6 +866,7 @@ func (s *Service) ensureValidPowchainData(ctx context.Context) error {
 		return err
 	}
 	// Exit early if no genesis state is saved.
+	// 如果没有保存genesis state，提前退出
 	if genState == nil || genState.IsNil() {
 		return nil
 	}

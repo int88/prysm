@@ -496,6 +496,7 @@ func (s *Service) handleEpochBoundary(ctx context.Context, postState state.Beaco
 
 // This feeds in the block and block's attestations to fork choice store. It's allows fork choice store
 // to gain information on the most current chain.
+// 这个函数向fork choice store填充block以及block的attestations，它允许fork choice store获取最新的chain的信息
 func (s *Service) insertBlockAndAttestationsToForkChoiceStore(ctx context.Context, blk interfaces.BeaconBlock, root [32]byte, st state.BeaconState) error {
 	ctx, span := trace.StartSpan(ctx, "blockChain.insertBlockAndAttestationsToForkChoiceStore")
 	defer span.End()
