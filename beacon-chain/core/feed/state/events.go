@@ -12,10 +12,13 @@ import (
 
 const (
 	// BlockProcessed is sent after a block has been processed and updated the state database.
+	// BlockProcessed被发送，在一个block已经被处理并且更新state database
 	BlockProcessed = iota + 1
 	// ChainStarted is sent when enough validators are active to start proposing blocks.
+	// ChainStarted被发送，当有足够的validators处于active能够开始proposing blocks
 	ChainStarted
 	// Initialized is sent when the internal beacon node's state is ready to be accessed.
+	// Initialized被发送，当internal beacon node的state已经准备好被访问
 	Initialized
 	// Synced is sent when the beacon node has completed syncing and is ready to participate in the network.
 	Synced

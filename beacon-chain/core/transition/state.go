@@ -62,11 +62,13 @@ func GenesisBeaconState(ctx context.Context, deposits []*ethpb.Deposit, genesisT
 	}
 
 	// Process initial deposits.
+	// 处理初始的deposits
 	st, err = helpers.UpdateGenesisEth1Data(st, deposits, eth1Data)
 	if err != nil {
 		return nil, err
 	}
 
+	// 处理pre genesis deposits
 	st, err = b.ProcessPreGenesisDeposits(ctx, st, deposits)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not process validator deposits")
@@ -194,6 +196,7 @@ func EmptyGenesisState() (state.BeaconState, error) {
 			Epoch:           0,
 		},
 		// Validator registry fields.
+		// Validator registry的字段
 		Validators: []*ethpb.Validator{},
 		Balances:   []uint64{},
 
@@ -203,6 +206,7 @@ func EmptyGenesisState() (state.BeaconState, error) {
 		PreviousEpochAttestations: []*ethpb.PendingAttestation{},
 
 		// Eth1 data.
+		// Eth1的data数据
 		Eth1Data:         &ethpb.Eth1Data{},
 		Eth1DataVotes:    []*ethpb.Eth1Data{},
 		Eth1DepositIndex: 0,

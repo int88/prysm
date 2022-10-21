@@ -12,6 +12,7 @@ import (
 
 // ValidatorIndexMap builds a lookup map for quickly determining the index of
 // a validator by their public key.
+// ValidatorIndexMap构建一个lookup map，用于快速通过public key确定validator的索引
 func ValidatorIndexMap(validators []*ethpb.Validator) map[[fieldparams.BLSPubkeyLength]byte]types.ValidatorIndex {
 	m := make(map[[fieldparams.BLSPubkeyLength]byte]types.ValidatorIndex, len(validators))
 	if validators == nil {
@@ -22,6 +23,7 @@ func ValidatorIndexMap(validators []*ethpb.Validator) map[[fieldparams.BLSPubkey
 			continue
 		}
 		key := bytesutil.ToBytes48(record.PublicKey)
+		// public key到validator之间的映射
 		m[key] = types.ValidatorIndex(idx)
 	}
 	return m

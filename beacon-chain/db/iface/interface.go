@@ -65,11 +65,13 @@ type NoHeadAccessDatabase interface {
 	ReadOnlyDatabase
 
 	// Block related methods.
+	// Block相关的方法
 	DeleteBlock(ctx context.Context, root [32]byte) error
 	SaveBlock(ctx context.Context, block interfaces.SignedBeaconBlock) error
 	SaveBlocks(ctx context.Context, blocks []interfaces.SignedBeaconBlock) error
 	SaveGenesisBlockRoot(ctx context.Context, blockRoot [32]byte) error
 	// State related methods.
+	// State相关的方法
 	SaveState(ctx context.Context, state state.ReadOnlyBeaconState, blockRoot [32]byte) error
 	SaveStates(ctx context.Context, states []state.ReadOnlyBeaconState, blockRoots [][32]byte) error
 	DeleteState(ctx context.Context, blockRoot [32]byte) error
@@ -87,6 +89,7 @@ type NoHeadAccessDatabase interface {
 	// Run any required database migrations.
 	RunMigrations(ctx context.Context) error
 	// Fee reicipients operations.
+	// Fee recipients的相关操作
 	SaveFeeRecipientsByValidatorIDs(ctx context.Context, ids []types.ValidatorIndex, addrs []common.Address) error
 	SaveRegistrationsByValidatorIDs(ctx context.Context, ids []types.ValidatorIndex, regs []*ethpb.ValidatorRegistrationV1) error
 
@@ -114,6 +117,7 @@ type HeadAccessDatabase interface {
 }
 
 // SlasherDatabase interface for persisting data related to detecting slashable offenses on Ethereum.
+// SlasherDatabase接口用于持久化相关数据，用于在Ethereum中检测slashable offenses
 type SlasherDatabase interface {
 	io.Closer
 	SaveLastEpochsWrittenForValidators(

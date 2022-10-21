@@ -78,6 +78,7 @@ func setupBeaconChain(t *testing.T, beaconDB db.Database) *Service {
 	ctx := context.Background()
 	var web3Service *powchain.Service
 	var err error
+	// 构建pow的rpc server
 	srv, endpoint, err := mockPOW.SetupRPCServer()
 	require.NoError(t, err)
 	t.Cleanup(func() {
@@ -104,6 +105,7 @@ func setupBeaconChain(t *testing.T, beaconDB db.Database) *Service {
 		DepositContainers: []*ethpb.DepositContainer{},
 	})
 	require.NoError(t, err)
+	// 构建web3 service
 	web3Service, err = powchain.NewService(
 		ctx,
 		powchain.WithDatabase(beaconDB),
@@ -149,6 +151,7 @@ func TestChainStartStop_Initialized(t *testing.T) {
 
 	chainService := setupBeaconChain(t, beaconDB)
 
+	// 构建gensis block
 	genesisBlk := util.NewBeaconBlock()
 	blkRoot, err := genesisBlk.Block.HashTreeRoot()
 	require.NoError(t, err)

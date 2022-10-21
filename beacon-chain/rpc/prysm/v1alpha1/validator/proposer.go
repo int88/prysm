@@ -62,6 +62,8 @@ func (vs *Server) GetBeaconBlock(ctx context.Context, req *ethpb.BlockRequest) (
 
 // GetBlock is called by a proposer during its assigned slot to request a block to sign
 // by passing in the slot and the signed randao reveal of the slot.
+// GetBlock由一个proposer调用，在它的assigned slot用于请求一个block，来sign，通过传入slot以及signed
+// randao reveal
 //
 // DEPRECATED: Use GetBeaconBlock instead to handle blocks pre and post-Altair hard fork. This endpoint
 // cannot handle blocks after the Altair fork epoch. If requesting a block after Altair, nothing will
@@ -79,6 +81,7 @@ func (vs *Server) GetBlock(ctx context.Context, req *ethpb.BlockRequest) (*ethpb
 
 // ProposeBeaconBlock is called by a proposer during its assigned slot to create a block in an attempt
 // to get it processed by the beacon node as the canonical head.
+// ProposeBeaconBlock由一个proposer调用，在它赋予的slot，用于创建一个block，试着让它被beacon node处理，作为canonical head
 func (vs *Server) ProposeBeaconBlock(ctx context.Context, req *ethpb.GenericSignedBeaconBlock) (*ethpb.ProposeResponse, error) {
 	ctx, span := trace.StartSpan(ctx, "ProposerServer.ProposeBeaconBlock")
 	defer span.End()
@@ -104,6 +107,7 @@ func (vs *Server) ProposeBlock(ctx context.Context, rBlk *ethpb.SignedBeaconBloc
 }
 
 // PrepareBeaconProposer caches and updates the fee recipient for the given proposer.
+// PrepareBeaconProposer缓存并且更新给定proposer的fee recipient
 func (vs *Server) PrepareBeaconProposer(
 	ctx context.Context, request *ethpb.PrepareBeaconProposerRequest,
 ) (*emptypb.Empty, error) {
@@ -120,6 +124,7 @@ func (vs *Server) PrepareBeaconProposer(
 		validatorIndices = append(validatorIndices, recipientContainer.ValidatorIndex)
 	}
 	if err := vs.BeaconDB.SaveFeeRecipientsByValidatorIDs(ctx, validatorIndices, feeRecipients); err != nil {
+		// 不能保存fee recipients
 		return nil, status.Errorf(codes.Internal, "Could not save fee recipients: %v", err)
 	}
 	log.WithFields(logrus.Fields{
@@ -142,6 +147,7 @@ func (vs *Server) proposeGenericBeaconBlock(ctx context.Context, blk interfaces.
 	}
 
 	// Do not block proposal critical path with debug logging or block feed updates.
+	// 在block proposal的关键路径，不能有debug logging或者block feed updates
 	defer func() {
 		log.WithField("blockRoot", fmt.Sprintf("%#x", bytesutil.Trunc(root[:]))).Debugf(
 			"Block proposal received via RPC")
@@ -152,6 +158,7 @@ func (vs *Server) proposeGenericBeaconBlock(ctx context.Context, blk interfaces.
 	}()
 
 	// Broadcast the new block to the network.
+	// 将新的block广播到network
 	if err := vs.P2P.Broadcast(ctx, blk.Proto()); err != nil {
 		return nil, fmt.Errorf("could not broadcast block: %v", err)
 	}
@@ -160,6 +167,7 @@ func (vs *Server) proposeGenericBeaconBlock(ctx context.Context, blk interfaces.
 	}).Debug("Broadcasting block")
 
 	if err := vs.BlockReceiver.ReceiveBlock(ctx, blk, root); err != nil {
+		// 不能处理beacon block
 		return nil, fmt.Errorf("could not process beacon block: %v", err)
 	}
 

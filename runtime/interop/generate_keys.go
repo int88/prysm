@@ -18,6 +18,7 @@ const (
 )
 
 // DeterministicallyGenerateKeys creates BLS private keys using a fixed curve order according to
+// DeterministicallyGenerateKeys使用一个fixed curve order创建BLS private keys
 // the algorithm specified in the Ethereum beacon chain specification interop mock start section found here:
 // https://github.com/ethereum/eth2.0-pm/blob/a085c9870f3956d6228ed2a40cd37f0c6580ecd7/interop/mocked_start/README.md
 func DeterministicallyGenerateKeys(startIndex, numKeys uint64) ([]bls.SecretKey, []bls.PublicKey, error) {

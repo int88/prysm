@@ -30,6 +30,7 @@ var (
 )
 
 // CheckpointStateCache is a struct with 1 queue for looking up state by checkpoint.
+// CheckpointStateCache是一个有着一个队列的结构，用于通过checkpoint查找state
 type CheckpointStateCache struct {
 	cache *lru.Cache
 	lock  sync.RWMutex

@@ -1,6 +1,8 @@
 // Package state_native defines how the beacon chain state for Ethereum
 // functions in the running beacon node, using an advanced,
 // immutable implementation of the state data structure.
+// Package state_native定义了beacon chain state如何对Ethereum函数，在running beacon state做出反应
+// 使用高级的，不可变的state数据结构
 //
 // BeaconState getters may be accessed from inside or outside the package. To
 // avoid duplicating locks, we have internal and external versions of the

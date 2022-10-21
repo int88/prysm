@@ -37,12 +37,14 @@ func ProcessPreGenesisDeposits(
 }
 
 // ActivateValidatorWithEffectiveBalance updates validator's effective balance, and if it's above MaxEffectiveBalance, validator becomes active in genesis.
+// ActivateValidatorWithEffectiveBalance更新validator的effective balance，并且如果它超过了MaxEffectiveBalance，validator在genesis变为active
 func ActivateValidatorWithEffectiveBalance(beaconState state.BeaconState, deposits []*ethpb.Deposit) (state.BeaconState, error) {
 	for _, d := range deposits {
 		pubkey := d.Data.PublicKey
 		index, ok := beaconState.ValidatorIndexByPubkey(bytesutil.ToBytes48(pubkey))
 		// In the event of the pubkey not existing, we continue processing the other
 		// deposits.
+		// public key不存在？
 		if !ok {
 			continue
 		}
@@ -221,6 +223,7 @@ func ProcessDeposit(beaconState state.BeaconState, deposit *ethpb.Deposit, verif
 
 func verifyDeposit(beaconState state.ReadOnlyBeaconState, deposit *ethpb.Deposit) error {
 	// Verify Merkle proof of deposit and deposit trie root.
+	// 校验deposit的Merkel proof以及deposit的trie root
 	if deposit == nil || deposit.Data == nil {
 		return errors.New("received nil deposit or nil deposit data")
 	}

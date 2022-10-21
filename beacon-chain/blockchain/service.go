@@ -133,6 +133,7 @@ func (s *Service) Start() {
 			log.Fatal(err)
 		}
 	} else {
+		// 如果没有之前保存的数据，则从POW Chain开始
 		if err := s.startFromPOWChain(); err != nil {
 			log.Fatal(err)
 		}
@@ -374,6 +375,7 @@ func (s *Service) startFromPOWChain() error {
 					}
 					// 接收到了pow chain启动的事件
 					log.WithField("starttime", data.StartTime).Debug("Received chain start event")
+					// 调用service的onPowchainStart
 					s.onPowchainStart(s.ctx, data.StartTime)
 					return
 				}
@@ -402,6 +404,7 @@ func (s *Service) onPowchainStart(ctx context.Context, genesisTime time.Time) {
 		log.Fatalf("Could not initialize beacon chain: %v", err)
 	}
 	// We start a counter to genesis, if needed.
+	// 我们记录到genesis的计数，如果需要的话
 	gRoot, err := initializedState.HashTreeRoot(s.ctx)
 	if err != nil {
 		log.Fatalf("Could not hash tree root genesis state: %v", err)
@@ -412,6 +415,7 @@ func (s *Service) onPowchainStart(ctx context.Context, genesisTime time.Time) {
 	// running in the beacon node.
 	// 我们发出一个state initialized 事件到剩余在beacon node中运行的services
 	s.cfg.StateNotifier.StateFeed().Send(&feed.Event{
+		// 发送初始化完成的事件
 		Type: statefeed.Initialized,
 		Data: &statefeed.InitializedData{
 			StartTime:             genesisTime,
@@ -444,12 +448,15 @@ func (s *Service) initializeBeaconChain(
 		return nil, errors.Wrap(err, "could not save genesis data")
 	}
 
+	// 初始化beacon chain的genesis state
 	log.Info("Initialized beacon chain genesis state")
 
 	// Clear out all pre-genesis data now that the state is initialized.
+	// 清理所有的pre-genesis data，现在state已经初始化了
 	s.cfg.ChainStartFetcher.ClearPreGenesisData()
 
 	// Update committee shuffled indices for genesis epoch.
+	// 更新committee shuffled indices，对于genesis epoch
 	if err := helpers.UpdateCommitteeCache(ctx, genesisState, 0); err != nil {
 		return nil, err
 	}

@@ -27,6 +27,7 @@ import (
 )
 
 // ExecuteStateTransition defines the procedure for a state transition function.
+// ExecuteStateTransition定义了对于state transition函数的过程
 //
 // Note: This method differs from the spec pseudocode as it uses a batch signature verification.
 // See: ExecuteStateTransitionNoVerifyAnySig
@@ -62,10 +63,12 @@ func ExecuteStateTransition(
 
 	set, postState, err := ExecuteStateTransitionNoVerifyAnySig(ctx, state, signed)
 	if err != nil {
+		// 不能执行state transition
 		return nil, errors.Wrap(err, "could not execute state transition")
 	}
 	valid, err := set.Verify()
 	if err != nil {
+		// 不能批量校验signature
 		return nil, errors.Wrap(err, "could not batch verify signature")
 	}
 	if !valid {
@@ -130,6 +133,7 @@ func ProcessSlot(ctx context.Context, state state.BeaconState) (state.BeaconStat
 }
 
 // ProcessSlotsUsingNextSlotCache processes slots by using next slot cache for higher efficiency.
+// ProcessSlotsUsingNextSlotCache通过使用下一个slot cache对slots进行处理，为了更高的效率
 func ProcessSlotsUsingNextSlotCache(
 	ctx context.Context,
 	parentState state.BeaconState,
@@ -139,6 +143,7 @@ func ProcessSlotsUsingNextSlotCache(
 	defer span.End()
 
 	// Check whether the parent state has been advanced by 1 slot in next slot cache.
+	// 校验是否parent state在下一个slot cache是否加1
 	nextSlotState, err := NextSlotState(ctx, parentRoot)
 	if err != nil {
 		return nil, err

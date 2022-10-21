@@ -51,6 +51,7 @@ type GenesisFetcher interface {
 
 // HeadFetcher defines a common interface for methods in blockchain service which
 // directly retrieve head related data.
+// HeadFetcher定义了一个通用的接口在blockchain service中，直接获取head相关的数据
 type HeadFetcher interface {
 	HeadSlot() types.Slot
 	HeadRoot(ctx context.Context) ([]byte, error)

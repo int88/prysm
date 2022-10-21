@@ -300,12 +300,14 @@ func (s *Service) ClearPreGenesisData() {
 }
 
 // ChainStartEth1Data returns the eth1 data at chainstart.
+// ChainStartEth1Data返回在chainstart的eth1 data
 func (s *Service) ChainStartEth1Data() *ethpb.Eth1Data {
 	return s.chainStartData.Eth1Data
 }
 
 // PreGenesisState returns a state that contains
 // pre-chainstart deposits.
+// PreGenesisState返回一个state，包含pre-chainstart的deposits
 func (s *Service) PreGenesisState() state.BeaconState {
 	return s.preGenesisState
 }

@@ -28,6 +28,7 @@ import (
 
 // BlockGenConfig is used to define the requested conditions
 // for block generation.
+// BlockGenConfig用于定义block generation的请求参数
 type BlockGenConfig struct {
 	NumProposerSlashings uint64
 	NumAttesterSlashings uint64
@@ -74,6 +75,7 @@ func NewBeaconBlock() *ethpb.SignedBeaconBlock {
 }
 
 // GenerateFullBlock generates a fully valid block with the requested parameters.
+// GenerateFullBlock用请求的参数生成一个完全合法的block
 // Use BlockGenConfig to declare the conditions you would like the block generated under.
 func GenerateFullBlock(
 	bState state.BeaconState,
@@ -82,6 +84,7 @@ func GenerateFullBlock(
 	slot types.Slot,
 ) (*ethpb.SignedBeaconBlock, error) {
 	ctx := context.Background()
+	// 获取当前的slot
 	currentSlot := bState.Slot()
 	if currentSlot > slot {
 		return nil, fmt.Errorf("current slot in state is larger than given slot. %d > %d", currentSlot, slot)
@@ -156,6 +159,8 @@ func GenerateFullBlock(
 
 	// Temporarily incrementing the beacon state slot here since BeaconProposerIndex is a
 	// function deterministic on beacon state slot.
+	// 临时增加beacon state slot，因为BeaconProposerIndex是一个function deterministic，对于beacon state
+	// slot
 	if err := bState.SetSlot(slot); err != nil {
 		return nil, err
 	}
@@ -184,6 +189,7 @@ func GenerateFullBlock(
 			Graffiti:          make([]byte, fieldparams.RootLength),
 		},
 	}
+	// 设置当前的slot
 	if err := bState.SetSlot(currentSlot); err != nil {
 		return nil, err
 	}

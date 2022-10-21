@@ -49,6 +49,7 @@ func (s *Service) UpdateAndSaveHeadWithBalances(ctx context.Context) error {
 }
 
 // This defines the current chain service's view of head.
+// 它定义了当前chain service的view of head
 type head struct {
 	slot  types.Slot                   // current head slot.
 	root  [32]byte                     // current head root.
@@ -58,6 +59,7 @@ type head struct {
 
 // This saves head info to the local service cache, it also saves the
 // new head root to the DB.
+// 它保存head信息到本地的service cache，它同时保存新的head root到DB
 func (s *Service) saveHead(ctx context.Context, newHeadRoot [32]byte, headBlock interfaces.SignedBeaconBlock, headState state.BeaconState) error {
 	ctx, span := trace.StartSpan(ctx, "blockChain.saveHead")
 	defer span.End()
@@ -88,6 +90,7 @@ func (s *Service) saveHead(ctx context.Context, newHeadRoot [32]byte, headBlock 
 	}
 
 	// A chain re-org occurred, so we fire an event notifying the rest of the services.
+	// 发生了一个chain re-org，因此我们触发一个event，通知其余的services
 	s.headLock.RLock()
 	oldStateRoot := s.headBlock().Block().StateRoot()
 	s.headLock.RUnlock()
@@ -134,6 +137,8 @@ func (s *Service) saveHead(ctx context.Context, newHeadRoot [32]byte, headBlock 
 
 	// Forward an event capturing a new chain head over a common event feed
 	// done in a goroutine to avoid blocking the critical runtime main routine.
+	// 转发一个event，捕获一个的chain head，通过一个common event feed，在一个goroutine
+	// 完成来避免在重要的runtime main goroutine阻塞
 	go func() {
 		if err := s.notifyNewHeadEvent(ctx, newHeadSlot, headState, newStateRoot, newHeadRoot[:]); err != nil {
 			log.WithError(err).Error("Could not notify event feed of new chain head")

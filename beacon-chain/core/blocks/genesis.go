@@ -10,6 +10,7 @@ import (
 )
 
 // NewGenesisBlock returns the canonical, genesis block for the beacon chain protocol.
+// NewGenesisBlock为beacon chain protocol返回canonical, gensis block
 func NewGenesisBlock(stateRoot []byte) *ethpb.SignedBeaconBlock {
 	zeroHash := params.BeaconConfig().ZeroHash[:]
 	block := &ethpb.SignedBeaconBlock{

@@ -14,6 +14,7 @@ import (
 )
 
 // FaultyMockPOWChain defines an incorrectly functioning powchain service.
+// FaultyMockPOWChain定义了一个不正确工作的powchain service
 type FaultyMockPOWChain struct {
 	ChainFeed      *event.Feed
 	HashesByHeight map[int][]byte

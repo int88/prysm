@@ -64,6 +64,7 @@ func FillRootsNaturalOptBellatrix(state *ethpb.BeaconStateBellatrix) error {
 type NewBeaconStateOption func(state *ethpb.BeaconState) error
 
 // NewBeaconState creates a beacon state with minimum marshalable fields.
+// NewBeaconState创建一个beacon state，有着最少的marshalable字段
 func NewBeaconState(options ...NewBeaconStateOption) (state.BeaconState, error) {
 	seed := &ethpb.BeaconState{
 		BlockRoots:                 filledByteSlice2D(uint64(params.MainnetConfig().SlotsPerHistoricalRoot), 32),

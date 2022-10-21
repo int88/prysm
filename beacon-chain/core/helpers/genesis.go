@@ -11,6 +11,7 @@ import (
 )
 
 // UpdateGenesisEth1Data updates eth1 data for genesis state.
+// UpdateGenesisEth1Data为了genesis state更新eth1 data
 func UpdateGenesisEth1Data(state state.BeaconState, deposits []*ethpb.Deposit, eth1Data *ethpb.Eth1Data) (state.BeaconState, error) {
 	if eth1Data == nil {
 		return nil, errors.New("no eth1data provided for genesis state")

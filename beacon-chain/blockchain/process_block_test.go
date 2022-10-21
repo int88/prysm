@@ -59,6 +59,7 @@ func TestStore_OnBlock_ProtoArray(t *testing.T) {
 	genesisStateRoot := [32]byte{}
 	genesis := blocks.NewGenesisBlock(genesisStateRoot[:])
 	util.SaveBlock(t, ctx, beaconDB, genesis)
+	// 获取genesis root
 	validGenesisRoot, err := genesis.Block.HashTreeRoot()
 	require.NoError(t, err)
 	st, err := util.NewBeaconState()
@@ -66,6 +67,7 @@ func TestStore_OnBlock_ProtoArray(t *testing.T) {
 	require.NoError(t, service.cfg.BeaconDB.SaveState(ctx, st.Copy(), validGenesisRoot))
 	roots, err := blockTree1(t, beaconDB, validGenesisRoot[:])
 	require.NoError(t, err)
+	// 构建一个random block
 	random := util.NewBeaconBlock()
 	random.Block.Slot = 1
 	random.Block.ParentRoot = validGenesisRoot[:]
@@ -86,9 +88,10 @@ func TestStore_OnBlock_ProtoArray(t *testing.T) {
 		wantErrString string
 	}{
 		{
-			name:          "parent block root does not have a state",
-			blk:           util.NewBeaconBlock(),
-			s:             st.Copy(),
+			name: "parent block root does not have a state",
+			blk:  util.NewBeaconBlock(),
+			s:    st.Copy(),
+			// 不能重新构建parent state
 			wantErrString: "could not reconstruct parent state",
 		},
 		{

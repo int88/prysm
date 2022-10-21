@@ -172,6 +172,7 @@ func (s *Service) UpdateHead(ctx context.Context) error {
 }
 
 // This calls notify Forkchoice Update in the event that the head has changed
+// 这个方法通知Forkchoice Update，当head发生变更的时候
 func (s *Service) notifyEngineIfChangedHead(ctx context.Context, newHeadRoot [32]byte) {
 	s.headLock.RLock()
 	if newHeadRoot == [32]byte{} || s.headRoot() == newHeadRoot {
@@ -182,6 +183,7 @@ func (s *Service) notifyEngineIfChangedHead(ctx context.Context, newHeadRoot [32
 
 	if !s.hasBlockInInitSyncOrDB(ctx, newHeadRoot) {
 		log.Debug("New head does not exist in DB. Do nothing")
+		// 我们没有block，不要通知engine以及更新head
 		return // We don't have the block, don't notify the engine and update head.
 	}
 

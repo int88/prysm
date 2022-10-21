@@ -51,6 +51,7 @@ func (b *BeaconState) previousJustifiedCheckpointVal() *ethpb.Checkpoint {
 }
 
 // CurrentJustifiedCheckpoint denoting an epoch and block root.
+// CurrentJustifiedCheckpoint表明一个epoch以及block root
 func (b *BeaconState) CurrentJustifiedCheckpoint() *ethpb.Checkpoint {
 	if b.currentJustifiedCheckpoint == nil {
 		return nil
@@ -64,6 +65,7 @@ func (b *BeaconState) CurrentJustifiedCheckpoint() *ethpb.Checkpoint {
 
 // currentJustifiedCheckpointVal denoting an epoch and block root.
 // This assumes that a lock is already held on BeaconState.
+// 这假设已经获取了一个在BeaconState上的lock
 func (b *BeaconState) currentJustifiedCheckpointVal() *ethpb.Checkpoint {
 	return ethpb.CopyCheckpoint(b.currentJustifiedCheckpoint)
 }

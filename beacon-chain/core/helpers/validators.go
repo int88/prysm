@@ -214,6 +214,7 @@ func ValidatorChurnLimit(activeValidatorCount uint64) (uint64, error) {
 }
 
 // BeaconProposerIndex returns proposer index of a current slot.
+// BeaconProposerIndex返回当前slot的proposer index
 //
 // Spec pseudocode definition:
 //  def get_beacon_proposer_index(state: BeaconState) -> ValidatorIndex:

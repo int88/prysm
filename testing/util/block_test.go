@@ -60,18 +60,22 @@ func TestGenerateFullBlock_Passes4Epochs(t *testing.T) {
 		require.NoError(t, err)
 		wsb, err := wrapper.WrappedSignedBeaconBlock(block)
 		require.NoError(t, err)
+		// 执行state transition
 		beaconState, err = transition.ExecuteStateTransition(context.Background(), beaconState, wsb)
 		require.NoError(t, err)
 	}
 
 	// Blocks are one slot ahead of beacon state.
+	// Blocks对于beacon state提前一个slot
 	if finalSlot != beaconState.Slot() {
 		t.Fatalf("expected output slot to be %d, received %d", finalSlot, beaconState.Slot())
 	}
 	if beaconState.CurrentJustifiedCheckpoint().Epoch != 3 {
+		// 期望justified epoch变为3
 		t.Fatalf("expected justified epoch to change to 3, received %d", beaconState.CurrentJustifiedCheckpoint().Epoch)
 	}
 	if beaconState.FinalizedCheckpointEpoch() != 2 {
+		// 期望finalized epoch变为2
 		t.Fatalf("expected finalized epoch to change to 2, received %d", beaconState.CurrentJustifiedCheckpoint().Epoch)
 	}
 }
@@ -156,6 +160,7 @@ func TestGenerateFullBlock_ValidDeposits(t *testing.T) {
 	beaconState, err = transition.ExecuteStateTransition(context.Background(), beaconState, wsb)
 	require.NoError(t, err)
 
+	// 第一个deposit的public key
 	depositedPubkey := block.Block.Body.Deposits[0].Data.PublicKey
 	valIndexMap := stateutils.ValidatorIndexMap(beaconState.Validators())
 	index := valIndexMap[bytesutil.ToBytes48(depositedPubkey)]
@@ -172,6 +177,7 @@ func TestGenerateFullBlock_ValidDeposits(t *testing.T) {
 func TestGenerateFullBlock_ValidVoluntaryExits(t *testing.T) {
 	beaconState, privs := DeterministicGenesisState(t, 256)
 	// Moving the state 2048 epochs forward due to PERSISTENT_COMMITTEE_PERIOD.
+	// 向前移动2048个epochs，由于PERSISTENT_COMMITTEE_PERIOD
 	err := beaconState.SetSlot(params.BeaconConfig().SlotsPerEpoch.Mul(uint64(params.BeaconConfig().ShardCommitteePeriod)).Add(3))
 	require.NoError(t, err)
 	conf := &BlockGenConfig{

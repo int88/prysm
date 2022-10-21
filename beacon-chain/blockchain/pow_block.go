@@ -124,6 +124,7 @@ func validateTerminalBlockHash(blkSlot types.Slot, payload *enginev1.ExecutionPa
 }
 
 // validateTerminalBlockDifficulties validates terminal pow block by comparing own total difficulty with parent's total difficulty.
+// validateTerminalBlockDifficulties校验terminal pow block，通过比较自己的td和parent的td
 //
 // def is_valid_terminal_pow_block(block: PowBlock, parent: PowBlock) -> bool:
 //    is_total_difficulty_reached = block.total_difficulty >= TERMINAL_TOTAL_DIFFICULTY

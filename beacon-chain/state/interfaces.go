@@ -40,6 +40,7 @@ type StateProver interface {
 }
 
 // ReadOnlyBeaconState defines a struct which only has read access to beacon state methods.
+// ReadOnlyBeaconState定义了一个结构，对于beacon state方法只有读权限
 type ReadOnlyBeaconState interface {
 	ReadOnlyBlockRoots
 	ReadOnlyStateRoots
@@ -119,6 +120,7 @@ type ReadOnlyBalances interface {
 }
 
 // ReadOnlyCheckpoint defines a struct which only has read access to checkpoint methods.
+// ReadOnlyCheckpoint定义了一个结构，它对于checkpoint方法只有读权限
 type ReadOnlyCheckpoint interface {
 	PreviousJustifiedCheckpoint() *ethpb.Checkpoint
 	CurrentJustifiedCheckpoint() *ethpb.Checkpoint
@@ -182,6 +184,7 @@ type WriteOnlyEth1Data interface {
 }
 
 // WriteOnlyValidators defines a struct which only has write access to validators methods.
+// WriteOnlyValidators定义了一个结构，对于validators方法只有写权限
 type WriteOnlyValidators interface {
 	SetValidators(val []*ethpb.Validator) error
 	ApplyToEveryValidator(f func(idx int, val *ethpb.Validator) (bool, *ethpb.Validator, error)) error

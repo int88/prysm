@@ -40,6 +40,7 @@ var (
 
 // WrappedSignedBeaconBlock will wrap a signed beacon block to conform to the
 // signed beacon block interface.
+// WrappedSignedBeaconBlock会封装一个signed beacon block来符合signed beacon block接口
 func WrappedSignedBeaconBlock(i interface{}) (interfaces.SignedBeaconBlock, error) {
 	switch b := i.(type) {
 	case *eth.GenericSignedBeaconBlock_Phase0:

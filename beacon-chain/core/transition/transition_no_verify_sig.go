@@ -23,6 +23,7 @@ import (
 // This does not validate any BLS signatures of attestations, block proposer signature, randao signature,
 // it is used for performing a state transition as quickly as possible. This function also returns a signature
 // set of all signatures not verified, so that they can be stored and verified later.
+// 这个函数用于尽快执行一个state transition，这个函数返回一个所有未被校验的signatures集合，这样他们可以在之后被存储以及校验
 //
 // WARNING: This method does not validate any signatures (i.e. calling `state_transition()` with `validate_result=False`).
 // This method also modifies the passed in state.
@@ -59,18 +60,21 @@ func ExecuteStateTransitionNoVerifyAnySig(
 	interop.WriteBlockToDisk(signed, false /* Has the block failed */)
 	interop.WriteStateToDisk(st)
 
+	// 对slot进行处理
 	st, err = ProcessSlotsUsingNextSlotCache(ctx, st, signed.Block().ParentRoot(), signed.Block().Slot())
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "could not process slots")
 	}
 
 	// Execute per block transition.
+	// 执行每个block的transition
 	set, st, err := ProcessBlockNoVerifyAnySig(ctx, st, signed)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "could not process block")
 	}
 
 	// State root validation.
+	// 对root validation进行校验
 	postStateRoot, err := st.HashTreeRoot(ctx)
 	if err != nil {
 		return nil, nil, err
@@ -145,6 +149,8 @@ func CalculateStateRoot(
 // transformations as defined in the Ethereum Serenity specification. It does not validate
 // any block signature except for deposit and slashing signatures. It also returns the relevant
 // signature set from all the respective methods.
+// ProcessBlockNoVerifyAnySig创建一个新的，修改的beacon state，通过应用Ethereum Serenity specification
+// 的block operation tranformations，它不校验block signature
 //
 // Spec pseudocode definition:
 //
@@ -190,6 +196,7 @@ func ProcessBlockNoVerifyAnySig(
 	}
 
 	// Merge beacon block, randao and attestations signatures into a set.
+	// 合并beacon block, randao以及attestations signatures到一个set
 	set := bls.NewSet()
 	set.Join(bSet).Join(rSet).Join(aSet)
 

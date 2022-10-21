@@ -119,6 +119,7 @@ func (vs *Server) WaitForActivation(req *ethpb.ValidatorActivationRequest, strea
 }
 
 // ValidatorIndex is called by a validator to get its index location in the beacon state.
+// ValidatorIndex由一个validator调用来在beacon state中获取它的index地址
 func (vs *Server) ValidatorIndex(ctx context.Context, req *ethpb.ValidatorIndexRequest) (*ethpb.ValidatorIndexResponse, error) {
 	st, err := vs.HeadFetcher.HeadState(ctx)
 	if err != nil {
@@ -152,6 +153,9 @@ func (vs *Server) DomainData(_ context.Context, request *ethpb.DomainRequest) (*
 // has started its runtime and validators begin their responsibilities. If it has not, it then
 // subscribes to an event stream triggered by the powchain service whenever the ChainStart log does
 // occur in the Deposit Contract on ETH 1.0.
+// WaitForChainStart查询Deposit Contract的logs，为了确认beacon chain已经启动了它们的runtime并且validators
+// 已经启动了它们的责任，如果还没有的话，它之后订阅到一个event stream，由powchain service触发，当ChainStart
+// log在Deposit Contract上生成的时候
 func (vs *Server) WaitForChainStart(_ *emptypb.Empty, stream ethpb.BeaconNodeValidator_WaitForChainStartServer) error {
 	head, err := vs.HeadFetcher.HeadState(stream.Context())
 	if err != nil {

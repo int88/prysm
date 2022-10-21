@@ -55,6 +55,7 @@ func DeterministicDepositsAndKeys(numDeposits uint64) ([]*ethpb.Deposit, []bls.S
 		numExisting := uint64(len(cachedDeposits))
 		numRequired := numDeposits - uint64(len(cachedDeposits))
 		// Fetch the required number of keys.
+		// 获取请求数目的keys
 		secretKeys, publicKeys, err := interop.DeterministicallyGenerateKeys(numExisting, numRequired+1)
 		if err != nil {
 			return nil, nil, errors.Wrap(err, "could not create deterministic keys: ")
@@ -209,6 +210,7 @@ func signedDeposit(
 		Signature:             secretKey.Sign(sigRoot[:]).Marshal(),
 	}
 
+	// 构建deposit
 	deposit := &ethpb.Deposit{
 		Data: depositData,
 	}

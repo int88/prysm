@@ -121,6 +121,7 @@ func (s *Service) onBlock(ctx context.Context, signed interfaces.SignedBeaconBlo
 	if err != nil {
 		return err
 	}
+	// 通知NewPayload
 	isValidPayload, err := s.notifyNewPayload(ctx, postStateVersion, postStateHeader, signed)
 	if err != nil {
 		return fmt.Errorf("could not verify new payload: %v", err)
@@ -130,16 +131,20 @@ func (s *Service) onBlock(ctx context.Context, signed interfaces.SignedBeaconBlo
 			return err
 		}
 	}
+	// 保存post state
 	if err := s.savePostStateInfo(ctx, blockRoot, signed, postState); err != nil {
 		return err
 	}
 	// save current justified and finalized epochs for future use
+	// 保存当前的justified以及finalized epochs用于未来使用
 	currJustifiedEpoch := s.ForkChoicer().JustifiedCheckpoint().Epoch
 	currFinalizedEpoch := s.ForkChoicer().FinalizedCheckpoint().Epoch
 
 	if err := s.insertBlockAndAttestationsToForkChoiceStore(ctx, signed.Block(), blockRoot, postState); err != nil {
+		// 不能插入block用于fork choice store
 		return errors.Wrapf(err, "could not insert block %d to fork choice store", signed.Block().Slot())
 	}
+	// 插入Attester slashings
 	s.InsertSlashingsToForkChoiceStore(ctx, signed.Block().Body().AttesterSlashings())
 	if isValidPayload {
 		if err := s.cfg.ForkChoiceStore.SetOptimisticToValid(ctx, blockRoot); err != nil {
@@ -194,6 +199,7 @@ func (s *Service) onBlock(ctx context.Context, signed interfaces.SignedBeaconBlo
 	// Send notification of the processed block to the state feed.
 	// 发送processed block的通知到state feed
 	s.cfg.StateNotifier.StateFeed().Send(&feed.Event{
+		// block已经被处理了
 		Type: statefeed.BlockProcessed,
 		Data: &statefeed.BlockProcessedData{
 			Slot:        signed.Block().Slot(),
@@ -216,6 +222,7 @@ func (s *Service) onBlock(ctx context.Context, signed interfaces.SignedBeaconBlo
 	}()
 
 	// Save justified check point to db.
+	// 保存justified checkpoint到db
 	if justified.Epoch > currJustifiedEpoch {
 		if err := s.cfg.BeaconDB.SaveJustifiedCheckpoint(ctx, &ethpb.Checkpoint{
 			Epoch: justified.Epoch, Root: justified.Root[:],
@@ -225,6 +232,7 @@ func (s *Service) onBlock(ctx context.Context, signed interfaces.SignedBeaconBlo
 	}
 
 	// Update finalized check point.
+	// 更新finalized checkpoint
 	finalized := s.ForkChoicer().FinalizedCheckpoint()
 	if finalized.Epoch > currFinalizedEpoch {
 		if err := s.updateFinalized(ctx, &ethpb.Checkpoint{Epoch: finalized.Epoch, Root: finalized.Root[:]}); err != nil {
@@ -232,10 +240,12 @@ func (s *Service) onBlock(ctx context.Context, signed interfaces.SignedBeaconBlo
 		}
 		isOptimistic, err := s.cfg.ForkChoiceStore.IsOptimistic(finalized.Root)
 		if err != nil {
+			// 无法检查node是否是optimistically synced
 			return errors.Wrap(err, "could not check if node is optimistically synced")
 		}
 		go func() {
 			// Send an event regarding the new finalized checkpoint over a common event feed.
+			// 发送一个event，关于新的finalized checkpoint，通过一个common event feed
 			s.cfg.StateNotifier.StateFeed().Send(&feed.Event{
 				Type: statefeed.FinalizedCheckpoint,
 				Data: &ethpbv1.EventFinalizedCheckpoint{
@@ -271,6 +281,7 @@ func getStateVersionAndPayload(st state.BeaconState) (int, *enginev1.ExecutionPa
 	switch preStateVersion {
 	case version.Phase0, version.Altair:
 	default:
+		// 获取execution payload header
 		preStateHeader, err = st.LatestExecutionPayloadHeader()
 		if err != nil {
 			return 0, nil, err
@@ -450,6 +461,7 @@ func (s *Service) onBlockBatch(ctx context.Context, blks []interfaces.SignedBeac
 }
 
 // Epoch boundary bookkeeping such as logging epoch summaries.
+// Epoch boundary bookkeeping，例如记录epoch summaries
 func (s *Service) handleEpochBoundary(ctx context.Context, postState state.BeaconState) error {
 	ctx, span := trace.StartSpan(ctx, "blockChain.handleEpochBoundary")
 	defer span.End()
