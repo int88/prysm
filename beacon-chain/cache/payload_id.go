@@ -12,13 +12,16 @@ const pIdLength = 8
 const vpIdsLength = vIdLength + pIdLength
 
 // ProposerPayloadIDsCache is a cache of proposer payload IDs.
+// ProposerPayloadIDsCache是一个proposer payload IDs的缓存
 // The key is the slot. The value is the concatenation of the proposer and payload IDs. 8 bytes each.
+// key是slot，value是proposer和payload IDs的连接，每个8字节
 type ProposerPayloadIDsCache struct {
 	slotToProposerAndPayloadIDs map[types.Slot][vpIdsLength]byte
 	sync.RWMutex
 }
 
 // NewProposerPayloadIDsCache creates a new proposer payload IDs cache.
+// NewProposerPayloadIDsCache创建一个新的proposer payload IDs cache
 func NewProposerPayloadIDsCache() *ProposerPayloadIDsCache {
 	return &ProposerPayloadIDsCache{
 		slotToProposerAndPayloadIDs: make(map[types.Slot][vpIdsLength]byte),
@@ -26,6 +29,7 @@ func NewProposerPayloadIDsCache() *ProposerPayloadIDsCache {
 }
 
 // GetProposerPayloadIDs returns the proposer and  payload IDs for the given slot.
+// GetProposerPayloadIDs返回proposer和payload IDs，对于给定的slot
 func (f *ProposerPayloadIDsCache) GetProposerPayloadIDs(slot types.Slot) (types.ValidatorIndex, [8]byte, bool) {
 	f.RLock()
 	defer f.RUnlock()

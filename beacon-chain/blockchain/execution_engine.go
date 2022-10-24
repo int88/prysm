@@ -24,6 +24,7 @@ import (
 )
 
 // notifyForkchoiceUpdateArg is the argument for the forkchoice update notification `notifyForkchoiceUpdate`.
+// notifyForkchoiceUpdateArg是用于forkchoice update notification的`notifyForkchoiceUpdate`的参数
 type notifyForkchoiceUpdateArg struct {
 	headState state.BeaconState
 	headRoot  [32]byte

@@ -13,9 +13,12 @@ import (
 var log = logrus.WithField("prefix", "slotutil")
 
 // CountdownToGenesis starts a ticker at the specified duration
+// CountdownToGenesis启动一个ticker，在特定的时间间隔
 // logging the remaining minutes until the genesis chainstart event
 // along with important genesis state metadata such as number
 // of genesis validators.
+// 记录剩余的分钟，直到genesis chainstart event，以及重要的genesis state metadata，例如
+// genesis validators的数目
 func CountdownToGenesis(ctx context.Context, genesisTime time.Time, genesisValidatorCount uint64, genesisStateRoot [32]byte) {
 	ticker := time.NewTicker(params.BeaconConfig().GenesisCountdownInterval)
 	defer func() {

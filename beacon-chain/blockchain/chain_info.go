@@ -68,18 +68,22 @@ type HeadFetcher interface {
 }
 
 // ForkFetcher retrieves the current fork information of the Ethereum beacon chain.
+// ForkFetcher获取当前的fork信息，对于Ethereum beacon chain
 type ForkFetcher interface {
 	ForkChoicer() forkchoice.ForkChoicer
 	CurrentFork() *ethpb.Fork
 }
 
 // CanonicalFetcher retrieves the current chain's canonical information.
+// CanonicalFetcher获取当前chain的canonical信息
 type CanonicalFetcher interface {
 	IsCanonical(ctx context.Context, blockRoot [32]byte) (bool, error)
 }
 
 // FinalizationFetcher defines a common interface for methods in blockchain service which
 // directly retrieve finalization and justification related data.
+// FinalizationFetcher定义了一个公共的接口，对于blockchain service中的方法，可以直接获取finalization
+// 以及justification相关的数据
 type FinalizationFetcher interface {
 	FinalizedCheckpt() *ethpb.Checkpoint
 	CurrentJustifiedCheckpt() *ethpb.Checkpoint

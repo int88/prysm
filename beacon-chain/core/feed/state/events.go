@@ -21,9 +21,12 @@ const (
 	// Initialized被发送，当internal beacon node的state已经准备好被访问
 	Initialized
 	// Synced is sent when the beacon node has completed syncing and is ready to participate in the network.
+	// Synced被发送，当beacon node已经完成同步并且准备好加入到network中
 	Synced
 	// Reorg is an event sent when the new head state's slot after a block
 	// transition is lower than its previous head state slot value.
+	// Reorg是一个事件发送，当新的head state的slot在一个block transition之后小于它之前的
+	// head state的slot value
 	Reorg
 	// FinalizedCheckpoint event.
 	FinalizedCheckpoint

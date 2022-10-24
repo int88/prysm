@@ -4,6 +4,7 @@ import "github.com/prysmaticlabs/prysm/beacon-chain/db/iface"
 
 // ReadOnlyDatabase exposes Prysm's Ethereum data backend for read access only, no information about
 // head info. For head info, use github.com/prysmaticlabs/prysm/blockchain.HeadFetcher.
+// ReadOnlyDatabase暴露了Prysm的Ethereum data backend，只用于读访问，没有关于head info的信息
 type ReadOnlyDatabase = iface.ReadOnlyDatabase
 
 // NoHeadAccessDatabase exposes Prysm's Ethereum data backend for read/write access, no information
@@ -14,6 +15,8 @@ type NoHeadAccessDatabase = iface.NoHeadAccessDatabase
 // chain head information. This interface should be used sparingly as the HeadFetcher is the source
 // of truth around chain head information while this interface serves as persistent storage for the
 // head fetcher.
+// HeadAccessDatabase暴露了Prysm的Ethereum backend用于读写访问，有关于chain head的信息，这个接口应该谨慎
+// 使用，因为HeadFetcher是chain head信息的source of truth，而这个接口则作为head fetcher的持久化存储
 //
 // See github.com/prysmaticlabs/prysm/blockchain.HeadFetcher
 type HeadAccessDatabase = iface.HeadAccessDatabase
@@ -26,6 +29,7 @@ type HeadAccessDatabase = iface.HeadAccessDatabase
 type Database = iface.Database
 
 // SlasherDatabase defines necessary methods for Prysm's slasher implementation.
+// SlasherDatabase定义了必要的方法用于Prysm的slasher实现
 type SlasherDatabase = iface.SlasherDatabase
 
 // ErrExistingGenesisState is an error when the user attempts to save a different genesis state

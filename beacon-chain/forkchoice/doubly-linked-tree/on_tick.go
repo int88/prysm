@@ -10,9 +10,13 @@ import (
 )
 
 // NewSlot mimics the implementation of `on_tick` in fork choice consensus spec.
+// NewSlot模拟了`on_tick`的实现，在fork choice consensus spec
 // It resets the proposer boost root in fork choice, and it updates store's justified checkpoint
 // if a better checkpoint on the store's finalized checkpoint chain.
+// 它重置了在fork choice中的proposer boost root，并且它更新store的justified checkpoint，如果一个
+// 更好的checkpoint在store的finalized checkpoint chain
 // This should only be called at the start of every slot interval.
+// 这个函数只应该在每个slot interval的开始被调用
 //
 // Spec pseudocode definition:
 //    # Reset store.proposer_boost_root if this is a new slot

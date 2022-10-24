@@ -75,6 +75,7 @@ func (s *Service) Status() error {
 }
 
 // SetGenesisTime sets genesis time for operation service to use.
+// SetGenesisTime设置genesis time，让service操作使用
 func (s *Service) SetGenesisTime(t uint64) {
 	s.genesisTime = t
 }

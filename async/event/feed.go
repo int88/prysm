@@ -27,10 +27,14 @@ var errBadChannel = errors.New("event: Subscribe argument does not have sendable
 
 // Feed implements one-to-many subscriptions where the carrier of events is a channel.
 // Values sent to a Feed are delivered to all subscribed channels simultaneously.
+// Feed实现了one-to-many的订阅，其中events的carrier是一个channel，发送给一个Feed的Values会同时
+// 传送给所有订阅的channels
 //
 // Feeds can only be used with a single type. The type is determined by the first Send or
 // Subscribe operation. Subsequent calls to these methods panic if the type does not
 // match.
+// Feeds只能有单个类型，类型由第一次的Send或者Subscribe操作决定，后续对这些方法的调用会panic，如果
+// 类型不匹配
 //
 // The zero value is ready to use.
 type Feed struct {

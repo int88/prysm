@@ -78,7 +78,7 @@ func setupBeaconChain(t *testing.T, beaconDB db.Database) *Service {
 	ctx := context.Background()
 	var web3Service *powchain.Service
 	var err error
-	// 构建pow的rpc server
+	// 构建mock的pow的rpc server
 	srv, endpoint, err := mockPOW.SetupRPCServer()
 	require.NoError(t, err)
 	t.Cleanup(func() {
@@ -114,9 +114,11 @@ func setupBeaconChain(t *testing.T, beaconDB db.Database) *Service {
 	)
 	require.NoError(t, err, "Unable to set up web3 service")
 
+	// 构建attestation service
 	attService, err := attestations.NewService(ctx, &attestations.Config{Pool: attestations.NewPool()})
 	require.NoError(t, err)
 
+	// 构建deposit cache
 	depositCache, err := depositcache.New()
 	require.NoError(t, err)
 
@@ -138,6 +140,7 @@ func setupBeaconChain(t *testing.T, beaconDB db.Database) *Service {
 
 	// 构建pos chain service
 	chainService, err := NewService(ctx, opts...)
+	// 出现错误则说明无法建立chain service
 	require.NoError(t, err, "Unable to setup chain service")
 	chainService.genesisTime = time.Unix(1, 0) // non-zero time
 
@@ -155,9 +158,11 @@ func TestChainStartStop_Initialized(t *testing.T) {
 	genesisBlk := util.NewBeaconBlock()
 	blkRoot, err := genesisBlk.Block.HashTreeRoot()
 	require.NoError(t, err)
+	// 保存genesis block到db中
 	util.SaveBlock(t, ctx, beaconDB, genesisBlk)
 	s, err := util.NewBeaconState()
 	require.NoError(t, err)
+	// 设置slot
 	require.NoError(t, s.SetSlot(1))
 	require.NoError(t, beaconDB.SaveState(ctx, s, blkRoot))
 	require.NoError(t, beaconDB.SaveHeadBlockRoot(ctx, blkRoot))

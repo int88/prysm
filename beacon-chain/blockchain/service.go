@@ -51,12 +51,13 @@ const headSyncMinEpochsAfterCheckpoint = 128
 // logic of managing the full PoS beacon chain.
 // Service代表一个service，处理管理完整的PoS beacon chain的内部逻辑
 type Service struct {
-	cfg                     *config
-	ctx                     context.Context
-	cancel                  context.CancelFunc
-	genesisTime             time.Time
-	head                    *head
-	headLock                sync.RWMutex
+	cfg         *config
+	ctx         context.Context
+	cancel      context.CancelFunc
+	genesisTime time.Time
+	head        *head
+	headLock    sync.RWMutex
+	// genesis root，或者weak subjective checkpoint root，取决于node是如何初始化的
 	originBlockRoot         [32]byte // genesis root, or weak subjectivity checkpoint root, depending on how the node is initialized
 	nextEpochBoundarySlot   types.Slot
 	boundaryRoots           [][32]byte
@@ -126,6 +127,7 @@ func NewService(ctx context.Context, opts ...Option) (*Service, error) {
 // Start a blockchain service's main event loop.
 // Start启动一个blockchain service的main event loop
 func (s *Service) Start() {
+	// 如果包含了finalized state
 	saved := s.cfg.FinalizedStateAtStartUp
 
 	if saved != nil && !saved.IsNil() {
@@ -143,15 +145,18 @@ func (s *Service) Start() {
 }
 
 // Stop the blockchain service's main event loop and associated goroutines.
+// 停止blockchain service的main event loop以及相关的goroutine
 func (s *Service) Stop() error {
 	defer s.cancel()
 
 	// lock before accessing s.head, s.head.state, s.head.state.FinalizedCheckpoint().Root
+	// 在访问s.head, s.head.state, s.head.state.FinalizedCheckpoint().Root之前先锁住
 	s.headLock.RLock()
 	if s.cfg.StateGen != nil && s.head != nil && s.head.state != nil {
 		r := s.head.state.FinalizedCheckpoint().Root
 		s.headLock.RUnlock()
 		// Save the last finalized state so that starting up in the following run will be much faster.
+		// 保存最新的finalized state，这样后面再启动的时候会更快
 		if err := s.cfg.StateGen.ForceCheckpoint(s.ctx, r); err != nil {
 			return err
 		}
@@ -159,6 +164,7 @@ func (s *Service) Stop() error {
 		s.headLock.RUnlock()
 	}
 	// Save initial sync cached blocks to the DB before stop.
+	// 保存初始化的sync cached blocks到DB，在停止之前
 	return s.cfg.BeaconDB.SaveBlocks(s.ctx, s.getInitSyncBlocks())
 }
 
@@ -362,6 +368,7 @@ func (s *Service) startFromPOWChain() error {
 	}
 	go func() {
 		stateChannel := make(chan *feed.Event, 1)
+		// 它也要等待接收state更新
 		stateSub := s.cfg.StateNotifier.StateFeed().Subscribe(stateChannel)
 		defer stateSub.Unsubscribe()
 		for {
@@ -398,7 +405,7 @@ func (s *Service) startFromPOWChain() error {
 // 初始化beacon chain的状态并且启动beacon chain
 func (s *Service) onPowchainStart(ctx context.Context, genesisTime time.Time) {
 	preGenesisState := s.cfg.ChainStartFetcher.PreGenesisState()
-	// 初始化beacon chain
+	// 初始化beacon chain，用preGenesisState以及eth1 data
 	initializedState, err := s.initializeBeaconChain(ctx, genesisTime, preGenesisState, s.cfg.ChainStartFetcher.ChainStartEth1Data())
 	if err != nil {
 		log.Fatalf("Could not initialize beacon chain: %v", err)
@@ -441,9 +448,11 @@ func (s *Service) initializeBeaconChain(
 
 	genesisState, err := transition.OptimizedGenesisBeaconState(unixTime, preGenesisState, eth1data)
 	if err != nil {
+		// 不能初始化genesis state
 		return nil, errors.Wrap(err, "could not initialize genesis state")
 	}
 
+	// 保存genesis state
 	if err := s.saveGenesisData(ctx, genesisState); err != nil {
 		return nil, errors.Wrap(err, "could not save genesis data")
 	}

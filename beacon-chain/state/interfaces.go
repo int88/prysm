@@ -102,6 +102,7 @@ type ReadOnlyValidator interface {
 }
 
 // ReadOnlyValidators defines a struct which only has read access to validators methods.
+// ReadOnlyValidators定义了一个结构，对于validators方法只有读权限
 type ReadOnlyValidators interface {
 	Validators() []*ethpb.Validator
 	ValidatorAtIndex(idx types.ValidatorIndex) (*ethpb.Validator, error)

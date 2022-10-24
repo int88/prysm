@@ -62,6 +62,7 @@ func WithExecutionEngineCaller(c powchain.EngineCaller) Option {
 }
 
 // WithDepositCache for deposit lifecycle after chain inclusion.
+// WithDepositCache用于deposit生命周期，在chain inclusion之后
 func WithDepositCache(c *depositcache.DepositCache) Option {
 	return func(s *Service) error {
 		s.cfg.DepositCache = c
@@ -118,6 +119,7 @@ func WithStateNotifier(n statefeed.Notifier) Option {
 }
 
 // WithForkChoiceStore to update an optimized fork-choice representation.
+// WithForkChoiceStore用于更新一个优化的fork-choice表示
 func WithForkChoiceStore(f forkchoice.ForkChoicer) Option {
 	return func(s *Service) error {
 		s.cfg.ForkChoiceStore = f
@@ -126,6 +128,7 @@ func WithForkChoiceStore(f forkchoice.ForkChoicer) Option {
 }
 
 // WithAttestationService for dealing with attestation lifecycles.
+// WithAttestationService用于处理attestation的生命周期
 func WithAttestationService(srv *attestations.Service) Option {
 	return func(s *Service) error {
 		s.cfg.AttService = srv
@@ -134,6 +137,7 @@ func WithAttestationService(srv *attestations.Service) Option {
 }
 
 // WithStateGen for managing state regeneration and replay.
+// WithStateGen用于管理state再生和重播
 func WithStateGen(g *stategen.State) Option {
 	return func(s *Service) error {
 		s.cfg.StateGen = g
@@ -157,6 +161,7 @@ func withStateBalanceCache(c *stateBalanceCache) Option {
 }
 
 // WithFinalizedStateAtStartUp to store finalized state at start up.
+// WithFinalizedStateAtStartUp用于在启动的时候存储finalized state
 func WithFinalizedStateAtStartUp(st state.BeaconState) Option {
 	return func(s *Service) error {
 		s.cfg.FinalizedStateAtStartUp = st

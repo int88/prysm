@@ -23,8 +23,11 @@ func (s *State) SaveState(ctx context.Context, blockRoot [32]byte, st state.Beac
 
 // ForceCheckpoint initiates a cold state save of the given block root's state. This method does not update the
 // "last archived state" but simply saves the specified state from the root argument into the DB.
+// ForceCheckpoint初始化一个cold state save，对于给定block的root的state，这个方法没有更新"last archived state"，但是简单地
+// 保存了特定的state，从root argument到DB
 //
 // The name "Checkpoint" isn't referring to checkpoint in the sense of our consensus type, but checkpoint for our historical states.
+// 名字中的"Checkpoint"不是引用的我们的共识类型中的checkpoint，而是对于历史状态的checkpoint
 func (s *State) ForceCheckpoint(ctx context.Context, blockRoot []byte) error {
 	ctx, span := trace.StartSpan(ctx, "stateGen.ForceCheckpoint")
 	defer span.End()

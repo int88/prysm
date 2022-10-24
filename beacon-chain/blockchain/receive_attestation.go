@@ -91,6 +91,7 @@ func (s *Service) VerifyFinalizedConsistency(ctx context.Context, root []byte) e
 // 这个routine处理来自pool的fork choice attestations，对于validator votes以及fork choice
 func (s *Service) spawnProcessAttestationsRoutine(stateFeed *event.Feed) {
 	// Wait for state to be initialized.
+	// 等待state被初始化
 	stateChannel := make(chan *feed.Event, 1)
 	stateSub := stateFeed.Subscribe(stateChannel)
 	go func() {
@@ -112,9 +113,11 @@ func (s *Service) spawnProcessAttestationsRoutine(stateFeed *event.Feed) {
 				}
 				time.Sleep(1 * time.Second)
 			}
+			// 接收到了genesis time，现在可以处理attestations
 			log.Warn("Genesis time received, now available to process attestations")
 		}
 
+		// 构建slot ticker
 		st := slots.NewSlotTicker(s.genesisTime, params.BeaconConfig().SecondsPerSlot)
 		for {
 			select {
@@ -122,11 +125,13 @@ func (s *Service) spawnProcessAttestationsRoutine(stateFeed *event.Feed) {
 				return
 			case <-st.C():
 				if err := s.ForkChoicer().NewSlot(s.ctx, s.CurrentSlot()); err != nil {
+					// 不能处理新的slot
 					log.WithError(err).Error("Could not process new slot")
 					return
 				}
 
 				if err := s.UpdateHead(s.ctx); err != nil {
+					// 不能处理attestations并且更新head
 					log.WithError(err).Error("Could not process attestations and update head")
 					return
 				}
@@ -137,14 +142,18 @@ func (s *Service) spawnProcessAttestationsRoutine(stateFeed *event.Feed) {
 
 // UpdateHead updates the canonical head of the chain based on information from fork-choice attestations and votes.
 // It requires no external inputs.
+// UpdateHead更新chain的canonical head，基于来自fork-choice attestations的信息以及votes，它不需要外部的输入
 func (s *Service) UpdateHead(ctx context.Context) error {
 	// Continue when there's no fork choice attestation, there's nothing to process and update head.
 	// This covers the condition when the node is still initial syncing to the head of the chain.
+	// 如果没有fork choice attestation则继续，没有东西需要处理以及更新head，这覆盖了这种情况，当node
+	// 仍然在初始化sync到head of the chain
 	if s.cfg.AttPool.ForkchoiceAttestationCount() == 0 {
 		return nil
 	}
 
 	// Only one process can process attestations and update head at a time.
+	// 一次只能有一个process可以处理attestations并且更新head
 	s.processAttestationsLock.Lock()
 	defer s.processAttestationsLock.Unlock()
 
@@ -157,6 +166,7 @@ func (s *Service) UpdateHead(ctx context.Context) error {
 	}
 	newHeadRoot, err := s.cfg.ForkChoiceStore.Head(ctx, balances)
 	if err != nil {
+		// 因为新的attestation解析fork
 		log.WithError(err).Warn("Resolving fork due to new attestation")
 	}
 	s.headLock.RLock()
@@ -212,10 +222,13 @@ func (s *Service) notifyEngineIfChangedHead(ctx context.Context, newHeadRoot [32
 }
 
 // This processes fork choice attestations from the pool to account for validator votes and fork choice.
+// 这个函数处理fork choice attestations，从pool用来对validator votes进行统计以及fork choice
 func (s *Service) processAttestations(ctx context.Context) {
+	// 从pool获取attestations
 	atts := s.cfg.AttPool.ForkchoiceAttestations()
 	for _, a := range atts {
 		// Based on the spec, don't process the attestation until the subsequent slot.
+		// 基于spec，不要处理attestation，直到后续的slot
 		// This delays consideration in the fork choice until their slot is in the past.
 		// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/fork-choice.md#validate_on_attestation
 		nextSlot := a.Data.Slot + 1

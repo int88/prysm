@@ -102,10 +102,12 @@ type HeadAccessDatabase interface {
 	NoHeadAccessDatabase
 
 	// Block related methods.
+	// Block相关的方法
 	HeadBlock(ctx context.Context) (interfaces.SignedBeaconBlock, error)
 	SaveHeadBlockRoot(ctx context.Context, blockRoot [32]byte) error
 
 	// Genesis operations.
+	// Genesis的操作
 	LoadGenesis(ctx context.Context, stateBytes []byte) error
 	SaveGenesisData(ctx context.Context, state state.BeaconState) error
 	EnsureEmbeddedGenesis(ctx context.Context) error

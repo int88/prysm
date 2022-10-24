@@ -39,6 +39,7 @@ var (
 )
 
 // CommitteeCache is a struct with 1 queue for looking up shuffled indices list by seed.
+// CommitteeCache是一个结构有着一个队列，用于通过seed查找shuffled indices
 type CommitteeCache struct {
 	CommitteeCache *lru.Cache
 	lock           sync.RWMutex
@@ -55,6 +56,7 @@ func committeeKeyFn(obj interface{}) (string, error) {
 }
 
 // NewCommitteesCache creates a new committee cache for storing/accessing shuffled indices of a committee.
+// NewCommitteesCache创建一个新的committee索引，用于存储/访问一个committee的洗牌后的索引
 func NewCommitteesCache() *CommitteeCache {
 	return &CommitteeCache{
 		CommitteeCache: lruwrpr.New(maxCommitteesCacheSize),

@@ -624,9 +624,12 @@ func (s *Service) validateMergeTransitionBlock(ctx context.Context, stateVersion
 }
 
 // This routine checks if there is a cached proposer payload ID available for the next slot proposer.
+// 这个routine检查是否有一个cached proposer payload ID可用，对于下一个slot proposer
 // If there is not, it will call forkchoice updated with the correct payload attribute then cache the payload ID.
+// 如果没有的话，它会调用forkchoice，用正确的payload attribute，之后缓存payload ID
 func (s *Service) fillMissingPayloadIDRoutine(ctx context.Context, stateFeed *event.Feed) {
 	// Wait for state to be initialized.
+	// 等待状态初始化
 	stateChannel := make(chan *feed.Event, 1)
 	stateSub := stateFeed.Subscribe(stateChannel)
 	go func() {
@@ -649,6 +652,7 @@ func (s *Service) fillMissingPayloadIDRoutine(ctx context.Context, stateFeed *ev
 				}
 				_, id, has := s.cfg.ProposerSlotIndexCache.GetProposerPayloadIDs(s.CurrentSlot() + 1)
 				// There exists proposer for next slot, but we haven't called fcu w/ payload attribute yet.
+				// 对于下一个slot存在proposer，但是我们没有调用fcu w/ payload attribute
 				if has && id == [8]byte{} {
 					if _, err := s.notifyForkchoiceUpdate(ctx, &notifyForkchoiceUpdateArg{
 						headState: s.headState(ctx),
@@ -668,6 +672,7 @@ func (s *Service) fillMissingPayloadIDRoutine(ctx context.Context, stateFeed *ev
 }
 
 // Returns true if time `t` is halfway through the slot in sec.
+// 返回true，如果时间`t`通过了slot in sec的一半
 func atHalfSlot(t time.Time) bool {
 	s := params.BeaconConfig().SecondsPerSlot
 	return uint64(t.Second())%s == s/2

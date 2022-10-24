@@ -107,6 +107,7 @@ func (s *Store) GenesisState(ctx context.Context) (state.BeaconState, error) {
 }
 
 // SaveState stores a state to the db using block's signing root which was used to generate the state.
+// SaveState存储一个state到db，使用block的signing root，它可以用于生成state
 func (s *Store) SaveState(ctx context.Context, st state.ReadOnlyBeaconState, blockRoot [32]byte) error {
 	ctx, span := trace.StartSpan(ctx, "BeaconDB.SaveState")
 	defer span.End()
@@ -117,6 +118,7 @@ func (s *Store) SaveState(ctx context.Context, st state.ReadOnlyBeaconState, blo
 	if ok {
 		return s.SaveStatesEfficient(ctx, []state.ReadOnlyBeaconState{st}, [][32]byte{blockRoot})
 	}
+	// 保存state
 	return s.SaveStates(ctx, []state.ReadOnlyBeaconState{st}, [][32]byte{blockRoot})
 }
 

@@ -20,7 +20,10 @@ type Ticker interface {
 // the ticks are in line with the genesis time. This means that
 // the duration between the ticks and the genesis time are always a
 // multiple of the slot duration.
+// channel的发射间隔是slot interval，并且确保ticks和genesis time是对齐的
+// 这意味着ticks的duration和genesis time之间总是slot duration的倍数
 // In addition, the channel returns the new slot number.
+// channel返回新的slot number
 type SlotTicker struct {
 	c    chan types.Slot
 	done chan struct{}
@@ -40,6 +43,7 @@ func (s *SlotTicker) Done() {
 }
 
 // NewSlotTicker starts and returns a new SlotTicker instance.
+// NewSlotTicker启动并且返回一个新的SlotTicker的实例
 func NewSlotTicker(genesisTime time.Time, secondsPerSlot uint64) *SlotTicker {
 	if genesisTime.IsZero() {
 		panic("zero genesis time")

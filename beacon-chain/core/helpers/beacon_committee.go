@@ -285,6 +285,8 @@ func ShuffledIndices(s state.ReadOnlyBeaconState, epoch types.Epoch) ([]types.Va
 
 // UpdateCommitteeCache gets called at the beginning of every epoch to cache the committee shuffled indices
 // list with committee index and epoch number. It caches the shuffled indices for current epoch and next epoch.
+// UpdateCommitteeCache在每个epoch的开始被调用，来缓存committee shuffled indices list
+// 用committee index和epoch number，它缓存shuffled indices，对于当前的epoch以及下一个epoch
 func UpdateCommitteeCache(ctx context.Context, state state.ReadOnlyBeaconState, epoch types.Epoch) error {
 	for _, e := range []types.Epoch{epoch, epoch + 1} {
 		seed, err := Seed(state, e, params.BeaconConfig().DomainBeaconAttester)
@@ -325,9 +327,11 @@ func UpdateCommitteeCache(ctx context.Context, state state.ReadOnlyBeaconState, 
 }
 
 // UpdateProposerIndicesInCache updates proposer indices entry of the committee cache.
+// UpdateProposerIndicesInCache更新committee cache中proposer的索引
 func UpdateProposerIndicesInCache(ctx context.Context, state state.ReadOnlyBeaconState) error {
 	// The cache uses the state root at the (current epoch - 1)'s slot as key. (e.g. for epoch 2, the key is root at slot 63)
 	// Which is the reason why we skip genesis epoch.
+	// 这个缓存使用（当前epoch - 1）的slot的state root作为key（例如对于epoch 2，key是slot 63的root）
 	if time.CurrentEpoch(state) <= params.BeaconConfig().GenesisEpoch+params.BeaconConfig().MinSeedLookahead {
 		return nil
 	}

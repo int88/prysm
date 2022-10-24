@@ -28,10 +28,12 @@ type WeakSubjectivityVerifier struct {
 }
 
 // NewWeakSubjectivityVerifier validates a checkpoint, and if valid, uses it to initialize a weak subjectivity verifier.
+// NewWeakSubjectivityVerifier校验一个checkpoint并且如果合法的话，使用它来初始化一个weak subjectity verifier
 func NewWeakSubjectivityVerifier(wsc *ethpb.Checkpoint, db weakSubjectivityDB) (*WeakSubjectivityVerifier, error) {
 	if wsc == nil || len(wsc.Root) == 0 || wsc.Epoch == 0 {
 		log.Info("--weak-subjectivity-checkpoint not provided. Prysm recommends providing a weak subjectivity checkpoint" +
 			"for nodes synced from genesis, or manual verification of block and state roots for checkpoint sync nodes.")
+		// weak subjectivity用于从genesis同步nodes，或者手动校验block以及state roots，对于checkpoint sync nodes
 		return &WeakSubjectivityVerifier{
 			enabled: false,
 		}, nil
