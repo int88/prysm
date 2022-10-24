@@ -185,13 +185,16 @@ func TestStore_OnBlock_DoublyLinkedTree(t *testing.T) {
 		wantErrString string
 	}{
 		{
-			name:          "parent block root does not have a state",
-			blk:           util.NewBeaconBlock(),
-			s:             st.Copy(),
+			name: "parent block root does not have a state",
+			// parent block root没有一个state
+			blk: util.NewBeaconBlock(),
+			s:   st.Copy(),
+			// 不能构建parent state
 			wantErrString: "could not reconstruct parent state",
 		},
 		{
 			name: "block is from the future",
+			// 来自未来的block
 			blk: func() *ethpb.SignedBeaconBlock {
 				b := util.NewBeaconBlock()
 				b.Block.ParentRoot = randomParentRoot2
@@ -203,6 +206,7 @@ func TestStore_OnBlock_DoublyLinkedTree(t *testing.T) {
 		},
 		{
 			name: "could not get finalized block",
+			// 不能获取finalized block
 			blk: func() *ethpb.SignedBeaconBlock {
 				b := util.NewBeaconBlock()
 				b.Block.ParentRoot = randomParentRoot[:]
@@ -212,6 +216,7 @@ func TestStore_OnBlock_DoublyLinkedTree(t *testing.T) {
 			wantErrString: "is not a descendant of the current finalized block",
 		},
 		{
+			// 和finalized block有着相同的slot
 			name: "same slot as finalized block",
 			blk: func() *ethpb.SignedBeaconBlock {
 				b := util.NewBeaconBlock()
@@ -232,6 +237,7 @@ func TestStore_OnBlock_DoublyLinkedTree(t *testing.T) {
 			assert.NoError(t, err)
 			wsb, err := wrapper.WrappedSignedBeaconBlock(tt.blk)
 			require.NoError(t, err)
+			// 对block进行处理
 			err = service.onBlock(ctx, wsb, root)
 			assert.ErrorContains(t, tt.wantErrString, err)
 		})
@@ -276,6 +282,7 @@ func TestStore_OnBlockBatch_ProtoArray(t *testing.T) {
 	jcp := service.CurrentJustifiedCheckpt()
 	jroot := bytesutil.ToBytes32(jcp.Root)
 	require.Equal(t, blkRoots[63], jroot)
+	// 此时的justified epoch为2
 	require.Equal(t, types.Epoch(2), service.cfg.ForkChoiceStore.JustifiedCheckpoint().Epoch)
 }
 
@@ -312,6 +319,7 @@ func TestStore_OnBlockBatch_PruneOK_Protoarray(t *testing.T) {
 	}
 	err = service.onBlockBatch(ctx, blks, blkRoots)
 	require.NoError(t, err)
+	// 只有65个nodes?
 	require.Equal(t, 65, service.ForkChoicer().NodeCount())
 }
 
@@ -784,6 +792,7 @@ func TestFillForkChoiceMissingBlocks_FinalizedSibling_DoublyLinkedTree(t *testin
 }
 
 // blockTree1 constructs the following tree:
+// blockTree1构建如下的树形结构
 //    /- B1
 // B0           /- B5 - B7
 //    \- B3 - B4 - B6 - B8
@@ -854,9 +863,11 @@ func blockTree1(t *testing.T, beaconDB db.Database, genesisRoot []byte) ([][]byt
 		beaconBlock.Block.ParentRoot = bytesutil.PadTo(b.Block.ParentRoot, 32)
 		wsb, err := wrapper.WrappedSignedBeaconBlock(beaconBlock)
 		require.NoError(t, err)
+		// 保存block
 		if err := beaconDB.SaveBlock(context.Background(), wsb); err != nil {
 			return nil, err
 		}
+		// 保存state
 		if err := beaconDB.SaveState(context.Background(), st.Copy(), bytesutil.ToBytes32(beaconBlock.Block.ParentRoot)); err != nil {
 			return nil, errors.Wrap(err, "could not save state")
 		}

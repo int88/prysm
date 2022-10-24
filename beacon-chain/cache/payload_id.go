@@ -47,6 +47,7 @@ func (f *ProposerPayloadIDsCache) GetProposerPayloadIDs(slot types.Slot) (types.
 }
 
 // SetProposerAndPayloadIDs sets the proposer and payload IDs for the given slot.
+// SetProposerAndPayloadIDs设置对于给定slot的proposer以及payload IDs
 func (f *ProposerPayloadIDsCache) SetProposerAndPayloadIDs(slot types.Slot, vId types.ValidatorIndex, pId [8]byte) {
 	f.Lock()
 	defer f.Unlock()

@@ -326,6 +326,7 @@ func (s *Service) deletePoolAtts(atts []*ethpb.Attestation) error {
 
 // This ensures that the input root defaults to using genesis root instead of zero hashes. This is needed for handling
 // fork choice justification routine.
+// 这确保input root默认使用genesis root，而不是zero hashes，这对于处理fork choice justification routine是必须的
 func (s *Service) ensureRootNotZeros(root [32]byte) [32]byte {
 	if root == params.BeaconConfig().ZeroHash {
 		return s.originBlockRoot

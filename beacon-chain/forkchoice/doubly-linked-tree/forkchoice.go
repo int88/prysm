@@ -44,6 +44,7 @@ func New() *ForkChoice {
 }
 
 // NodeCount returns the current number of nodes in the Store.
+// NodeCount返回在Store中存储的nodes的数目
 func (f *ForkChoice) NodeCount() int {
 	f.store.nodesLock.RLock()
 	defer f.store.nodesLock.RUnlock()
@@ -51,7 +52,9 @@ func (f *ForkChoice) NodeCount() int {
 }
 
 // Head returns the head root from fork choice store.
+// Head返回fork choice store的head root
 // It firsts computes validator's balance changes then recalculates block tree from leaves to root.
+// 它首先计算validator的balance changes，之后再重新从leaves到root计算block tree
 func (f *ForkChoice) Head(
 	ctx context.Context,
 	justifiedStateBalances []uint64,
@@ -89,6 +92,7 @@ func (f *ForkChoice) Head(
 
 // ProcessAttestation processes attestation for vote accounting, it iterates around validator indices
 // and update their votes accordingly.
+// ProcessAttestation处理attestation用于统计voting，它遍历validator indices并且相应地更新votes
 func (f *ForkChoice) ProcessAttestation(ctx context.Context, validatorIndices []uint64, blockRoot [32]byte, targetEpoch types.Epoch) {
 	_, span := trace.StartSpan(ctx, "doublyLinkedForkchoice.ProcessAttestation")
 	defer span.End()
@@ -376,6 +380,7 @@ func (f *ForkChoice) ProposerBoost() [fieldparams.RootLength]byte {
 }
 
 // SetOptimisticToValid sets the node with the given root as a fully validated node
+// SetOptimisticToValid设置给定root的node作为full validated node
 func (f *ForkChoice) SetOptimisticToValid(ctx context.Context, root [fieldparams.RootLength]byte) error {
 	f.store.nodesLock.Lock()
 	defer f.store.nodesLock.Unlock()
@@ -463,6 +468,7 @@ func (f *ForkChoice) InsertSlashedIndex(_ context.Context, index types.Validator
 }
 
 // UpdateJustifiedCheckpoint sets the justified checkpoint to the given one
+// UpdateJustifiedCheckpoint将justified checkpoint设置为给定值
 func (f *ForkChoice) UpdateJustifiedCheckpoint(jc *forkchoicetypes.Checkpoint) error {
 	if jc == nil {
 		return errInvalidNilCheckpoint
@@ -479,6 +485,7 @@ func (f *ForkChoice) UpdateJustifiedCheckpoint(jc *forkchoicetypes.Checkpoint) e
 }
 
 // UpdateFinalizedCheckpoint sets the finalized checkpoint to the given one
+// UpdateFinalizedCheckpoint设置finalized checkpoint为给定值
 func (f *ForkChoice) UpdateFinalizedCheckpoint(fc *forkchoicetypes.Checkpoint) error {
 	if fc == nil {
 		return errInvalidNilCheckpoint

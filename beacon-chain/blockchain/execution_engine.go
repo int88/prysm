@@ -32,6 +32,9 @@ type notifyForkchoiceUpdateArg struct {
 }
 
 // notifyForkchoiceUpdate signals execution engine the fork choice updates. Execution engine should:
+// notifyForkchoiceUpdate通知execution engine关于fork choice updates，Execution engine应该：
+// 1. reorg execution payload chain并且对应的state来让head_block_hash the head
+// 2. 应用finality到execution state：它不可逆地持久化所有execution payloads的chain以及对应的state，直到以及包含finalized_block_hash
 // 1. Re-organizes the execution payload chain and corresponding state to make head_block_hash the head.
 // 2. Applies finality to the execution state: it irreversibly persists the chain of all execution payloads and corresponding state, up to and including finalized_block_hash.
 func (s *Service) notifyForkchoiceUpdate(ctx context.Context, arg *notifyForkchoiceUpdateArg) (*enginev1.PayloadIDBytes, error) {
@@ -43,6 +46,7 @@ func (s *Service) notifyForkchoiceUpdate(ctx context.Context, arg *notifyForkcho
 		return nil, errors.New("nil head block")
 	}
 	// Must not call fork choice updated until the transition conditions are met on the Pow network.
+	// 必须不能调用fork choice updated，直到满足PoW网络的transition conditions
 	isExecutionBlk, err := blocks.IsExecutionBlock(headBlk.Body())
 	if err != nil {
 		return nil, errors.Wrap(err, "could not determine if block is execution block")
@@ -62,12 +66,14 @@ func (s *Service) notifyForkchoiceUpdate(ctx context.Context, arg *notifyForkcho
 		FinalizedBlockHash: finalizedHash[:],
 	}
 
+	// 缓存下一个slot proposer的payload ID
 	nextSlot := s.CurrentSlot() + 1 // Cache payload ID for next slot proposer.
 	hasAttr, attr, proposerId, err := s.getPayloadAttribute(ctx, arg.headState, nextSlot)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not get payload attribute")
 	}
 
+	// 调用fork choice update
 	payloadID, lastValidHash, err := s.cfg.ExecutionEngineCaller.ForkchoiceUpdated(ctx, fcs, attr)
 	if err != nil {
 		switch err {
@@ -127,6 +133,7 @@ func (s *Service) notifyForkchoiceUpdate(ctx context.Context, arg *notifyForkcho
 		return nil, errors.Wrap(err, "could not set block to valid")
 	}
 	if hasAttr { // If the forkchoice update call has an attribute, update the proposer payload ID cache.
+		// 如果forkchoice update call有一个attribute，更新proposer payload ID cache
 		var pId [8]byte
 		copy(pId[:], payloadID[:])
 		s.cfg.ProposerSlotIndexCache.SetProposerAndPayloadIDs(nextSlot, proposerId, pId)

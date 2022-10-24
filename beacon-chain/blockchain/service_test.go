@@ -224,6 +224,7 @@ func TestChainService_InitializeBeaconChain(t *testing.T) {
 	var err error
 
 	// Set up 10 deposits pre chain start for validators to register
+	// 在chain start之前，设置10 deposits，让validators进行注册
 	count := uint64(10)
 	deposits, _, err := util.DeterministicDepositsAndKeys(count)
 	require.NoError(t, err)
@@ -250,11 +251,13 @@ func TestChainService_InitializeBeaconChain(t *testing.T) {
 	headBlk, err := bc.HeadBlock(ctx)
 	require.NoError(t, err)
 	if headBlk == nil {
+		// Head state不能为nil，在初始化beacon chain之后
 		t.Error("Head state can't be nil after initialize beacon chain")
 	}
 	r, err := bc.HeadRoot(ctx)
 	require.NoError(t, err)
 	if bytesutil.ToBytes32(r) == params.BeaconConfig().ZeroHash {
+		// 在初始化beacon chain之后，slot 0的canonical root不为0
 		t.Error("Canonical root for slot 0 can't be zeros after initialize beacon chain")
 	}
 }
@@ -281,6 +284,7 @@ func TestChainService_CorrectGenesisRoots(t *testing.T) {
 	chainService.Start()
 
 	cp := chainService.FinalizedCheckpt()
+	// Finalize Checkpoint root不正确
 	require.DeepEqual(t, blkRoot[:], cp.Root, "Finalize Checkpoint root is incorrect")
 	cp = chainService.CurrentJustifiedCheckpt()
 	require.NoError(t, err)
@@ -348,6 +352,7 @@ func TestChainService_InitializeChainInfo_SetHeadAtGenesis(t *testing.T) {
 
 	finalizedSlot := params.BeaconConfig().SlotsPerEpoch*2 + 1
 	headBlock := util.NewBeaconBlock()
+	// 设置finalized slot
 	headBlock.Block.Slot = finalizedSlot
 	headBlock.Block.ParentRoot = bytesutil.PadTo(genesisRoot[:], 32)
 	headState, err := util.NewBeaconState()
@@ -407,6 +412,7 @@ func TestChainService_InitializeChainInfo_HeadSync(t *testing.T) {
 	util.SaveBlock(t, ctx, beaconDB, finalizedBlock)
 
 	// Set head slot close to the finalization point, no head sync is triggered.
+	// 设置head slot接近于finalization point，不会触发head sync
 	headBlock := util.NewBeaconBlock()
 	headBlock.Block.Slot = finalizedSlot + params.BeaconConfig().SlotsPerEpoch*5
 	headBlock.Block.ParentRoot = finalizedRoot[:]
@@ -426,6 +432,7 @@ func TestChainService_InitializeChainInfo_HeadSync(t *testing.T) {
 		Root:  finalizedRoot[:],
 	}))
 
+	// 构建attester service
 	attSrv, err := attestations.NewService(ctx, &attestations.Config{})
 	require.NoError(t, err)
 	stateGen := stategen.New(beaconDB)
@@ -437,11 +444,13 @@ func TestChainService_InitializeChainInfo_HeadSync(t *testing.T) {
 	assert.DeepSSZEqual(t, headState.InnerStateUnsafe(), s.InnerStateUnsafe(), "Head state incorrect")
 	assert.Equal(t, genesisRoot, c.originBlockRoot, "Genesis block root incorrect")
 	// Since head sync is not triggered, chain is initialized to the last finalization checkpoint.
+	// 因为head sync没有被触发，chain被初始化为last finalization checkpoint
 	assert.DeepEqual(t, finalizedBlock, c.head.block.Proto())
 	assert.LogsContain(t, hook, "resetting head from the checkpoint ('--head-sync' flag is ignored)")
 	assert.LogsDoNotContain(t, hook, "Regenerating state from the last checkpoint at slot")
 
 	// Set head slot far beyond the finalization point, head sync should be triggered.
+	// 将head slot设置为finalization point远远之后，head sync应该被触发
 	headBlock = util.NewBeaconBlock()
 	headBlock.Block.Slot = finalizedSlot + params.BeaconConfig().SlotsPerEpoch*headSyncMinEpochsAfterCheckpoint
 	headBlock.Block.ParentRoot = finalizedRoot[:]
@@ -458,6 +467,7 @@ func TestChainService_InitializeChainInfo_HeadSync(t *testing.T) {
 	assert.DeepSSZEqual(t, headState.InnerStateUnsafe(), s.InnerStateUnsafe(), "Head state incorrect")
 	assert.Equal(t, genesisRoot, c.originBlockRoot, "Genesis block root incorrect")
 	// Head slot is far beyond the latest finalized checkpoint, head sync is triggered.
+	// Head slot远远在finalized checkpoint之后，head sync被触发
 	assert.DeepEqual(t, headBlock, c.head.block.Proto())
 	assert.LogsContain(t, hook, "Regenerating state from the last checkpoint at slot 225")
 	assert.LogsDoNotContain(t, hook, "resetting head from the checkpoint ('--head-sync' flag is ignored)")
@@ -483,6 +493,7 @@ func TestChainService_SaveHeadNoDB(t *testing.T) {
 	newB, err := s.cfg.BeaconDB.HeadBlock(ctx)
 	require.NoError(t, err)
 	if reflect.DeepEqual(newB, blk) {
+		// head block应该不相等
 		t.Error("head block should not be equal")
 	}
 }

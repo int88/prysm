@@ -123,6 +123,7 @@ var (
 		Value: 100,
 	}
 	// HeadSync starts the beacon node from the previously saved head state and syncs from there.
+	// HeadSync从之前保存的head state开始beacon node，并且从那里开始同步
 	HeadSync = &cli.BoolFlag{
 		Name:  "head-sync",
 		Usage: "Starts the beacon node with the previously saved head state instead of finalized state.",

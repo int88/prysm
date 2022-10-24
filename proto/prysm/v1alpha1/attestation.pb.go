@@ -212,6 +212,7 @@ type AttestationData struct {
 
 	Slot            github_com_prysmaticlabs_prysm_consensus_types_primitives.Slot           `protobuf:"varint,1,opt,name=slot,proto3" json:"slot,omitempty" cast-type:"github.com/prysmaticlabs/prysm/consensus-types/primitives.Slot"`
 	CommitteeIndex  github_com_prysmaticlabs_prysm_consensus_types_primitives.CommitteeIndex `protobuf:"varint,2,opt,name=committee_index,json=committeeIndex,proto3" json:"committee_index,omitempty" cast-type:"github.com/prysmaticlabs/prysm/consensus-types/primitives.CommitteeIndex"`
+	// 包含beacon block root
 	BeaconBlockRoot []byte                                                                   `protobuf:"bytes,3,opt,name=beacon_block_root,json=beaconBlockRoot,proto3" json:"beacon_block_root,omitempty" ssz-size:"32"`
 	Source          *Checkpoint                                                              `protobuf:"bytes,4,opt,name=source,proto3" json:"source,omitempty"`
 	Target          *Checkpoint                                                              `protobuf:"bytes,5,opt,name=target,proto3" json:"target,omitempty"`

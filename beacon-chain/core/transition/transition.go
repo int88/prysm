@@ -179,6 +179,7 @@ func ProcessSlotsIfPossible(ctx context.Context, state state.BeaconState, target
 }
 
 // ProcessSlots process through skip slots and apply epoch transition when it's needed
+// ProcessSlots处理skip slots并且应用epoch transition，如果需要的话
 //
 // Spec pseudocode definition:
 //  def process_slots(state: BeaconState, slot: Slot) -> None:
@@ -198,6 +199,7 @@ func ProcessSlots(ctx context.Context, state state.BeaconState, slot types.Slot)
 	span.AddAttributes(trace.Int64Attribute("slots", int64(slot)-int64(state.Slot()))) // lint:ignore uintcast -- This is OK for tracing.
 
 	// The block must have a higher slot than parent state.
+	// block比parent state有着更高的slot
 	if state.Slot() >= slot {
 		err := fmt.Errorf("expected state.slot %d < slot %d", state.Slot(), slot)
 		tracing.AnnotateError(span, err)
@@ -211,6 +213,7 @@ func ProcessSlots(ctx context.Context, state state.BeaconState, slot types.Slot)
 	}
 
 	// Restart from cached value, if one exists.
+	// 从缓存的value重启，如果存在的话
 	cachedState, err := SkipSlotCache.Get(ctx, key)
 	if err != nil {
 		return nil, err

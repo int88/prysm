@@ -278,6 +278,7 @@ func (w altairBeaconBlockBody) AttesterSlashings() []*eth.AttesterSlashing {
 }
 
 // Attestations returns the stored attestations in the block.
+// Attestations返回在block中存储的attestations
 func (w altairBeaconBlockBody) Attestations() []*eth.Attestation {
 	return w.b.Attestations
 }

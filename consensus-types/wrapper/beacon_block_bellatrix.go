@@ -309,6 +309,7 @@ func (w bellatrixBeaconBlockBody) Proto() proto.Message {
 }
 
 // ExecutionPayload returns the Execution payload of the block body.
+// ExecutionPayload返回block body的Execution payload
 func (w bellatrixBeaconBlockBody) ExecutionPayload() (*enginev1.ExecutionPayload, error) {
 	return w.b.ExecutionPayload, nil
 }

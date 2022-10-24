@@ -34,12 +34,15 @@ import (
 )
 
 // A custom slot deadline for processing state slots in our cache.
+// 一个自定义的slot deadline，对于在我们的缓存中处理state slots
 const slotDeadline = 5 * time.Second
 
 // A custom deadline for deposit trie insertion.
+// 一个自定义的deadline，对于depoist trie的插入
 const depositDeadline = 20 * time.Second
 
 // This defines size of the upper bound for initial sync block cache.
+// 这定义了初始的sync block cache的upper bound
 var initialSyncBlockCacheSize = uint64(2 * params.BeaconConfig().SlotsPerEpoch)
 
 // onBlock is called when a gossip block is received. It runs regular state transition on the block.
@@ -210,6 +213,7 @@ func (s *Service) onBlock(ctx context.Context, signed interfaces.SignedBeaconBlo
 	})
 
 	// Updating next slot state cache can happen in the background. It shouldn't block rest of the process.
+	// 在后台更新下一个slot的state cache，它不应该阻塞进程的其余部分
 	go func() {
 		// Use a custom deadline here, since this method runs asynchronously.
 		// We ignore the parent method's context and instead create a new one
@@ -217,6 +221,7 @@ func (s *Service) onBlock(ctx context.Context, signed interfaces.SignedBeaconBlo
 		slotCtx, cancel := context.WithTimeout(context.Background(), slotDeadline)
 		defer cancel()
 		if err := transition.UpdateNextSlotCache(slotCtx, blockRoot[:], postState); err != nil {
+			// 不能更新next slot state cache
 			log.WithError(err).Debug("could not update next slot state cache")
 		}
 	}()
@@ -262,6 +267,7 @@ func (s *Service) onBlock(ctx context.Context, signed interfaces.SignedBeaconBlo
 			depCtx, cancel := context.WithTimeout(context.Background(), depositDeadline)
 			defer cancel()
 			if err := s.insertFinalizedDeposits(depCtx, finalized.Root); err != nil {
+				// 不能插入finalized deposits
 				log.WithError(err).Error("Could not insert finalized deposits.")
 			}
 		}()
@@ -309,6 +315,7 @@ func (s *Service) onBlockBatch(ctx context.Context, blks []interfaces.SignedBeac
 	b := blks[0].Block()
 
 	// Retrieve incoming block's pre state.
+	// 获取incoming block的prestate
 	if err := s.verifyBlkPreState(ctx, b); err != nil {
 		return err
 	}
@@ -321,6 +328,7 @@ func (s *Service) onBlockBatch(ctx context.Context, blks []interfaces.SignedBeac
 	}
 
 	// Fill in missing blocks
+	// 填充missing blocks
 	if err := s.fillInForkChoiceMissingBlocks(ctx, blks[0].Block(), preState.CurrentJustifiedCheckpoint(), preState.FinalizedCheckpoint()); err != nil {
 		return errors.Wrap(err, "could not fill in missing blocks to forkchoice")
 	}
@@ -355,6 +363,7 @@ func (s *Service) onBlockBatch(ctx context.Context, blks []interfaces.SignedBeac
 			return invalidBlock{err}
 		}
 		// Save potential boundary states.
+		// 保存boundary states
 		if slots.IsEpochStart(preState.Slot()) {
 			boundaries[blockRoots[i]] = preState.Copy()
 		}
@@ -380,9 +389,11 @@ func (s *Service) onBlockBatch(ctx context.Context, blks []interfaces.SignedBeac
 	}
 
 	// blocks have been verified, save them and call the engine
+	// blocks已经被确认，保存它们并且调用引擎
 	pendingNodes := make([]*forkchoicetypes.BlockAndCheckpoints, len(blks))
 	var isValidPayload bool
 	for i, b := range blks {
+		// 通知新的payload
 		isValidPayload, err = s.notifyNewPayload(ctx,
 			postVersionAndHeaders[i].version,
 			postVersionAndHeaders[i].header, b)
@@ -399,6 +410,7 @@ func (s *Service) onBlockBatch(ctx context.Context, blks []interfaces.SignedBeac
 			JustifiedCheckpoint: jCheckpoints[i],
 			FinalizedCheckpoint: fCheckpoints[i]}
 		pendingNodes[len(blks)-i-1] = args
+		// 保存init sync block
 		if err := s.saveInitSyncBlock(ctx, blockRoots[i], b); err != nil {
 			tracing.AnnotateError(span, err)
 			return err
@@ -411,12 +423,14 @@ func (s *Service) onBlockBatch(ctx context.Context, blks []interfaces.SignedBeac
 			return err
 		}
 		if i > 0 && jCheckpoints[i].Epoch > jCheckpoints[i-1].Epoch {
+			// 保存justified checkpoint
 			if err := s.cfg.BeaconDB.SaveJustifiedCheckpoint(ctx, jCheckpoints[i]); err != nil {
 				tracing.AnnotateError(span, err)
 				return err
 			}
 		}
 		if i > 0 && fCheckpoints[i].Epoch > fCheckpoints[i-1].Epoch {
+			// 更新finalized checkpoint
 			if err := s.updateFinalized(ctx, fCheckpoints[i]); err != nil {
 				tracing.AnnotateError(span, err)
 				return err
@@ -424,10 +438,12 @@ func (s *Service) onBlockBatch(ctx context.Context, blks []interfaces.SignedBeac
 		}
 	}
 	// Insert all nodes but the last one to forkchoice
+	// 插入除了最后一个之外的所有nodes到forkchoice
 	if err := s.cfg.ForkChoiceStore.InsertOptimisticChain(ctx, pendingNodes); err != nil {
 		return errors.Wrap(err, "could not insert batch to forkchoice")
 	}
 	// Insert the last block to forkchoice
+	// 插入最后一个block到forkchoice
 	lastBR := blockRoots[len(blks)-1]
 	if err := s.cfg.ForkChoiceStore.InsertNode(ctx, preState, lastBR); err != nil {
 		return errors.Wrap(err, "could not insert last block in batch to forkchoice")
@@ -445,6 +461,7 @@ func (s *Service) onBlockBatch(ctx context.Context, blks []interfaces.SignedBeac
 		}
 	}
 	// Also saves the last post state which to be used as pre state for the next batch.
+	// 同时保存最后一个post state，它可以作为下一个batch的prestate
 	lastB := blks[len(blks)-1]
 	if err := s.cfg.StateGen.SaveState(ctx, lastBR, preState); err != nil {
 		return err
@@ -467,12 +484,14 @@ func (s *Service) handleEpochBoundary(ctx context.Context, postState state.Beaco
 	defer span.End()
 
 	if postState.Slot()+1 == s.nextEpochBoundarySlot {
+		// 如果到达了下一个epoch的boundary slot
 		copied := postState.Copy()
 		copied, err := transition.ProcessSlots(ctx, copied, copied.Slot()+1)
 		if err != nil {
 			return err
 		}
 		// Update caches for the next epoch at epoch boundary slot - 1.
+		// 为下一个epoch更新cache，在epoch boundary slot - 1
 		if err := helpers.UpdateCommitteeCache(ctx, copied, coreTime.CurrentEpoch(copied)); err != nil {
 			return err
 		}
@@ -494,6 +513,7 @@ func (s *Service) handleEpochBoundary(ctx context.Context, postState state.Beaco
 		}
 
 		// Update caches at epoch boundary slot.
+		// 更新在epcoh boundary slot的缓存
 		// The following updates have short cut to return nil cheaply if fulfilled during boundary slot - 1.
 		if err := helpers.UpdateCommitteeCache(ctx, postState, coreTime.CurrentEpoch(postState)); err != nil {
 			return err
@@ -525,6 +545,7 @@ func (s *Service) insertBlockAndAttestationsToForkChoiceStore(ctx context.Contex
 		return err
 	}
 	// Feed in block's attestations to fork choice store.
+	// Feed block的attestations到fork choice store
 	for _, a := range blk.Body().Attestations() {
 		committee, err := helpers.BeaconCommitteeFromState(ctx, st, a.Data.Slot, a.Data.CommitteeIndex)
 		if err != nil {
@@ -566,6 +587,7 @@ func (s *Service) savePostStateInfo(ctx context.Context, r [32]byte, b interface
 
 // This removes the attestations from the mem pool. It will only remove the attestations if input root `r` is canonical,
 // meaning the block `b` is part of the canonical chain.
+// 从mem pool中移除attestations，它只能移除attestations，如果输入的root `r`是canonical，这意味着block `b`是canonical的一部分
 func (s *Service) pruneCanonicalAttsFromPool(ctx context.Context, r [32]byte, b interfaces.SignedBeaconBlock) error {
 	canonical, err := s.IsCanonical(ctx, r)
 	if err != nil {

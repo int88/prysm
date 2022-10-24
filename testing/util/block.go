@@ -39,6 +39,7 @@ type BlockGenConfig struct {
 
 // DefaultBlockGenConfig returns the block config that utilizes the
 // current params in the beacon config.
+// DefaultBlockGenConfig返回block config，使用beacon config中当前的params
 func DefaultBlockGenConfig() *BlockGenConfig {
 	return &BlockGenConfig{
 		NumProposerSlashings: 0,

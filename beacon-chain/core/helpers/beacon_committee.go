@@ -59,6 +59,8 @@ func SlotCommitteeCount(activeValidatorCount uint64) uint64 {
 // BeaconCommitteeFromState returns the crosslink committee of a given slot and committee index. This
 // is a spec implementation where state is used as an argument. In case of state retrieval
 // becomes expensive, consider using BeaconCommittee below.
+// BeaconCommitteeFromState返回一个给定slot的crosslink committee以及committee index，这是一个spec implementation
+// 其中state作为一个argument，万一state retrieval变得昂贵，考虑使用下面的BeaconCommittee
 //
 // Spec pseudocode definition:
 //   def get_beacon_committee(state: BeaconState, slot: Slot, index: CommitteeIndex) -> Sequence[ValidatorIndex]:

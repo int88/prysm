@@ -45,6 +45,8 @@ import (
 
 // headSyncMinEpochsAfterCheckpoint defines how many epochs should elapse after known finalization
 // checkpoint for head sync to be triggered.
+// headSyncMinEpochsAfterCheckpoint定义了应该过多少epochs，在已知的finalization checkpoint之后
+// 对于head sync去触发
 const headSyncMinEpochsAfterCheckpoint = 128
 
 // Service represents a service that handles the internal
@@ -170,18 +172,22 @@ func (s *Service) Stop() error {
 
 // Status always returns nil unless there is an error condition that causes
 // this service to be unhealthy.
+// Status总是返回nil，除非有error condition，导致service变为unhealthy
 func (s *Service) Status() error {
 	if s.originBlockRoot == params.BeaconConfig().ZeroHash {
 		return errors.New("genesis state has not been created")
 	}
 	if runtime.NumGoroutine() > s.cfg.MaxRoutines {
+		// goroutine过多？
 		return fmt.Errorf("too many goroutines (%d)", runtime.NumGoroutine())
 	}
 	return nil
 }
 
 // StartFromSavedState initializes the blockchain using a previously saved finalized checkpoint.
+// StartFromSavedState初始化blockchain，使用之前保存的finalized checkpoint
 func (s *Service) StartFromSavedState(saved state.BeaconState) error {
+	// Blockchain data已经存在于DB中，初始化...
 	log.Info("Blockchain data already exists in DB, initializing...")
 	s.genesisTime = time.Unix(int64(saved.GenesisTime()), 0) // lint:ignore uintcast -- Genesis time will not exceed int64 in your lifetime.
 	s.cfg.AttService.SetGenesisTime(saved.GenesisTime())
@@ -192,11 +198,13 @@ func (s *Service) StartFromSavedState(saved state.BeaconState) error {
 	}
 	s.originBlockRoot = originRoot
 
+	// 从DB中初始化head
 	if err := s.initializeHeadFromDB(s.ctx); err != nil {
 		return errors.Wrap(err, "could not set up chain info")
 	}
 	spawnCountdownIfPreGenesis(s.ctx, s.genesisTime, s.cfg.BeaconDB)
 
+	// 获取justified checkpoint
 	justified, err := s.cfg.BeaconDB.JustifiedCheckpoint(s.ctx)
 	if err != nil {
 		return errors.Wrap(err, "could not get justified checkpoint")
@@ -204,6 +212,8 @@ func (s *Service) StartFromSavedState(saved state.BeaconState) error {
 	if justified == nil {
 		return errNilJustifiedCheckpoint
 	}
+
+	// 获取finalized checkpoint
 	finalized, err := s.cfg.BeaconDB.FinalizedCheckpoint(s.ctx)
 	if err != nil {
 		return errors.Wrap(err, "could not get finalized checkpoint")
@@ -235,6 +245,7 @@ func (s *Service) StartFromSavedState(saved state.BeaconState) error {
 		return errors.Wrap(err, "could not get finalized checkpoint state")
 	}
 	if err := forkChoicer.InsertNode(s.ctx, st, fRoot); err != nil {
+		// 不能插入finalized block到forkchoice
 		return errors.Wrap(err, "could not insert finalized block to forkchoice")
 	}
 
@@ -251,6 +262,7 @@ func (s *Service) StartFromSavedState(saved state.BeaconState) error {
 	// after the statefeed.Initialized event is fired (below)
 	if err := s.wsVerifier.VerifyWeakSubjectivity(s.ctx, finalized.Epoch); err != nil {
 		// Exit run time if the node failed to verify weak subjectivity checkpoint.
+		// 退出runtime，如果node不能校验weak subjective checkpoint
 		return errors.Wrap(err, "could not verify initial checkpoint provided for chain sync")
 	}
 
@@ -267,6 +279,7 @@ func (s *Service) StartFromSavedState(saved state.BeaconState) error {
 
 func (s *Service) originRootFromSavedState(ctx context.Context) ([32]byte, error) {
 	// first check if we have started from checkpoint sync and have a root
+	// 首先检查我们是否从checkpoint sync开始并且有一个root
 	originRoot, err := s.cfg.BeaconDB.OriginCheckpointBlockRoot(ctx)
 	if err == nil {
 		return originRoot, nil
@@ -277,6 +290,8 @@ func (s *Service) originRootFromSavedState(ctx context.Context) ([32]byte, error
 
 	// we got here because OriginCheckpointBlockRoot gave us an ErrNotFound. this means the node was started from a genesis state,
 	// so we should have a value for GenesisBlock
+	// 我们到达这里，因为OriginCheckpointBlockRoot给我们一个ErrNotFound，这意味着node从genesis state开始
+	// 因此我们应该对于GenesisBlock有一个值
 	genesisBlock, err := s.cfg.BeaconDB.GenesisBlock(ctx)
 	if err != nil {
 		return originRoot, errors.Wrap(err, "could not get genesis block from db")
@@ -292,8 +307,11 @@ func (s *Service) originRootFromSavedState(ctx context.Context) ([32]byte, error
 }
 
 // initializeHeadFromDB uses the finalized checkpoint and head block found in the database to set the current head.
+// initializeHeadFromDB使用finalized checkpoint以及在db中找到的head block，来设置正确的head
 // Note that this may block until stategen replays blocks between the finalized and head blocks
+// 注意这可能会阻塞直到stategen要在finalized和head blocks间重放blocks
 // if the head sync flag was specified and the gap between the finalized and head blocks is at least 128 epochs long.
+// 如果指定了head sync flag，finalized以及head blocks的gap至少有128个epochs
 func (s *Service) initializeHeadFromDB(ctx context.Context) error {
 	finalized, err := s.cfg.BeaconDB.FinalizedCheckpoint(ctx)
 	if err != nil {
@@ -302,6 +320,7 @@ func (s *Service) initializeHeadFromDB(ctx context.Context) error {
 	if finalized == nil {
 		// This should never happen. At chain start, the finalized checkpoint
 		// would be the genesis state and block.
+		// 这不应该发生，在chain start，finalized checkpoint应该为genesis state以及block
 		return errors.New("no finalized epoch in the database")
 	}
 	finalizedRoot := s.ensureRootNotZeros(bytesutil.ToBytes32(finalized.Root))
@@ -324,6 +343,8 @@ func (s *Service) initializeHeadFromDB(ctx context.Context) error {
 		}
 		// Head sync when node is far enough beyond known finalized epoch,
 		// this becomes really useful during long period of non-finality.
+		// 当node在已知的finalized epoch很远之后，进行head sync
+		// 这很有用，在长期的non-finality
 		if epochsSinceFinality >= headSyncMinEpochsAfterCheckpoint {
 			headRoot, err := headBlock.Block().HashTreeRoot()
 			if err != nil {
@@ -355,6 +376,7 @@ func (s *Service) initializeHeadFromDB(ctx context.Context) error {
 	if err != nil {
 		return errors.Wrap(err, "could not get finalized block")
 	}
+	// 设置head
 	s.setHead(finalizedRoot, finalizedBlock, finalizedState)
 
 	return nil

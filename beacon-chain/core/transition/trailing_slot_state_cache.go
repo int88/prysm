@@ -47,14 +47,19 @@ func NextSlotState(_ context.Context, root []byte) (state.BeaconState, error) {
 // UpdateNextSlotCache updates the `nextSlotCache`. It saves the input state after advancing the state slot by 1
 // by calling `ProcessSlots`, it also saves the input root for later look up.
 // This is useful to call after successfully processing a block.
+// UpdateNextSlotCache更新`nextSlotCache`，它保存了input state，在将state slot加一之后
+// 通过调用`ProcessSlots`，它也保存input root用于后续的查找
+// 这在成功处理一个block之后是非常有用的
 func UpdateNextSlotCache(ctx context.Context, root []byte, state state.BeaconState) error {
 	// Advancing one slot by using a copied state.
+	// 通过一个copied state移动一个slot
 	copied := state.Copy()
 	copied, err := ProcessSlots(ctx, copied, copied.Slot()+1)
 	if err != nil {
 		return err
 	}
 
+	// 更新root以及state
 	nsc.Lock()
 	defer nsc.Unlock()
 

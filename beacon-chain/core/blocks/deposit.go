@@ -94,10 +94,12 @@ func ProcessDeposits(
 
 	for _, d := range deposits {
 		if d == nil || d.Data == nil {
+			// 在block中获取到了一个nil deposit
 			return nil, errors.New("got a nil deposit in block")
 		}
 		beaconState, _, err = ProcessDeposit(beaconState, d, batchVerified)
 		if err != nil {
+			// 不能处理deposit
 			return nil, errors.Wrapf(err, "could not process deposit from %#x", bytesutil.Trunc(d.Data.PublicKey))
 		}
 	}

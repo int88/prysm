@@ -31,23 +31,27 @@ type HeadRetriever interface {
 }
 
 // BlockProcessor processes the block that's used for accounting fork choice.
+// BlockProcessor处理block，用于统计fork choice
 type BlockProcessor interface {
 	InsertNode(context.Context, state.BeaconState, [32]byte) error
 	InsertOptimisticChain(context.Context, []*forkchoicetypes.BlockAndCheckpoints) error
 }
 
 // AttestationProcessor processes the attestation that's used for accounting fork choice.
+// AttestationProcessor处理用于统计fork choice的attestation
 type AttestationProcessor interface {
 	ProcessAttestation(context.Context, []uint64, [32]byte, types.Epoch)
 	InsertSlashedIndex(context.Context, types.ValidatorIndex)
 }
 
 // ProposerBooster is able to boost the proposer's root score during fork choice.
+// ProposerBooster能够在fork choice期间提高proposer的分数
 type ProposerBooster interface {
 	ResetBoostedProposerRoot(ctx context.Context) error
 }
 
 // Getter returns fork choice related information.
+// Getter返回fork choice相关的信息
 type Getter interface {
 	HasNode([32]byte) bool
 	ProposerBoost() [fieldparams.RootLength]byte

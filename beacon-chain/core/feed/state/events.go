@@ -29,6 +29,7 @@ const (
 	// head state的slot value
 	Reorg
 	// FinalizedCheckpoint event.
+	// FinalizedCheckpoint事件
 	FinalizedCheckpoint
 	// NewHead of the chain event.
 	NewHead

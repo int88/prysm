@@ -14,6 +14,7 @@ import (
 )
 
 // SaveState saves the state in the cache and/or DB.
+// SaveState保存state到cache或者DB中
 func (s *State) SaveState(ctx context.Context, blockRoot [32]byte, st state.BeaconState) error {
 	ctx, span := trace.StartSpan(ctx, "stateGen.SaveState")
 	defer span.End()
@@ -35,6 +36,8 @@ func (s *State) ForceCheckpoint(ctx context.Context, blockRoot []byte) error {
 	root32 := bytesutil.ToBytes32(blockRoot)
 	// Before the first finalized checkpoint, the finalized root is zero hash.
 	// Return early if there hasn't been a finalized checkpoint.
+	// 在第一个finalized checkpoint之前，finalized root是zero hash，尽早返回如果
+	// 还没有一个finalized checkpoint
 	if root32 == params.BeaconConfig().ZeroHash {
 		return nil
 	}
@@ -50,6 +53,8 @@ func (s *State) ForceCheckpoint(ctx context.Context, blockRoot []byte) error {
 // This saves a post beacon state. On the epoch boundary,
 // it saves a full state. On an intermediate slot, it saves a back pointer to the
 // nearest epoch boundary state.
+// 这保存一个post beacon state，在epoch boundary，它保存一个full state，在一个中间的slot，它保存
+// 一个back pointer，指向最近的boundary state
 func (s *State) saveStateByRoot(ctx context.Context, blockRoot [32]byte, st state.BeaconState) error {
 	ctx, span := trace.StartSpan(ctx, "stateGen.saveStateByRoot")
 	defer span.End()
@@ -73,11 +78,13 @@ func (s *State) saveStateByRoot(ctx context.Context, blockRoot [32]byte, st stat
 	s.saveHotStateDB.lock.Unlock()
 
 	// If the hot state is already in cache, one can be sure the state was processed and in the DB.
+	// 如果hot state已经在缓存中，我们可以确保state已经处理并且在DB中
 	if s.hotStateCache.has(blockRoot) {
 		return nil
 	}
 
 	// Only on an epoch boundary slot, save epoch boundary state in epoch boundary root state cache.
+	// 只有一个epoch boundary slot，保存epoch boundary state在epoch boundary root state cache
 	if slots.IsEpochStart(st.Slot()) {
 		if err := s.epochBoundaryStateCache.put(blockRoot, st); err != nil {
 			return err
@@ -85,6 +92,7 @@ func (s *State) saveStateByRoot(ctx context.Context, blockRoot [32]byte, st stat
 	}
 
 	// On an intermediate slot, save state summary.
+	// 在一个中间的slot，保存state summary
 	if err := s.beaconDB.SaveStateSummary(ctx, &ethpb.StateSummary{
 		Slot: st.Slot(),
 		Root: blockRoot[:],
@@ -93,6 +101,7 @@ func (s *State) saveStateByRoot(ctx context.Context, blockRoot [32]byte, st stat
 	}
 
 	// Store the copied state in the hot state cache.
+	// 保存copied state到hot state cache
 	s.hotStateCache.put(blockRoot, st)
 
 	return nil

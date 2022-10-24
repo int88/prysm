@@ -51,10 +51,12 @@ func (s *Service) UpdateAndSaveHeadWithBalances(ctx context.Context) error {
 // This defines the current chain service's view of head.
 // 它定义了当前chain service的view of head
 type head struct {
-	slot  types.Slot                   // current head slot.
-	root  [32]byte                     // current head root.
+	slot types.Slot // current head slot.
+	root [32]byte   // current head root.
+	// 当前的head block
 	block interfaces.SignedBeaconBlock // current head block.
-	state state.BeaconState            // current head state.
+	// 当前的head state
+	state state.BeaconState // current head state.
 }
 
 // This saves head info to the local service cache, it also saves the
@@ -151,6 +153,8 @@ func (s *Service) saveHead(ctx context.Context, newHeadRoot [32]byte, headBlock 
 // This gets called to update canonical root mapping. It does not save head block
 // root in DB. With the inception of initial-sync-cache-state flag, it uses finalized
 // check point as anchors to resume sync therefore head is no longer needed to be saved on per slot basis.
+// 这个函数被调用，来更新canonical root mapping，它不保存head block root到DB中，随着initial-sync-cache-state
+// 的flag，它使用finalized check point作为anchors来继续sync，因此head不用在每个slot basis进行保存
 func (s *Service) saveHeadNoDB(ctx context.Context, b interfaces.SignedBeaconBlock, r [32]byte, hs state.BeaconState) error {
 	if err := wrapper.BeaconBlockIsNil(b); err != nil {
 		return err

@@ -59,6 +59,8 @@ func ConvertToIndexed(ctx context.Context, attestation *ethpb.Attestation, commi
 // AttestingIndices returns the attesting participants indices from the attestation data. The
 // committee is provided as an argument rather than a imported implementation from the spec definition.
 // Having the committee as an argument allows for re-use of beacon committees when possible.
+// AttestingIndices返回attesting participants的索引，从attestation data，committee作为一个参数
+// 将committee作为参数允许对于beacon committees的重用，如果可能的话
 //
 // Spec pseudocode definition:
 //   def get_attesting_indices(state: BeaconState,

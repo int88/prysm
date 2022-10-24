@@ -67,6 +67,7 @@ func (s *Service) getBlock(ctx context.Context, r [32]byte) (interfaces.SignedBe
 
 // This retrieves all the beacon blocks from the initial sync blocks cache, the returned
 // blocks are unordered.
+// 返回所有的beacon blocks，从初始的sync block cache，返回的blocks是无序的
 func (s *Service) getInitSyncBlocks() []interfaces.SignedBeaconBlock {
 	s.initSyncBlocksLock.RLock()
 	defer s.initSyncBlocksLock.RUnlock()

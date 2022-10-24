@@ -153,17 +153,20 @@ func (s *State) DeleteStateFromCaches(_ context.Context, blockRoot [32]byte) err
 }
 
 // This loads a beacon state from either the cache or DB, then replays blocks up the slot of the requested block root.
+// 从cache或者DB中加载一个beacon state，之后重放blocks到请求的block root的slot
 func (s *State) loadStateByRoot(ctx context.Context, blockRoot [32]byte) (state.BeaconState, error) {
 	ctx, span := trace.StartSpan(ctx, "stateGen.loadStateByRoot")
 	defer span.End()
 
 	// First, it checks if the state exists in hot state cache.
+	// 首先，检查state是否在hot state cache中存在
 	cachedState := s.hotStateCache.get(blockRoot)
 	if cachedState != nil && !cachedState.IsNil() {
 		return cachedState, nil
 	}
 
 	// Second, it checks if the state exists in epoch boundary state cache.
+	// 然后，检查state是否存在于epoch boundary state cache
 	cachedInfo, ok, err := s.epochBoundaryStateCache.getByBlockRoot(blockRoot)
 	if err != nil {
 		return nil, err
@@ -173,6 +176,7 @@ func (s *State) loadStateByRoot(ctx context.Context, blockRoot [32]byte) (state.
 	}
 
 	// Short circuit if the state is already in the DB.
+	// 如果state已经在数据库中，直接返回
 	if s.beaconDB.HasState(ctx, blockRoot) {
 		return s.beaconDB.State(ctx, blockRoot)
 	}
@@ -185,6 +189,8 @@ func (s *State) loadStateByRoot(ctx context.Context, blockRoot [32]byte) (state.
 
 	// Since the requested state is not in caches or DB, start replaying using the last
 	// available ancestor state which is retrieved using input block's root.
+	// 因为请求的state不在caches或者DB中，开始重放，使用最新可用的ancestor state，使用input block的root
+	// 进行获取
 	startState, err := s.LastAncestorState(ctx, blockRoot)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not get ancestor state")

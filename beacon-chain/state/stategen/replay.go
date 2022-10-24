@@ -23,6 +23,7 @@ import (
 )
 
 // ReplayBlocks replays the input blocks on the input state until the target slot is reached.
+// ReplayBlocks重放输入的blocks，在input state，直到到达target slot
 //
 // WARNING Blocks passed to the function must be in decreasing slots order.
 func (_ *State) ReplayBlocks(
@@ -79,8 +80,10 @@ func (_ *State) ReplayBlocks(
 
 // LoadBlocks loads the blocks between start slot and end slot by recursively fetching from end block root.
 // The Blocks are returned in slot-descending order.
+// LoadBlocks加载start slot和end slot之间的blocks，通过递归获取end block root，返回的blocks是按照slot降序的
 func (s *State) LoadBlocks(ctx context.Context, startSlot, endSlot types.Slot, endBlockRoot [32]byte) ([]interfaces.SignedBeaconBlock, error) {
 	// Nothing to load for invalid range.
+	// 对于invalid range，没什么好加载的
 	if endSlot < startSlot {
 		return nil, fmt.Errorf("start slot %d >= end slot %d", startSlot, endSlot)
 	}
@@ -90,10 +93,12 @@ func (s *State) LoadBlocks(ctx context.Context, startSlot, endSlot types.Slot, e
 		return nil, err
 	}
 	// The retrieved blocks and block roots have to be in the same length given same filter.
+	// 获取的blocks以及block roots应该有同样的长度，对于给定的同样的filter
 	if len(blocks) != len(blockRoots) {
 		return nil, errors.New("length of blocks and roots don't match")
 	}
 	// Return early if there's no block given the input.
+	// 如果给定的input没有block，尽早返回
 	length := len(blocks)
 	if length == 0 {
 		return nil, nil
@@ -119,6 +124,7 @@ func (s *State) LoadBlocks(ctx context.Context, startSlot, endSlot types.Slot, e
 
 	filteredBlocks := []interfaces.SignedBeaconBlock{blocks[length-1]}
 	// Starting from second to last index because the last block is already in the filtered block list.
+	// 从第二个到最后一个索引，因为last block已经在filtered block list中
 	for i := length - 2; i >= 0; i-- {
 		if ctx.Err() != nil {
 			return nil, ctx.Err()

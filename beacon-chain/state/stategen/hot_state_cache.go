@@ -25,6 +25,7 @@ var (
 )
 
 // hotStateCache is used to store the processed beacon state after finalized check point.
+// hotStateCache用于存储处理后的beacon state，在finalized checkpoint之后
 type hotStateCache struct {
 	cache *lru.Cache
 	lock  sync.RWMutex
