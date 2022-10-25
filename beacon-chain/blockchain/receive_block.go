@@ -16,6 +16,7 @@ import (
 )
 
 // This defines how many epochs since finality the run time will begin to save hot state on to the DB.
+// 这定义了从finality的多少epochs之后，runtime会开始保存hot state到DB中
 var epochsSinceFinalitySaveHotStateDB = types.Epoch(100)
 
 // BlockReceiver interface defines the methods of chain service for receiving and processing new blocks.
@@ -27,6 +28,7 @@ type BlockReceiver interface {
 }
 
 // SlashingReceiver interface defines the methods of chain service for receiving validated slashing over the wire.
+// SlashingReceiver接口定义了方法，chain service用于接收validated slashing，通过wire
 type SlashingReceiver interface {
 	ReceiveAttesterSlashing(ctx context.Context, slashings *ethpb.AttesterSlashing)
 }
@@ -94,11 +96,14 @@ func (s *Service) ReceiveBlock(ctx context.Context, block interfaces.SignedBeaco
 // ReceiveBlockBatch processes the whole block batch at once, assuming the block batch is linear ,transitioning
 // the state, performing batch verification of all collected signatures and then performing the appropriate
 // actions for a block post-transition.
+// ReceiveBlockBatch一次性处理批量的block，假设block batch是线性的，转换state，执行批量的verification
+// 之后再执行恰当的actions，对于一个block post-transition
 func (s *Service) ReceiveBlockBatch(ctx context.Context, blocks []interfaces.SignedBeaconBlock, blkRoots [][32]byte) error {
 	ctx, span := trace.StartSpan(ctx, "blockChain.ReceiveBlockBatch")
 	defer span.End()
 
 	// Apply state transition on the incoming newly received block batches, one by one.
+	// 应用state transition，对于新接收到的block batches，一个接一个
 	if err := s.onBlockBatch(ctx, blocks, blkRoots); err != nil {
 		err := errors.Wrap(err, "could not process block in batch")
 		tracing.AnnotateError(span, err)
@@ -108,6 +113,7 @@ func (s *Service) ReceiveBlockBatch(ctx context.Context, blocks []interfaces.Sig
 	for i, b := range blocks {
 		blockCopy := b.Copy()
 		// Send notification of the processed block to the state feed.
+		// 发送processed block通知到state feed
 		s.cfg.StateNotifier.StateFeed().Send(&feed.Event{
 			Type: statefeed.BlockProcessed,
 			Data: &statefeed.BlockProcessedData{
@@ -134,6 +140,7 @@ func (s *Service) ReceiveBlockBatch(ctx context.Context, blocks []interfaces.Sig
 		// log.Fatalf will prevent defer from being called
 		span.End()
 		// Exit run time if the node failed to verify weak subjectivity checkpoint.
+		// 退出运行时，如果node检查weak subjective checkpoint失败
 		log.Fatalf("Could not verify weak subjectivity checkpoint: %v", err)
 	}
 
@@ -152,21 +159,25 @@ func (s *Service) ReceiveAttesterSlashing(ctx context.Context, slashing *ethpb.A
 
 func (s *Service) handlePostBlockOperations(b interfaces.BeaconBlock) error {
 	// Delete the processed block attestations from attestation pool.
+	// 删除已经处理的block的attestations，从attestation pool
 	if err := s.deletePoolAtts(b.Body().Attestations()); err != nil {
 		return err
 	}
 
 	// Add block attestations to the fork choice pool to compute head.
+	// 添加block attestations到fork choice pool来计算head
 	if err := s.cfg.AttPool.SaveBlockAttestations(b.Body().Attestations()); err != nil {
 		log.Errorf("Could not save block attestations for fork choice: %v", err)
 		return nil
 	}
 	// Mark block exits as seen so we don't include same ones in future blocks.
+	// 看到后就将block标记为exits，这样我们不会在future blocks中包含同样的
 	for _, e := range b.Body().VoluntaryExits() {
 		s.cfg.ExitPool.MarkIncluded(e)
 	}
 
 	//  Mark attester slashings as seen so we don't include same ones in future blocks.
+	// 看到后就标记attester slashings，这样我们不会在未来的blocks中包含同样的
 	for _, as := range b.Body().AttesterSlashings() {
 		s.cfg.SlashingPool.MarkIncludedAttesterSlashing(as)
 	}
@@ -174,6 +185,7 @@ func (s *Service) handlePostBlockOperations(b interfaces.BeaconBlock) error {
 }
 
 // This checks whether it's time to start saving hot state to DB.
+// 检查是否是时候开始保存hot state到DB
 // It's time when there's `epochsSinceFinalitySaveHotStateDB` epochs of non-finality.
 func (s *Service) checkSaveHotStateDB(ctx context.Context) error {
 	currentEpoch := slots.ToEpoch(s.CurrentSlot())

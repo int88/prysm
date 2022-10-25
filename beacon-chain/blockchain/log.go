@@ -20,6 +20,7 @@ import (
 var log = logrus.WithField("prefix", "blockchain")
 
 // logs state transition related data every slot.
+// 每个slot都记录state transition相关的数据
 func logStateTransitionData(b interfaces.BeaconBlock) error {
 	log := log.WithField("slot", b.Slot())
 	if len(b.Body().Attestations()) > 0 {
@@ -90,6 +91,7 @@ func logBlockSyncStatus(block interfaces.BeaconBlock, blockRoot [32]byte, justif
 }
 
 // logs payload related data every slot.
+// 每个slot记录payload相关的数据
 func logPayload(block interfaces.BeaconBlock) error {
 	isExecutionBlk, err := blocks.IsExecutionBlock(block.Body())
 	if err != nil {

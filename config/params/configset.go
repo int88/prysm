@@ -25,7 +25,9 @@ func ByVersion(version [fieldparams.VersionLength]byte) (*BeaconChainConfig, err
 }
 
 // SetActive sets the given config as active (the config that will be returned by GetActive).
+// SetActive设置给定的config为active（会被GetActive返回的config）
 // SetActive will always overwrite any config with the same ConfigName before setting the updated value to active.
+// SetActive总是会覆盖有着相同的ConfigName的config，在设置updated value到active
 func SetActive(c *BeaconChainConfig) error {
 	return configs.setActive(c)
 }

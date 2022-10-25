@@ -18,6 +18,7 @@ import (
 )
 
 // getAttPreState retrieves the att pre state by either from the cache or the DB.
+// getAttPreState从cache或者DB中获取att pre state
 func (s *Service) getAttPreState(ctx context.Context, c *ethpb.Checkpoint) (state.BeaconState, error) {
 	// Use a multilock to allow scoped holding of a mutex by a checkpoint root + epoch
 	// allowing us to behave smarter in terms of how this function is used concurrently.

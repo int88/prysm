@@ -21,11 +21,13 @@ import (
 
 // AttestationStateFetcher allows for retrieving a beacon state corresponding to the block
 // root of an attestation's target checkpoint.
+// AttestationStateFetcher允许接收一个beacon state，对应一个attestation的target checkpoint的block root
 type AttestationStateFetcher interface {
 	AttestationTargetState(ctx context.Context, target *ethpb.Checkpoint) (state.BeaconState, error)
 }
 
 // AttestationReceiver interface defines the methods of chain service receive and processing new attestations.
+// AttestationReceiver接口定义了chain service的方法用于接收和处理新的attestations
 type AttestationReceiver interface {
 	AttestationStateFetcher
 	VerifyLmdFfgConsistency(ctx context.Context, att *ethpb.Attestation) error
@@ -33,6 +35,7 @@ type AttestationReceiver interface {
 }
 
 // AttestationTargetState returns the pre state of attestation.
+// AttestationTargetState返回attestation的prestate
 func (s *Service) AttestationTargetState(ctx context.Context, target *ethpb.Checkpoint) (state.BeaconState, error) {
 	ss, err := slots.EpochStart(target.Epoch)
 	if err != nil {

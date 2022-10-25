@@ -165,11 +165,13 @@ var (
 )
 
 // reportSlotMetrics reports slot related metrics.
+// reportSlotMetrics汇报slot相关的metrics
 func reportSlotMetrics(stateSlot, headSlot, clockSlot types.Slot, finalizedCheckpoint *ethpb.Checkpoint) {
 	clockTimeSlot.Set(float64(clockSlot))
 	beaconSlot.Set(float64(stateSlot))
 	beaconHeadSlot.Set(float64(headSlot))
 	if finalizedCheckpoint != nil {
+		// 假设finalized checkpoint不为nil
 		headFinalizedEpoch.Set(float64(finalizedCheckpoint.Epoch))
 		headFinalizedRoot.Set(float64(bytesutil.ToLowInt64(finalizedCheckpoint.Root)))
 	}

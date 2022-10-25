@@ -101,6 +101,7 @@ func (mbn *MockBlockNotifier) BlockFeed() *event.Feed {
 }
 
 // MockStateNotifier mocks the state notifier.
+// MockStateNotifier对state notifier进行mock
 type MockStateNotifier struct {
 	feed     *event.Feed
 	feedLock sync.Mutex
@@ -113,6 +114,7 @@ type MockStateNotifier struct {
 }
 
 // ReceivedEvents returns the events received by the state feed in this mock.
+// ReceivedEvents返回这个state feed接收的events，在这个mock中
 func (msn *MockStateNotifier) ReceivedEvents() []*feed.Event {
 	msn.recvLock.Lock()
 	defer msn.recvLock.Unlock()
@@ -120,6 +122,7 @@ func (msn *MockStateNotifier) ReceivedEvents() []*feed.Event {
 }
 
 // StateFeed returns a state feed.
+// StateFeed返回一个state feed
 func (msn *MockStateNotifier) StateFeed() *event.Feed {
 	msn.feedLock.Lock()
 	defer msn.feedLock.Unlock()

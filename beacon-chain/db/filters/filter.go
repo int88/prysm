@@ -47,6 +47,8 @@ const (
 
 // QueryFilter defines a generic interface for type-asserting
 // specific filters to use in querying DB objects.
+// QueryFilter定义了一个通用的接口用于type-asserting特定的filters，用于查询
+// DB对象
 type QueryFilter struct {
 	queries map[FilterType]interface{}
 }

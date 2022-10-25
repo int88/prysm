@@ -98,6 +98,7 @@ type OptimisticModeFetcher interface {
 }
 
 // FinalizedCheckpt returns the latest finalized checkpoint from chain store.
+// FinalizedCheckpt从chain store中返回最新的finalized checkpoint
 func (s *Service) FinalizedCheckpt() *ethpb.Checkpoint {
 	cp := s.ForkChoicer().FinalizedCheckpoint()
 	return &ethpb.Checkpoint{Epoch: cp.Epoch, Root: bytesutil.SafeCopyBytes(cp.Root[:])}

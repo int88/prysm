@@ -29,12 +29,14 @@ func TestService_ReceiveBlock(t *testing.T) {
 
 	genesis, keys := util.DeterministicGenesisState(t, 64)
 	genFullBlock := func(t *testing.T, conf *util.BlockGenConfig, slot types.Slot) *ethpb.SignedBeaconBlock {
+		// 构建完整的block
 		blk, err := util.GenerateFullBlock(genesis, keys, conf, slot)
 		assert.NoError(t, err)
 		return blk
 	}
 	params.SetupTestConfigCleanup(t)
 	bc := params.BeaconConfig().Copy()
+	// voluntary exits测试中需要的
 	bc.ShardCommitteePeriod = 0 // Required for voluntary exits test in reasonable time.
 	params.OverrideBeaconConfig(bc)
 
@@ -48,6 +50,7 @@ func TestService_ReceiveBlock(t *testing.T) {
 		check     func(*testing.T, *Service)
 	}{
 		{
+			// 应用block到state transition中
 			name: "applies block with state transition",
 			args: args{
 				block: genFullBlock(t, util.DefaultBlockGenConfig(), 2 /*slot*/),
@@ -62,6 +65,7 @@ func TestService_ReceiveBlock(t *testing.T) {
 			},
 		},
 		{
+			// 保存attestations到pool中
 			name: "saves attestations to pool",
 			args: args{
 				block: genFullBlock(t,
@@ -83,6 +87,7 @@ func TestService_ReceiveBlock(t *testing.T) {
 			},
 		},
 		{
+			// 更新exit pool
 			name: "updates exit pool",
 			args: args{
 				block: genFullBlock(t, &util.BlockGenConfig{
@@ -99,6 +104,7 @@ func TestService_ReceiveBlock(t *testing.T) {
 				pending := s.cfg.ExitPool.PendingExits(genesis, 1, true /* no limit */)
 				if len(pending) != 0 {
 					t.Errorf(
+						// 不要标记正确数字的exits
 						"Did not mark the correct number of exits. Got %d pending but wanted %d",
 						len(pending),
 						0,
@@ -107,6 +113,7 @@ func TestService_ReceiveBlock(t *testing.T) {
 			},
 		},
 		{
+			// 在state feed中通知block已经别处理了
 			name: "notifies block processed on state feed",
 			args: args{
 				block: genFullBlock(t, util.DefaultBlockGenConfig(), 1 /*slot*/),
@@ -137,10 +144,13 @@ func TestService_ReceiveBlock(t *testing.T) {
 			s, err := NewService(ctx, opts...)
 			require.NoError(t, err)
 			require.NoError(t, s.saveGenesisData(ctx, genesis))
+			// 获取block的root
 			root, err := tt.args.block.Block.HashTreeRoot()
 			require.NoError(t, err)
+			// 对beacon block进行封装
 			wsb, err := wrapper.WrappedSignedBeaconBlock(tt.args.block)
 			require.NoError(t, err)
+			// 调用ReceiveBlock
 			err = s.ReceiveBlock(ctx, wsb, root)
 			if tt.wantedErr != "" {
 				assert.ErrorContains(t, tt.wantedErr, err)
@@ -188,6 +198,7 @@ func TestService_ReceiveBlockUpdateHead(t *testing.T) {
 		t.Errorf("Received %d state notifications, expected at least 1", recvd)
 	}
 	// Verify fork choice has processed the block. (Genesis block and the new block)
+	// 校验fork choice已经处理了这个block（Genesis block以及new block）
 	assert.Equal(t, 2, s.cfg.ForkChoiceStore.NodeCount())
 }
 

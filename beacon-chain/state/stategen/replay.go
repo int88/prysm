@@ -107,6 +107,8 @@ func (s *State) LoadBlocks(ctx context.Context, startSlot, endSlot types.Slot, e
 	// The last retrieved block root has to match input end block root.
 	// Covers the edge case if there's multiple blocks on the same end slot,
 	// the end root may not be the last index in `blockRoots`.
+	// 最后一个获取的block root需要匹配input end block root，覆盖边缘条件：如果有多个blocks
+	// 在同一个end slot，end root可能不是`blockRoots`的最后一个index
 	for length >= 3 && blocks[length-1].Block().Slot() == blocks[length-2].Block().Slot() && blockRoots[length-1] != endBlockRoot {
 		if ctx.Err() != nil {
 			return nil, ctx.Err()
@@ -119,6 +121,7 @@ func (s *State) LoadBlocks(ctx context.Context, startSlot, endSlot types.Slot, e
 	}
 
 	if blockRoots[length-1] != endBlockRoot {
+		// end block不匹配
 		return nil, errors.New("end block roots don't match")
 	}
 

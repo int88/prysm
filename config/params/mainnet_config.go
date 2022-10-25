@@ -255,6 +255,8 @@ var mainnetBeaconConfig = &BeaconChainConfig{
 // MainnetTestConfig provides a version of the mainnet config that has a different name
 // and a different fork choice schedule. This can be used in cases where we want to use config values
 // that are consistent with mainnet, but won't conflict or cause the hard-coded genesis to be loaded.
+// MainnetTestConfig提供了一个版本的mainnet config，有着不同的名字和不同的fork choice schedule
+// 它可以用于一些情况，我们想要使用和mainnet一致的config values，但是不冲突或者导致硬编码的genesis被加载
 func MainnetTestConfig() *BeaconChainConfig {
 	mn := MainnetConfig().Copy()
 	mn.ConfigName = MainnetTestName

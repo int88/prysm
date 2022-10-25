@@ -115,6 +115,7 @@ func (s *State) StateByRootInitialSync(ctx context.Context, blockRoot [32]byte) 
 }
 
 // This returns the state summary object of a given block root. It first checks the cache, then checks the DB.
+// 它返回一个给定block root的summary object，它首先检查cache，再检查DB
 func (s *State) stateSummary(ctx context.Context, blockRoot [32]byte) (*ethpb.StateSummary, error) {
 	var summary *ethpb.StateSummary
 	var err error
@@ -200,6 +201,7 @@ func (s *State) loadStateByRoot(ctx context.Context, blockRoot [32]byte) (state.
 	}
 
 	if startState.Slot() == targetSlot {
+		// 如果startState.Slot()就是targetSlot，则直接返回
 		return startState, nil
 	}
 

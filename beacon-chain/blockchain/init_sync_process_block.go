@@ -21,6 +21,7 @@ func (s *Service) saveInitSyncBlock(ctx context.Context, r [32]byte, b interface
 		if err := s.cfg.BeaconDB.SaveBlocks(ctx, s.getInitSyncBlocks()); err != nil {
 			return err
 		}
+		// 保存到DB中了，清理initSyncBlocks
 		s.clearInitSyncBlocks()
 	}
 	return nil
