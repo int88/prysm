@@ -177,6 +177,7 @@ func (s *Service) UpdateHead(ctx context.Context) error {
 		log.WithFields(logrus.Fields{
 			"oldHeadRoot": fmt.Sprintf("%#x", s.headRoot()),
 			"newHeadRoot": fmt.Sprintf("%#x", newHeadRoot),
+			// 因为attestations导致head changed
 		}).Debug("Head changed due to attestations")
 	}
 	s.headLock.RUnlock()
@@ -246,6 +247,7 @@ func (s *Service) processAttestations(ctx context.Context) {
 		}
 
 		if err := s.cfg.AttPool.DeleteForkchoiceAttestation(a); err != nil {
+			// 从pool中删除fork choice attestation
 			log.WithError(err).Error("Could not delete fork choice attestation in pool")
 		}
 

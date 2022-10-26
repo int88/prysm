@@ -24,6 +24,7 @@ import (
 //   def on_attestation(store: Store, attestation: Attestation) -> None:
 //    """
 //    Run ``on_attestation`` upon receiving a new ``attestation`` from either within a block or directly on the wire.
+//	  运行``on_attestation``在接收到一个新的``attestation``的时候，要么从block或者直接从wire
 //
 //    An ``attestation`` that is asserted as invalid may be valid at a later time,
 //    consider scheduling it for later processing in such case.
@@ -56,6 +57,7 @@ func (s *Service) OnAttestation(ctx context.Context, a *ethpb.Attestation) error
 
 	// Retrieve attestation's data beacon block pre state. Advance pre state to latest epoch if necessary and
 	// save it to the cache.
+	// 获取attestation的data beacon block pre state，移动pre state到最新的epoch，如果必要的话，并且保存它到cache
 	baseState, err := s.getAttPreState(ctx, tgt)
 	if err != nil {
 		return err
@@ -64,11 +66,13 @@ func (s *Service) OnAttestation(ctx context.Context, a *ethpb.Attestation) error
 	genesisTime := uint64(s.genesisTime.Unix())
 
 	// Verify attestation target is from current epoch or previous epoch.
+	// 校验attestation target来自current epoch或者之前的epoch
 	if err := verifyAttTargetEpoch(ctx, genesisTime, uint64(time.Now().Unix()), tgt); err != nil {
 		return err
 	}
 
 	// Verify attestation beacon block is known and not from the future.
+	// 校验attestation beacon block是已知的，不是来自未来
 	if err := s.verifyBeaconBlock(ctx, a.Data); err != nil {
 		return errors.Wrap(err, "could not verify attestation beacon block")
 	}
@@ -99,6 +103,7 @@ func (s *Service) OnAttestation(ctx context.Context, a *ethpb.Attestation) error
 	// We assume trusted attestation in this function has verified signature.
 
 	// Update forkchoice store with the new attestation for updating weight.
+	// 更新forkchoice store，用新的attestation，用于更新weight
 	s.cfg.ForkChoiceStore.ProcessAttestation(ctx, indexedAtt.AttestingIndices, bytesutil.ToBytes32(a.Data.BeaconBlockRoot), a.Data.Target.Epoch)
 
 	return nil

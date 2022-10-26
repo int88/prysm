@@ -144,11 +144,13 @@ func TestNotifyEngineIfChangedHead(t *testing.T) {
 
 	hook.Reset()
 	service.head = &head{
-		root:  [32]byte{'a'},
+		root: [32]byte{'a'},
+		// 不能panic，如果notify head使用正确的head
 		block: nil, /* should not panic if notify head uses correct head */
 	}
 
 	// Block in Cache
+	// 在缓存中的Block
 	b := util.NewBeaconBlock()
 	b.Block.Slot = 2
 	wsb, err := wrapper.WrappedSignedBeaconBlock(b)
@@ -169,6 +171,7 @@ func TestNotifyEngineIfChangedHead(t *testing.T) {
 	require.LogsDoNotContain(t, hook, hookErr)
 
 	// Block in DB
+	// 在DB中的Block
 	b = util.NewBeaconBlock()
 	b.Block.Slot = 3
 	util.SaveBlock(t, ctx, service.cfg.BeaconDB, b)
@@ -191,6 +194,7 @@ func TestNotifyEngineIfChangedHead(t *testing.T) {
 	require.Equal(t, [8]byte{1}, payloadID)
 
 	// Test zero headRoot returns immediately.
+	// 测试zero headRoot立即返回
 	headRoot := service.headRoot()
 	service.notifyEngineIfChangedHead(ctx, [32]byte{})
 	require.Equal(t, service.headRoot(), headRoot)
@@ -213,6 +217,7 @@ func TestService_ProcessAttestationsAndUpdateHead(t *testing.T) {
 	require.NoError(t, service.saveGenesisData(ctx, genesisState))
 	copied := genesisState.Copy()
 	// Generate a new block for attesters to attest
+	// 生成一个新的block，让attesters能够attest
 	blk, err := util.GenerateFullBlock(copied, pks, util.DefaultBlockGenConfig(), 1)
 	require.NoError(t, err)
 	tRoot, err := blk.Block.HashTreeRoot()
@@ -222,17 +227,21 @@ func TestService_ProcessAttestationsAndUpdateHead(t *testing.T) {
 	require.NoError(t, service.onBlock(ctx, wsb, tRoot))
 	copied, err = service.cfg.StateGen.StateByRoot(ctx, tRoot)
 	require.NoError(t, err)
+	// 已经有两个node
 	require.Equal(t, 2, fcs.NodeCount())
 	require.NoError(t, service.cfg.BeaconDB.SaveBlock(ctx, wsb))
 
 	// Generate attestatios for this block in Slot 1
+	// 为这个在Slot 1中的block生成attestations
 	atts, err := util.NewAttestationUtil().GenerateAttestations(copied, pks, 1, 1, false)
 	require.NoError(t, err)
 	require.NoError(t, service.cfg.AttPool.SaveForkchoiceAttestations(atts))
 	// Verify the target is in forchoice
+	// 确认target在forchoice中
 	require.Equal(t, true, fcs.HasNode(bytesutil.ToBytes32(atts[0].Data.BeaconBlockRoot)))
 
 	// Insert a new block to forkchoice
+	// 插入一个新的block到forkchoice
 	ojc := &ethpb.Checkpoint{Epoch: 0, Root: params.BeaconConfig().ZeroHash[:]}
 	b, err := util.GenerateFullBlock(genesisState, pks, util.DefaultBlockGenConfig(), 2)
 	require.NoError(t, err)
@@ -240,6 +249,7 @@ func TestService_ProcessAttestationsAndUpdateHead(t *testing.T) {
 	r, err := b.Block.HashTreeRoot()
 	require.NoError(t, err)
 	util.SaveBlock(t, ctx, service.cfg.BeaconDB, b)
+	// 准备forkchoice state
 	state, blkRoot, err := prepareForkchoiceState(ctx, 2, r, service.originBlockRoot, [32]byte{'b'}, ojc, ojc)
 	require.NoError(t, err)
 	require.NoError(t, service.cfg.ForkChoiceStore.InsertNode(ctx, state, blkRoot))
@@ -249,6 +259,8 @@ func TestService_ProcessAttestationsAndUpdateHead(t *testing.T) {
 	require.Equal(t, 1, len(service.cfg.AttPool.ForkchoiceAttestations()))
 	require.NoError(t, err, service.UpdateHead(ctx))
 
+	// 校验att pool为空
 	require.Equal(t, 0, len(service.cfg.AttPool.ForkchoiceAttestations())) // Validate att pool is empty
-	require.Equal(t, tRoot, service.head.root)                             // Validate head is the new one
+	// 校验head是新的
+	require.Equal(t, tRoot, service.head.root) // Validate head is the new one
 }

@@ -15,7 +15,8 @@ type ForkChoice struct {
 	// 追踪单个validator的last vote
 	votes     []Vote // tracks individual validator's last vote.
 	votesLock sync.RWMutex
-	balances  []uint64 // tracks individual validator's last justified balances.
+	// 追踪单个validator的last jutified balances
+	balances []uint64 // tracks individual validator's last justified balances.
 }
 
 // Store defines the fork choice store which includes block nodes and the last view of checkpoint information.
@@ -32,8 +33,9 @@ type Store struct {
 	proposerBoostRoot          [fieldparams.RootLength]byte // latest block root that was boosted after being received in a timely manner.
 	previousProposerBoostRoot  [fieldparams.RootLength]byte // previous block root that was boosted after being received in a timely manner.
 	previousProposerBoostScore uint64                       // previous proposer boosted root score.
-	treeRootNode               *Node                        // the root node of the store tree.
-	headNode                   *Node                        // last head Node
+	// store tree的root node
+	treeRootNode *Node // the root node of the store tree.
+	headNode     *Node // last head Node
 	// 通过roots进行索引的nodes
 	nodeByRoot map[[fieldparams.RootLength]byte]*Node // nodes indexed by roots.
 	// 通过payload Hash进行索引的nodes
@@ -57,21 +59,30 @@ type Node struct {
 	// 这个节点的parent index
 	parent *Node // parent index of this node.
 	// 这个Node的direct children的列表
-	children                 []*Node     // the list of direct children of this Node
-	justifiedEpoch           types.Epoch // justifiedEpoch of this node.
+	children []*Node // the list of direct children of this Node
+	// 这个node的justifiedEpoch
+	justifiedEpoch types.Epoch // justifiedEpoch of this node.
+	// 这个epoch会被justified，如果block被移动到下一个epoch
 	unrealizedJustifiedEpoch types.Epoch // the epoch that would be justified if the block would be advanced to the next epoch.
 	finalizedEpoch           types.Epoch // finalizedEpoch of this node.
 	unrealizedFinalizedEpoch types.Epoch // the epoch that would be finalized if the block would be advanced to the next epoch.
-	balance                  uint64      // the balance that voted for this node directly
-	weight                   uint64      // weight of this node: the total balance including children
-	bestDescendant           *Node       // bestDescendant node of this node.
+	// 直接投向这个node的balance
+	balance uint64 // the balance that voted for this node directly
+	// 这个节点的weight：包括children的total balance
+	weight uint64 // weight of this node: the total balance including children
+	// 这个node的bestDescendant
+	bestDescendant *Node // bestDescendant node of this node.
 	// block是否被完全校验
 	optimistic bool // whether the block has been fully validated or not
 }
 
 // Vote defines an individual validator's vote.
+// Vote定义了单个validator的vote
 type Vote struct {
+	// 当前的voting root
 	currentRoot [fieldparams.RootLength]byte // current voting root.
-	nextRoot    [fieldparams.RootLength]byte // next voting root.
-	nextEpoch   types.Epoch                  // epoch of next voting period.
+	// 下一个voting root
+	nextRoot [fieldparams.RootLength]byte // next voting root.
+	// 下一个voting period的epoch
+	nextEpoch types.Epoch // epoch of next voting period.
 }

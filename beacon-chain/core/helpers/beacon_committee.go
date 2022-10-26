@@ -33,6 +33,9 @@ var (
 // from the spec definition. Having the active validator count as an argument allows for
 // cheaper computation, instead of retrieving head state, one can retrieve the validator
 // count.
+// SlotCommitteeCount返回一个slot的beacon committees的数目，active validator count作为一个参数提供
+// 而不是从spec definition中导入的实现，将active validator count作为参数允许cheaper compution，而不是
+// 从head state中获取，从而可以获取validator count
 //
 // Spec pseudocode definition:
 //   def get_committee_count_per_slot(state: BeaconState, epoch: Epoch) -> uint64:

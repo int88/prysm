@@ -14,10 +14,12 @@ import (
 
 // This defines the minimal number of block nodes that can be in the tree
 // before getting pruned upon new finalization.
+// 定义了最小的block nodes数目，可以在tree中，在新的finalization被清理之前
 const defaultPruneThreshold = 256
 
 // applyProposerBoostScore applies the current proposer boost scores to the
 // relevant nodes
+// applyProposerBoostScore应用当前的proposer boot scores到相关的nodes
 func (s *Store) applyProposerBoostScore(newBalances []uint64) error {
 	s.proposerBoostLock.Lock()
 	defer s.proposerBoostLock.Unlock()
@@ -62,6 +64,7 @@ func (s *Store) PruneThreshold() uint64 {
 
 // head starts from justified root and then follows the best descendant links
 // to find the best block for head. This function assumes a lock on s.nodesLock
+// head从justified root开始，之后follows the best descendant links直到找到对于head的best block
 func (s *Store) head(ctx context.Context) ([32]byte, error) {
 	_, span := trace.StartSpan(ctx, "doublyLinkedForkchoice.head")
 	defer span.End()
@@ -69,11 +72,14 @@ func (s *Store) head(ctx context.Context) ([32]byte, error) {
 	defer s.checkpointsLock.RUnlock()
 
 	// JustifiedRoot has to be known
+	// JustifiedRoot是已知的
 	justifiedNode, ok := s.nodeByRoot[s.justifiedCheckpoint.Root]
 	if !ok || justifiedNode == nil {
 		// If the justifiedCheckpoint is from genesis, then the root is
 		// zeroHash. In this case it should be the root of forkchoice
 		// tree.
+		// 如果justifiedCheckpoint来自genesis，那么root是zeroHash，这种情况下，它应该是
+		// forkchoice tree的root
 		if s.justifiedCheckpoint.Epoch == params.BeaconConfig().GenesisEpoch {
 			justifiedNode = s.treeRootNode
 		} else {
@@ -83,6 +89,7 @@ func (s *Store) head(ctx context.Context) ([32]byte, error) {
 
 	// If the justified node doesn't have a best descendant,
 	// the best node is itself.
+	// 如果justified node没有一个best descendant，那么best node就是它自己
 	bestDescendant := justifiedNode.bestDescendant
 	if bestDescendant == nil {
 		bestDescendant = justifiedNode
@@ -94,6 +101,7 @@ func (s *Store) head(ctx context.Context) ([32]byte, error) {
 	}
 
 	// Update metrics.
+	// 更新metrics
 	if bestDescendant != s.headNode {
 		headChangesCount.Inc()
 		headSlotNumber.Set(float64(bestDescendant.slot))
@@ -105,6 +113,8 @@ func (s *Store) head(ctx context.Context) ([32]byte, error) {
 
 // insert registers a new block node to the fork choice store's node list.
 // It then updates the new node's parent with best child and descendant node.
+// insert注册一个新的block node到fork choice store的node list，它之后更新新的node的parent
+// 用best child以及之后的node
 func (s *Store) insert(ctx context.Context,
 	slot types.Slot,
 	root, parentRoot, payloadHash [fieldparams.RootLength]byte,
@@ -116,12 +126,14 @@ func (s *Store) insert(ctx context.Context,
 	defer s.nodesLock.Unlock()
 
 	// Return if the block has been inserted into Store before.
+	// 如果block已经插入到Store了，则返回
 	if n, ok := s.nodeByRoot[root]; ok {
 		return n, nil
 	}
 
 	parent := s.nodeByRoot[parentRoot]
 
+	// 构建新的Node
 	n := &Node{
 		slot:                     slot,
 		root:                     root,
@@ -146,6 +158,7 @@ func (s *Store) insert(ctx context.Context,
 	} else {
 		parent.children = append(parent.children, n)
 		// Apply proposer boost
+		// 应用proposer boost
 		timeNow := uint64(time.Now().Unix())
 		if timeNow < s.genesisTime {
 			return n, nil
@@ -160,12 +173,14 @@ func (s *Store) insert(ctx context.Context,
 		}
 
 		// Update best descendants
+		// 更新best descendants
 		if err := s.treeRootNode.updateBestDescendant(ctx,
 			s.justifiedCheckpoint.Epoch, s.finalizedCheckpoint.Epoch); err != nil {
 			return n, err
 		}
 	}
 	// Update metrics.
+	// 更新metrics
 	processedBlockCount.Inc()
 	nodeCount.Set(float64(len(s.nodeByRoot)))
 

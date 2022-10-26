@@ -315,6 +315,7 @@ func TestStore_SaveCheckpointState(t *testing.T) {
 		PublicKey:             bytesutil.PadTo([]byte("foo"), 48),
 		WithdrawalCredentials: bytesutil.PadTo([]byte("bar"), fieldparams.RootLength),
 	}
+	// 设置validators
 	err = s.SetValidators([]*ethpb.Validator{val})
 	require.NoError(t, err)
 	err = s.SetBalances([]uint64{0})
@@ -326,6 +327,7 @@ func TestStore_SaveCheckpointState(t *testing.T) {
 	require.NoError(t, service.cfg.BeaconDB.SaveState(ctx, s, bytesutil.ToBytes32([]byte{'A'})))
 	require.NoError(t, service.cfg.BeaconDB.SaveStateSummary(ctx, &ethpb.StateSummary{Root: bytesutil.PadTo([]byte{'A'}, fieldparams.RootLength)}))
 
+	// 获取attr pre state
 	s1, err := service.getAttPreState(ctx, cp1)
 	require.NoError(t, err)
 	assert.Equal(t, 1*params.BeaconConfig().SlotsPerEpoch, s1.Slot(), "Unexpected state slot")

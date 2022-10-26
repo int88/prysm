@@ -148,6 +148,7 @@ func (s *Service) ReceiveBlockBatch(ctx context.Context, blocks []interfaces.Sig
 }
 
 // HasBlock returns true if the block of the input root exists in initial sync blocks cache or DB.
+// HasBlock返回true，如果input root的block存在于initial sync blocks cache或者DB中
 func (s *Service) HasBlock(ctx context.Context, root [32]byte) bool {
 	return s.hasBlockInInitSyncOrDB(ctx, root)
 }

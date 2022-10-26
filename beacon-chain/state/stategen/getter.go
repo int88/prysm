@@ -48,11 +48,13 @@ func (s *State) StateByRootIfCachedNoCopy(blockRoot [32]byte) state.BeaconState 
 }
 
 // StateByRoot retrieves the state using input block root.
+// StateByRoot通过input block root获取state
 func (s *State) StateByRoot(ctx context.Context, blockRoot [32]byte) (state.BeaconState, error) {
 	ctx, span := trace.StartSpan(ctx, "stateGen.StateByRoot")
 	defer span.End()
 
 	// Genesis case. If block root is zero hash, short circuit to use genesis state stored in DB.
+	// Genesis的情况，如果block root是zero hash，短路直接使用DB中存储的genesis state
 	if blockRoot == params.BeaconConfig().ZeroHash {
 		return s.beaconDB.GenesisState(ctx)
 	}

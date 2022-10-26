@@ -55,8 +55,12 @@ func (u *AttestationUtil) NewAttestation() *ethpb.Attestation {
 // requested to be cleanly divisible by committees per slot. If there is 1 committee
 // in the slot, and numToGen is set to 4, then it will return 4 attestations
 // for the same data with their aggregation bits split uniformly.
+// GenerateAttestations创建完全合法的attestations，对于当前state slot的committees，这个函数
+// 期望请求的attestations能被每个slot的committees整除，如果slot里有一个committee，numToGen被设置为
+// 4，之后它会返回4个attestations，对于同样的数据
 //
 // If you request 4 attestations, but there are 8 committees, you will get 4 fully aggregated attestations.
+// 如果请求4个attestations，但是有8个committees，你会得到4个fully aggregated attestations
 func (u *AttestationUtil) GenerateAttestations(
 	bState state.BeaconState, privs []bls.SecretKey, numToGen uint64, slot types.Slot, randomRoot bool,
 ) ([]*ethpb.Attestation, error) {
@@ -74,6 +78,7 @@ func (u *AttestationUtil) GenerateAttestations(
 	var headRoot []byte
 	var err error
 	// Only calculate head state if its an attestation for the current slot or future slot.
+	// 只计算head state，如果这是一个attestation对于current slot或者future slot
 	if generateHeadState || slot == bState.Slot() {
 		var headState state.BeaconState
 		switch bState.Version() {
@@ -187,6 +192,7 @@ func (u *AttestationUtil) GenerateAttestations(
 
 		committeeSize := uint64(len(committee))
 		bitsPerAtt := committeeSize / uint64(attsPerCommittee)
+		// 每个committee构建一个attestation
 		for i := uint64(0); i < committeeSize; i += bitsPerAtt {
 			aggregationBits := bitfield.NewBitlist(committeeSize)
 			var sigs []bls.Signature

@@ -67,6 +67,7 @@ func (f *ForkChoice) Head(
 	calledHeadCount.Inc()
 
 	// Using the write lock here because `applyWeightChanges` that gets called subsequently requires a write operation.
+	// 这里使用wrtie lock，因为`applyWeightChanges`会在后续被调用，需要一个写操作
 	f.store.nodesLock.Lock()
 	defer f.store.nodesLock.Unlock()
 
@@ -101,17 +102,22 @@ func (f *ForkChoice) ProcessAttestation(ctx context.Context, validatorIndices []
 
 	for _, index := range validatorIndices {
 		// Validator indices will grow the vote cache.
+		// Validator indices会让vote cache增长
 		for index >= uint64(len(f.votes)) {
+			// 持续添加vote，直到index能被索引到
 			f.votes = append(f.votes, Vote{currentRoot: params.BeaconConfig().ZeroHash, nextRoot: params.BeaconConfig().ZeroHash})
 		}
 
 		// Newly allocated vote if the root fields are untouched.
+		// 新分配的vote，如果root字段是untouched
 		newVote := f.votes[index].nextRoot == params.BeaconConfig().ZeroHash &&
 			f.votes[index].currentRoot == params.BeaconConfig().ZeroHash
 
 		// Vote gets updated if it's newly allocated or high target epoch.
+		// 更新Vote，如果这是新分配的或者high target epoch
 		if newVote || targetEpoch > f.votes[index].nextEpoch {
 			f.votes[index].nextEpoch = targetEpoch
+			// 更改nextRoot为blockRoot
 			f.votes[index].nextRoot = blockRoot
 		}
 	}
@@ -120,6 +126,7 @@ func (f *ForkChoice) ProcessAttestation(ctx context.Context, validatorIndices []
 }
 
 // InsertNode processes a new block by inserting it to the fork choice store.
+// InsertNode处理一个新的block，通过插入它到fork choice store
 func (f *ForkChoice) InsertNode(ctx context.Context, state state.BeaconState, root [32]byte) error {
 	ctx, span := trace.StartSpan(ctx, "doublyLinkedForkchoice.InsertNode")
 	defer span.End()
@@ -137,9 +144,11 @@ func (f *ForkChoice) InsertNode(ctx context.Context, state state.BeaconState, ro
 			return err
 		}
 		if ph != nil {
+			// 将execution payload header导入？
 			copy(payloadHash[:], ph.BlockHash)
 		}
 	}
+	// 从state中获取jc和fc
 	jc := state.CurrentJustifiedCheckpoint()
 	if jc == nil {
 		return errInvalidNilCheckpoint
@@ -150,6 +159,7 @@ func (f *ForkChoice) InsertNode(ctx context.Context, state state.BeaconState, ro
 		return errInvalidNilCheckpoint
 	}
 	finalizedEpoch := fc.Epoch
+	// 插入store
 	node, err := f.store.insert(ctx, slot, root, parentRoot, payloadHash, justifiedEpoch, finalizedEpoch)
 	if err != nil {
 		return err
@@ -162,6 +172,7 @@ func (f *ForkChoice) InsertNode(ctx context.Context, state state.BeaconState, ro
 }
 
 // updateCheckpoints update the checkpoints when inserting a new node.
+// updateCheckpoints在插入一个新的node的时候更新checkpoints
 func (f *ForkChoice) updateCheckpoints(ctx context.Context, jc, fc *ethpb.Checkpoint) error {
 	f.store.checkpointsLock.Lock()
 	if jc.Epoch > f.store.justifiedCheckpoint.Epoch {
@@ -199,6 +210,7 @@ func (f *ForkChoice) updateCheckpoints(ctx context.Context, jc, fc *ethpb.Checkp
 		}
 	}
 	// Update finalization
+	// 更新finalization
 	if fc.Epoch <= f.store.finalizedCheckpoint.Epoch {
 		f.store.checkpointsLock.Unlock()
 		return nil
@@ -236,6 +248,7 @@ func (f *ForkChoice) HasParent(root [32]byte) bool {
 }
 
 // IsCanonical returns true if the given root is part of the canonical chain.
+// IsCanonical返回true，如果给定的root是canonical chain的一部分
 func (f *ForkChoice) IsCanonical(root [32]byte) bool {
 	f.store.nodesLock.RLock()
 	defer f.store.nodesLock.RUnlock()
@@ -271,6 +284,7 @@ func (f *ForkChoice) IsOptimistic(root [32]byte) (bool, error) {
 }
 
 // AncestorRoot returns the ancestor root of input block root at a given slot.
+// AncestorRoot返回input block root的ancestor root，在一个给定的slot
 func (f *ForkChoice) AncestorRoot(ctx context.Context, root [32]byte, slot types.Slot) ([32]byte, error) {
 	ctx, span := trace.StartSpan(ctx, "protoArray.AncestorRoot")
 	defer span.End()
@@ -300,14 +314,18 @@ func (f *ForkChoice) AncestorRoot(ctx context.Context, root [32]byte, slot types
 
 // updateBalances updates the balances that directly voted for each block taking into account the
 // validators' latest votes.
+// updateBalances更新直接投票给每个block的balances，考虑validators的latest votes
 func (f *ForkChoice) updateBalances(newBalances []uint64) error {
 	for index, vote := range f.votes {
 		// Skip if validator has been slashed
+		// 跳过如果validator已经被slashed
 		if f.store.slashedIndices[types.ValidatorIndex(index)] {
 			continue
 		}
 		// Skip if validator has never voted for current root and next root (i.e. if the
 		// votes are zero hash aka genesis block), there's nothing to compute.
+		// 跳过如果validator没有投票给current root或者next root（例如投票给zero hash，也就是genesis block）
+		// 没有什么需要计算
 		if vote.currentRoot == params.BeaconConfig().ZeroHash && vote.nextRoot == params.BeaconConfig().ZeroHash {
 			continue
 		}
@@ -316,6 +334,7 @@ func (f *ForkChoice) updateBalances(newBalances []uint64) error {
 		newBalance := uint64(0)
 		// If the validator index did not exist in `f.balances` or
 		// `newBalances` list above, the balance is just 0.
+		// 如果validator的index不存在于`f.balances`或者`newBalances`，balance就设置为0
 		if index < len(f.balances) {
 			oldBalance = f.balances[index]
 		}
@@ -324,12 +343,15 @@ func (f *ForkChoice) updateBalances(newBalances []uint64) error {
 		}
 
 		// Update only if the validator's balance or vote has changed.
+		// 更新，只有在validator的balance或者vote发生变更的时候
 		if vote.currentRoot != vote.nextRoot || oldBalance != newBalance {
 			// Ignore the vote if the root is not in fork choice
 			// store, that means we have not seen the block before.
+			// 忽略vote，如果root不再fork choice store，这意味着我们之前没看到过这个block
 			nextNode, ok := f.store.nodeByRoot[vote.nextRoot]
 			if ok && vote.nextRoot != params.BeaconConfig().ZeroHash {
 				// Protection against nil node
+				// 保护nil node
 				if nextNode == nil {
 					return errors.Wrap(ErrNilNode, "could not update balances")
 				}
@@ -339,6 +361,7 @@ func (f *ForkChoice) updateBalances(newBalances []uint64) error {
 			currentNode, ok := f.store.nodeByRoot[vote.currentRoot]
 			if ok && vote.currentRoot != params.BeaconConfig().ZeroHash {
 				// Protection against nil node
+				// 保护nil node
 				if currentNode == nil {
 					return errors.Wrap(ErrNilNode, "could not update balances")
 				}
@@ -352,16 +375,19 @@ func (f *ForkChoice) updateBalances(newBalances []uint64) error {
 						"proposerBoostRoot":          fmt.Sprintf("%#x", bytesutil.Trunc(f.store.proposerBoostRoot[:])),
 						"previousProposerBoostRoot":  fmt.Sprintf("%#x", bytesutil.Trunc(f.store.previousProposerBoostRoot[:])),
 						"previousProposerBoostScore": f.store.previousProposerBoostScore,
+						// 有着非法balance的node，设置为0
 					}).Warning("node with invalid balance, setting it to zero")
 					f.store.proposerBoostLock.RUnlock()
 					currentNode.balance = 0
 				} else {
+					// 减去oldBalance
 					currentNode.balance -= oldBalance
 				}
 			}
 		}
 
 		// Rotate the validator vote.
+		// 轮转validator vote
 		f.votes[index].currentRoot = vote.nextRoot
 	}
 	f.balances = newBalances

@@ -23,6 +23,7 @@ import (
 
 // prepareForkchoiceState prepares a beacon State with the given data to mock
 // insert into forkchoice
+// prepareForkchoiceState准备一个beacon state，用给定的data来mock对于forkchoice的插入
 func prepareForkchoiceState(
 	_ context.Context,
 	slot types.Slot,
@@ -82,6 +83,7 @@ func TestForkChoice_UpdateBalancesPositiveChange(t *testing.T) {
 
 	// Each node gets one unique vote. The weight should look like 103 <- 102 <- 101 because
 	// they get propagated back.
+	// 每个node都获取到唯一的一个vote，weight应该为103 <- 102 <- 101，因为它们会传播回来
 	require.NoError(t, f.updateBalances([]uint64{10, 20, 30}))
 	s := f.store
 	assert.Equal(t, uint64(10), s.nodeByRoot[indexToHash(1)].balance)

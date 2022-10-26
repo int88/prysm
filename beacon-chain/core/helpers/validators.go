@@ -38,6 +38,7 @@ func IsActiveValidator(validator *ethpb.Validator, epoch types.Epoch) bool {
 }
 
 // IsActiveValidatorUsingTrie checks if a read only validator is active.
+// IsActiveValidatorUsingTrie检查一个read only validator是否active
 func IsActiveValidatorUsingTrie(validator state.ReadOnlyValidator, epoch types.Epoch) bool {
 	return checkValidatorActiveStatus(validator.ActivationEpoch(), validator.ExitEpoch(), epoch)
 }
@@ -135,6 +136,7 @@ func ActiveValidatorIndices(ctx context.Context, s state.ReadOnlyBeaconState, ep
 
 // ActiveValidatorCount returns the number of active validators in the state
 // at the given epoch.
+// ActiveValidatorCount返回在给定的epoch的state中的active validators的数目
 func ActiveValidatorCount(ctx context.Context, s state.ReadOnlyBeaconState, epoch types.Epoch) (uint64, error) {
 	seed, err := Seed(s, epoch, params.BeaconConfig().DomainBeaconAttester)
 	if err != nil {

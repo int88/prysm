@@ -35,6 +35,7 @@ func (c *AttCaches) SaveForkchoiceAttestations(atts []*ethpb.Attestation) error 
 }
 
 // ForkchoiceAttestations returns the forkchoice attestations in cache.
+// ForkchoiceAttestations返回在缓存中的forkchoice attestations
 func (c *AttCaches) ForkchoiceAttestations() []*ethpb.Attestation {
 	c.forkchoiceAttLock.RLock()
 	defer c.forkchoiceAttLock.RUnlock()

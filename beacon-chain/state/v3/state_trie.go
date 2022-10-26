@@ -24,6 +24,7 @@ import (
 )
 
 // InitializeFromProto the beacon state from a protobuf representation.
+// InitializeFromProto从一个protobuf representation构建beacon state
 func InitializeFromProto(st *ethpb.BeaconStateBellatrix) (state.BeaconState, error) {
 	if features.Get().EnableNativeState {
 		return statenative.InitializeFromProtoBellatrix(proto.Clone(st).(*ethpb.BeaconStateBellatrix))

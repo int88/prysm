@@ -16,7 +16,9 @@ import (
 var hashFn = hash.HashProto
 
 // AttCaches defines the caches used to satisfy attestation pool interface.
+// AttCaches定义了缓存用于满足attestation pool的接口
 // These caches are KV store for various attestations
+// 这些caches是KV store用于各种attestations，例如unaggregated, aggregated或者一个block内的attestations
 // such are unaggregated, aggregated or attestations within a block.
 type AttCaches struct {
 	aggregatedAttLock  sync.RWMutex
@@ -32,6 +34,7 @@ type AttCaches struct {
 
 // NewAttCaches initializes a new attestation pool consists of multiple KV store in cache for
 // various kind of attestations.
+// NewAttCaches初始化一个新的attestation pool，由缓存中的多个KV store构成，对于各种的attestations
 func NewAttCaches() *AttCaches {
 	secsInEpoch := time.Duration(params.BeaconConfig().SlotsPerEpoch.Mul(params.BeaconConfig().SecondsPerSlot))
 	c := cache.New(secsInEpoch*time.Second, 2*secsInEpoch*time.Second)
