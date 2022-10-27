@@ -50,6 +50,7 @@ import (
 
 // keyFetchPeriod is the frequency that we try to refetch validating keys
 // in case no keys were fetched previously.
+// keyFetchPeriod是我们试着重新获取validating keys的频率，万一没有keys之前被获取
 var (
 	keyRefetchPeriod = 30 * time.Second
 )
@@ -246,6 +247,7 @@ func (v *validator) WaitForChainStart(ctx context.Context) error {
 	}
 
 	log.Info("Waiting for beacon chain start log from the ETH 1.0 deposit contract")
+	// 等待beacon chain start log，从ETH 1.0的deposit contract
 	chainStartRes, err := stream.Recv()
 	if err != io.EOF {
 		if ctx.Err() == context.Canceled {
@@ -260,6 +262,7 @@ func (v *validator) WaitForChainStart(ctx context.Context) error {
 		v.genesisTime = chainStartRes.GenesisTime
 		curGenValRoot, err := v.db.GenesisValidatorsRoot(ctx)
 		if err != nil {
+			// 不能获取当前的genesis validators root
 			return errors.Wrap(err, "could not get current genesis validators root")
 		}
 		if len(curGenValRoot) == 0 {
@@ -327,6 +330,8 @@ func (v *validator) WaitForSync(ctx context.Context) error {
 // ReceiveBlocks starts a gRPC client stream listener to obtain
 // blocks from the beacon node. Upon receiving a block, the service
 // broadcasts it to a feed for other usages to subscribe to.
+// ReceiveBlocks开始一个gRPC client stream listener用于从beacon node获取blocks
+// 在收到一个block时，service广播它到一个feed，对于其他订阅的usage
 func (v *validator) ReceiveBlocks(ctx context.Context, connectionErrorChannel chan<- error) {
 	stream, err := v.validatorClient.StreamBlocksAltair(ctx, &ethpb.StreamBlocksRequest{VerifiedOnly: true})
 	if err != nil {
@@ -351,6 +356,7 @@ func (v *validator) ReceiveBlocks(ctx context.Context, connectionErrorChannel ch
 		}
 		var blk interfaces.SignedBeaconBlock
 		switch b := res.Block.(type) {
+		// 对block进行解析
 		case *ethpb.StreamBlocksResponse_Phase0Block:
 			blk, err = wrapper.WrappedSignedBeaconBlock(b.Phase0Block)
 		case *ethpb.StreamBlocksResponse_AltairBlock:
@@ -368,9 +374,11 @@ func (v *validator) ReceiveBlocks(ctx context.Context, connectionErrorChannel ch
 		}
 		v.highestValidSlotLock.Lock()
 		if blk.Block().Slot() > v.highestValidSlot {
+			// 设置highest valid slot
 			v.highestValidSlot = blk.Block().Slot()
 		}
 		v.highestValidSlotLock.Unlock()
+		// 把block加入到blockFeed中
 		v.blockFeed.Send(blk)
 	}
 }
@@ -450,6 +458,7 @@ func (v *validator) CanonicalHeadSlot(ctx context.Context) (types.Slot, error) {
 }
 
 // NextSlot emits the next slot number at the start time of that slot.
+// NextSlot发射下一个slot number，在slot开始的时候
 func (v *validator) NextSlot() <-chan types.Slot {
 	return v.ticker.C()
 }
@@ -833,6 +842,7 @@ func (v *validator) UpdateDomainDataCaches(ctx context.Context, slot types.Slot)
 }
 
 // AllValidatorsAreExited informs whether all validators have already exited.
+// AllValidatorsAreExited通知是否所有的validators都已经退出了
 func (v *validator) AllValidatorsAreExited(ctx context.Context) (bool, error) {
 	validatingKeys, err := v.keyManager.FetchValidatingPublicKeys(ctx)
 	if err != nil {
@@ -849,6 +859,7 @@ func (v *validator) AllValidatorsAreExited(ctx context.Context) (bool, error) {
 	request := &ethpb.MultipleValidatorStatusRequest{
 		PublicKeys: publicKeys,
 	}
+	// 请求各个validator的status
 	response, err := v.validatorClient.MultipleValidatorStatus(ctx, request)
 	if err != nil {
 		return false, err
@@ -950,6 +961,7 @@ func (v *validator) logDuties(slot types.Slot, duties []*ethpb.DutiesResponse_Du
 }
 
 // PushProposerSettings calls the prepareBeaconProposer RPC to set the fee recipient and also the register validator API if using a custom builder.
+// PushProposerSettings调用prepareBeaconProposer RPC，来设置fee recipient并且注册validator API，如果使用一个custom builder
 func (v *validator) PushProposerSettings(ctx context.Context, km keymanager.IKeymanager) error {
 	// only used after Bellatrix
 	if v.ProposerSettings == nil {
@@ -982,16 +994,19 @@ func (v *validator) PushProposerSettings(ctx context.Context, km keymanager.IKey
 		log.Warnf("no valid validator indices were found, prepare beacon proposer request fee recipients array is empty")
 		return nil
 	}
+	// 准备beacon proposer
 	if _, err := v.validatorClient.PrepareBeaconProposer(ctx, &ethpb.PrepareBeaconProposerRequest{
 		Recipients: feeRecipients,
 	}); err != nil {
 		return err
 	}
+	// 成功准备了beacon proposer，有着对于validator的fee recipient
 	log.Infoln("Successfully prepared beacon proposer with fee recipient to validator index mapping.")
 
 	if err := SubmitValidatorRegistration(ctx, v.validatorClient, km.Sign, registerValidatorRequests); err != nil {
 		return err
 	}
+	// 成功提交build validator registration，用于cusotm builders
 	log.Infoln("Successfully submitted builder validator registration settings for custom builders.")
 	return nil
 }

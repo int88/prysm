@@ -16,6 +16,7 @@ import (
 )
 
 // MockBeaconNodeValidatorClient is a mock of BeaconNodeValidatorClient interface.
+// MockBeaconNodeValidatorClient是一个mock的BeaconNodeValidatorClient接口
 type MockBeaconNodeValidatorClient struct {
 	ctrl     *gomock.Controller
 	recorder *MockBeaconNodeValidatorClientMockRecorder

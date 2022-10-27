@@ -27,6 +27,7 @@ func cancelledContext() context.Context {
 func TestCancelledContext_CleansUpValidator(t *testing.T) {
 	v := &testutil.FakeValidator{Km: &mockKeymanager{accountsChangedFeed: &event.Feed{}}}
 	run(cancelledContext(), v)
+	// 期待Done()被调用
 	assert.Equal(t, true, v.DoneCalled, "Expected Done() to be called")
 }
 
@@ -50,6 +51,7 @@ func TestRetry_On_ConnectionError(t *testing.T) {
 	time.Sleep(time.Duration(retry*6) * backOffPeriod)
 	cancel()
 	// every call will fail retry=10 times so first one will be called 4 * retry=10.
+	// 每次调用都会失败 retry = 10次，因此第一个会被调用4 * retry=10次
 	assert.Equal(t, retry*4, v.WaitForChainStartCalled, "Expected WaitForChainStart() to be called")
 	assert.Equal(t, retry*3, v.WaitForSyncCalled, "Expected WaitForSync() to be called")
 	assert.Equal(t, retry*2, v.WaitForActivationCalled, "Expected WaitForActivation() to be called")

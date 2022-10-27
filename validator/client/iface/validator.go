@@ -32,6 +32,7 @@ const (
 )
 
 // Validator interface defines the primary methods of a validator client.
+// Validator接口定义了一个validator client的主要方法
 type Validator interface {
 	Done()
 	WaitForChainStart(ctx context.Context) error

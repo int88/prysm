@@ -164,6 +164,7 @@ func TestWaitForChainStart_SetsGenesisInfo(t *testing.T) {
 	).Return(clientStream, nil)
 	clientStream.EXPECT().Recv().Return(
 		&ethpb.ChainStartResponse{
+			// 等待ChainStart Response
 			Started:               true,
 			GenesisTime:           genesis,
 			GenesisValidatorsRoot: genesisValidatorsRoot[:],

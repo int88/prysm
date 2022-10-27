@@ -21,6 +21,8 @@ import (
 // validator set. If not, this operation will block until an activation message is
 // received. This method also monitors the keymanager for updates while waiting for an activation
 // from the gRPC server.
+// WaitForActivation检查validator pubkey是否存在于active validator set，如果不是的话，这个操作会阻塞直到
+// 收到一个activatio message，这个方法同时监听kemanager用于更新，等待来自gRPC server的activation
 //
 // If the channel parameter is nil, WaitForActivation creates and manages its own channel.
 func (v *validator) WaitForActivation(ctx context.Context, accountsChangedChan chan [][fieldparams.BLSPubkeyLength]byte) error {
@@ -48,6 +50,13 @@ func (v *validator) WaitForActivation(ctx context.Context, accountsChangedChan c
 // the accountsChangedChan. When an event signal is received, restart the waitForActivation routine.
 // 4) If the stream is reset in error, restart the routine.
 // 5) If the stream returns a response indicating one or more validators are active, exit the routine.
+// waitForActivation执行如下操作：
+// 1) 如果key manager为空，轮询key manager直到一些validator keys存在
+// 2) 打开一个服务端的stream，对于activation events，对于给定的keys
+// 3) 在另一个goroutine，key manager被监听是否有更新，并且触发一个update event，在accountsChangedChan
+// 当接收到一个event signal，重启waitForActivation routine
+// 4) 如果stream因为错误被重置，重启routine
+// 5) 如果stream返回一个response，表明一个或者多个validators处于active，则退出routine
 func (v *validator) waitForActivation(ctx context.Context, accountsChangedChan <-chan [][fieldparams.BLSPubkeyLength]byte) error {
 	ctx, span := trace.StartSpan(ctx, "validator.WaitForActivation")
 	defer span.End()
@@ -70,6 +79,7 @@ func (v *validator) waitForActivation(ctx context.Context, accountsChangedChan <
 				}
 				if len(validatingKeys) == 0 {
 					log.Warn(msgNoKeysFetched)
+					// 重试
 					continue
 				}
 			case <-ctx.Done():
@@ -81,6 +91,7 @@ func (v *validator) waitForActivation(ctx context.Context, accountsChangedChan <
 	}
 
 	req := &ethpb.ValidatorActivationRequest{
+		// 添加public keys
 		PublicKeys: bytesutil.FromBytes48Array(validatingKeys),
 	}
 	stream, err := v.validatorClient.WaitForActivation(ctx, req)
@@ -90,6 +101,7 @@ func (v *validator) waitForActivation(ctx context.Context, accountsChangedChan <
 		log.WithError(err).WithField("attempts", attempts).
 			Error("Stream broken while waiting for activation. Reconnecting...")
 		// Reconnection attempt backoff, up to 60s.
+		// 重连试着回退，直到60s
 		time.Sleep(time.Second * time.Duration(math.Min(uint64(attempts), 60)))
 		return v.waitForActivation(incrementRetries(ctx), accountsChangedChan)
 	}
@@ -163,14 +175,17 @@ func (v *validator) handleWithoutRemoteKeyManager(ctx context.Context, accountsC
 		select {
 		case <-accountsChangedChan:
 			// Accounts (keys) changed, restart the process.
+			// 如果Accounts发生了变更，重启进程
 			return v.waitForActivation(ctx, accountsChangedChan)
 		default:
 			res, err := (*stream).Recv()
 			// If the stream is closed, we stop the loop.
+			// 如果stream被关闭了，我们停止loop
 			if errors.Is(err, io.EOF) {
 				break
 			}
 			// If context is canceled we return from the function.
+			// 如果context被取消，我们从函数返回
 			if ctx.Err() == context.Canceled {
 				return errors.Wrap(ctx.Err(), "context has been canceled so shutting down the loop")
 			}
@@ -180,6 +195,7 @@ func (v *validator) handleWithoutRemoteKeyManager(ctx context.Context, accountsC
 				log.WithError(err).WithField("attempts", attempts).
 					Error("Stream broken while waiting for activation. Reconnecting...")
 				// Reconnection attempt backoff, up to 60s.
+				// 重连回退，直到60s
 				time.Sleep(time.Second * time.Duration(math.Min(uint64(attempts), 60)))
 				return v.waitForActivation(incrementRetries(ctx), accountsChangedChan)
 			}
@@ -198,6 +214,7 @@ func (v *validator) handleWithoutRemoteKeyManager(ctx context.Context, accountsC
 				logActiveValidatorStatus(statuses)
 
 				// Set properties on the beacon node like the fee recipient for validators that are being used & active.
+				// 设置beacon node的properties，例如fee recipient对于validators，正在使用的以及active
 				if err := v.PushProposerSettings(ctx, v.keyManager); err != nil {
 					return err
 				}

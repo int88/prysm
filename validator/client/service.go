@@ -35,18 +35,22 @@ import (
 
 // SyncChecker is able to determine if a beacon node is currently
 // going through chain synchronization.
+// SyncChecker能够检查是否一个beacon node已经完成了chain synchronization
 type SyncChecker interface {
 	Syncing(ctx context.Context) (bool, error)
 }
 
 // GenesisFetcher can retrieve genesis information such as
 // the genesis time and the validator deposit contract address.
+// GenesisFetcher可以获取genesis information，例如genesis time以及
+// validator deposit contract地址
 type GenesisFetcher interface {
 	GenesisInfo(ctx context.Context) (*ethpb.Genesis, error)
 }
 
 // ValidatorService represents a service to manage the validator client
 // routine.
+// ValidatorService代表一个service来管理validator client routine
 type ValidatorService struct {
 	useWeb                bool
 	emitAccountMetrics    bool
@@ -99,6 +103,7 @@ type Config struct {
 
 // NewValidatorService creates a new validator service for the service
 // registry.
+// NewValidatorService创建了一个新的validator service作为service registry
 func NewValidatorService(ctx context.Context, cfg *Config) (*ValidatorService, error) {
 	ctx, cancel := context.WithCancel(ctx)
 	s := &ValidatorService{
@@ -152,6 +157,7 @@ func NewValidatorService(ctx context.Context, cfg *Config) (*ValidatorService, e
 
 // Start the validator service. Launches the main go routine for the validator
 // client.
+// 启动validator service，启动main goroutine，对于validator client
 func (v *ValidatorService) Start() {
 	cache, err := ristretto.NewCache(&ristretto.Config{
 		NumCounters: 1920, // number of keys to track.
@@ -306,6 +312,7 @@ func ConstructDialOptions(
 }
 
 // Syncing returns whether or not the beacon node is currently synchronizing the chain.
+// Syncing返回是否beacon node已经和chain同步了
 func (v *ValidatorService) Syncing(ctx context.Context) (bool, error) {
 	nc := ethpb.NewNodeClient(v.conn)
 	resp, err := nc.GetSyncStatus(ctx, &emptypb.Empty{})
@@ -317,6 +324,8 @@ func (v *ValidatorService) Syncing(ctx context.Context) (bool, error) {
 
 // GenesisInfo queries the beacon node for the chain genesis info containing
 // the genesis time along with the validator deposit contract address.
+// GenesisInfo查询beacon node，对于chain genesis info，包含genesis time以及validator
+// deposit contract地址
 func (v *ValidatorService) GenesisInfo(ctx context.Context) (*ethpb.Genesis, error) {
 	nc := ethpb.NewNodeClient(v.conn)
 	return nc.GetGenesis(ctx, &emptypb.Empty{})

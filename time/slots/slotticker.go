@@ -10,6 +10,7 @@ import (
 
 // The Ticker interface defines a type which can expose a
 // receive-only channel firing slot events.
+// Ticker接口定义了一个类型，它可以暴露receive-only的channel，触发slot events
 type Ticker interface {
 	C() <-chan types.Slot
 	Done()
