@@ -11,6 +11,8 @@ import (
 
 // Verifies attester slashings, logs them, and submits them to the slashing operations pool
 // in the beacon node if they pass validation.
+// 校验attester slashings，记录它们，并且提交它们到slashing operations pool，到beacon node，如果它们通过
+// 校验的话
 func (s *Service) processAttesterSlashings(ctx context.Context, slashings []*ethpb.AttesterSlashing) error {
 	var beaconState state.BeaconState
 	var err error
@@ -35,6 +37,7 @@ func (s *Service) processAttesterSlashings(ctx context.Context, slashings []*eth
 		}
 
 		// Log the slashing event and insert into the beacon node's operations pool.
+		// 记录slashing event并且插入到beacon node的operations pool
 		logAttesterSlashing(sl)
 		if err := s.serviceCfg.SlashingPoolInserter.InsertAttesterSlashing(
 			ctx, beaconState, sl,
@@ -47,6 +50,8 @@ func (s *Service) processAttesterSlashings(ctx context.Context, slashings []*eth
 
 // Verifies proposer slashings, logs them, and submits them to the slashing operations pool
 // in the beacon node if they pass validation.
+// 校验proposer slashings，日志它们，并且提交它们到slashing operations pool，在beacon node中，如果
+// 它们通过了validation
 func (s *Service) processProposerSlashings(ctx context.Context, slashings []*ethpb.ProposerSlashing) error {
 	var beaconState state.BeaconState
 	var err error
@@ -70,6 +75,7 @@ func (s *Service) processProposerSlashings(ctx context.Context, slashings []*eth
 			continue
 		}
 		// Log the slashing event and insert into the beacon node's operations pool.
+		// 记录slashing event并且插入到beacon node的operations pool
 		logProposerSlashing(sl)
 		if err := s.serviceCfg.SlashingPoolInserter.InsertProposerSlashing(ctx, beaconState, sl); err != nil {
 			log.WithError(err).Error("Could not insert attester slashing into operations pool")

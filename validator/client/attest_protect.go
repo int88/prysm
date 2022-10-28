@@ -14,12 +14,17 @@ import (
 	"go.opencensus.io/trace"
 )
 
+// 试着构建slashable attestation，被local slashing protection拒绝
 var failedAttLocalProtectionErr = "attempted to make slashable attestation, rejected by local slashing protection"
+
+// 试着构架slashable attestation，被external slasher service拒绝
 var failedPostAttSignExternalErr = "attempted to make slashable attestation, rejected by external slasher service"
 
 // Checks if an attestation is slashable by comparing it with the attesting
 // history for the given public key in our DB. If it is not, we then update the history
 // with new values and save it to the database.
+// 检查是否一个attestation是slashable的，通过将它和attesting history进行比较，在我们的DB中
+// 对于给定的public key，如果不是的话，我们会用新的值更新history，并且将它保存到数据库中
 func (v *validator) slashableAttestationCheck(
 	ctx context.Context,
 	indexedAtt *ethpb.IndexedAttestation,
@@ -79,12 +84,14 @@ func (v *validator) slashableAttestationCheck(
 	}
 
 	if err := v.db.SaveAttestationForPubKey(ctx, pubKey, signingRoot, indexedAtt); err != nil {
+		// 不能保存attestation history，对于validator public key
 		return errors.Wrap(err, "could not save attestation history for validator public key")
 	}
 
 	if features.Get().RemoteSlasherProtection {
 		slashing, err := v.slashingProtectionClient.IsSlashableAttestation(ctx, indexedAtt)
 		if err != nil {
+			// 不能检查attestation是否是slashable
 			return errors.Wrap(err, "could not check if attestation is slashable")
 		}
 		if slashing != nil && len(slashing.AttesterSlashings) > 0 {

@@ -10,6 +10,7 @@ import (
 )
 
 // MockStateManager is a fake implementation of StateManager.
+// MockStateManager是StateManager的fake实现
 type MockStateManager struct {
 	StatesByRoot map[[32]byte]state.BeaconState
 	StatesBySlot map[types.Slot]state.BeaconState

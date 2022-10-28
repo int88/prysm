@@ -34,12 +34,14 @@ import (
 func TestRequestAttestation_ValidatorDutiesRequestFailure(t *testing.T) {
 	hook := logTest.NewGlobal()
 	validator, _, validatorKey, finish := setup(t)
+	// 空的validator duties
 	validator.duties = &ethpb.DutiesResponse{Duties: []*ethpb.DutiesResponse_Duty{}}
 	defer finish()
 
 	pubKey := [fieldparams.BLSPubkeyLength]byte{}
 	copy(pubKey[:], validatorKey.PublicKey().Marshal())
 	validator.SubmitAttestation(context.Background(), 30, pubKey)
+	// 不能获取validator assignment
 	require.LogsContain(t, hook, "Could not fetch validator assignment")
 }
 
@@ -52,7 +54,8 @@ func TestAttestToBlockHead_SubmitAttestation_EmptyCommittee(t *testing.T) {
 	copy(pubKey[:], validatorKey.PublicKey().Marshal())
 	validator.duties = &ethpb.DutiesResponse{Duties: []*ethpb.DutiesResponse_Duty{
 		{
-			PublicKey:      validatorKey.PublicKey().Marshal(),
+			PublicKey: validatorKey.PublicKey().Marshal(),
+			// committee为空
 			CommitteeIndex: 0,
 			Committee:      make([]types.ValidatorIndex, 0),
 			ValidatorIndex: 0,
@@ -77,6 +80,7 @@ func TestAttestToBlockHead_SubmitAttestation_RequestFailure(t *testing.T) {
 		gomock.Any(), // ctx
 		gomock.AssignableToTypeOf(&ethpb.AttestationDataRequest{}),
 	).Return(&ethpb.AttestationData{
+		// 获取attestation data
 		BeaconBlockRoot: make([]byte, fieldparams.RootLength),
 		Target:          &ethpb.Checkpoint{Root: make([]byte, fieldparams.RootLength)},
 		Source:          &ethpb.Checkpoint{Root: make([]byte, fieldparams.RootLength)},
@@ -88,6 +92,7 @@ func TestAttestToBlockHead_SubmitAttestation_RequestFailure(t *testing.T) {
 	m.validatorClient.EXPECT().ProposeAttestation(
 		gomock.Any(), // ctx
 		gomock.AssignableToTypeOf(&ethpb.Attestation{}),
+		// 提交attestation失败
 	).Return(nil, errors.New("something went wrong"))
 
 	pubKey := [fieldparams.BLSPubkeyLength]byte{}
@@ -135,6 +140,7 @@ func TestAttestToBlockHead_AttestsCorrectly(t *testing.T) {
 		gomock.Any(), // ctx
 		gomock.AssignableToTypeOf(&ethpb.Attestation{}),
 	).Do(func(_ context.Context, att *ethpb.Attestation, opts ...grpc.CallOption) {
+		// 函数的内部操作
 		generatedAttestation = att
 	}).Return(&ethpb.AttestResponse{}, nil /* error */)
 
@@ -174,6 +180,7 @@ func TestAttestToBlockHead_BlocksDoubleAtt(t *testing.T) {
 	validator, m, validatorKey, finish := setup(t)
 	defer finish()
 	validatorIndex := types.ValidatorIndex(7)
+	// 构建一个committee
 	committee := []types.ValidatorIndex{0, 3, 4, 2, validatorIndex, 6, 8, 9, 10}
 	pubKey := [fieldparams.BLSPubkeyLength]byte{}
 	copy(pubKey[:], validatorKey.PublicKey().Marshal())

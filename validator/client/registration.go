@@ -12,6 +12,7 @@ import (
 )
 
 // SubmitValidatorRegistration signs validator registration object and submits it to the beacon node.
+// SubmitValidatorRegistration签署validator registration对象并且提交它到beacon node
 func SubmitValidatorRegistration(
 	ctx context.Context,
 	validatorClient ethpb.BeaconNodeValidatorClient,
@@ -41,6 +42,7 @@ func SubmitValidatorRegistration(
 	if _, err := validatorClient.SubmitValidatorRegistration(ctx, &ethpb.SignedValidatorRegistrationsV1{
 		Messages: signedRegs,
 	}); err != nil {
+		// 不能提交signed registrations到beacon node
 		return errors.Wrap(err, "could not submit signed registrations to beacon node")
 	}
 
@@ -48,6 +50,7 @@ func SubmitValidatorRegistration(
 }
 
 // Sings validator registration obj with the proposer domain and private key.
+// 签署validator registration对象，用合适的domain以及private key
 func signValidatorRegistration(ctx context.Context, signer signingFunc, reg *ethpb.ValidatorRegistrationV1) ([]byte, error) {
 
 	// Per spec, we want the fork version and genesis validator to be nil.

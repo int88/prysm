@@ -12,7 +12,10 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// 试着签发一个double proposal，block会被本地的protection拒绝
 var failedBlockSignLocalErr = "attempted to sign a double proposal, block rejected by local protection"
+
+// 尝试一个double proposal，block被远程的slashing protection拒绝
 var failedBlockSignExternalErr = "attempted a double proposal, block rejected by remote slashing protection"
 
 func (v *validator) slashableProposalCheck(

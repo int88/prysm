@@ -12,6 +12,7 @@ import (
 
 // SetValidators for the beacon state. Updates the entire
 // to a new value by overwriting the previous one.
+// SetValidators对于beacon state，整个更新到新的值，通过覆盖之前的值
 func (b *BeaconState) SetValidators(val []*ethpb.Validator) error {
 	b.lock.Lock()
 	defer b.lock.Unlock()

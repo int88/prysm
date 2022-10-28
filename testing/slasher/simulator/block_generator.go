@@ -18,13 +18,16 @@ func (s *Simulator) generateBlockHeadersForSlot(
 ) ([]*ethpb.SignedBeaconBlockHeader, []*ethpb.ProposerSlashing, error) {
 	blocks := make([]*ethpb.SignedBeaconBlockHeader, 0)
 	slashings := make([]*ethpb.ProposerSlashing, 0)
+	// 随机选择一个validator作为proposer
 	proposer := rand.NewGenerator().Uint64() % s.srvConfig.Params.NumValidators
 
+	// 获取当前的beacon state
 	parentRoot := [32]byte{}
 	beaconState, err := s.srvConfig.StateGen.StateByRoot(ctx, parentRoot)
 	if err != nil {
 		return nil, nil, err
 	}
+	// 构建beacon block
 	block := &ethpb.SignedBeaconBlockHeader{
 		Header: &ethpb.BeaconBlockHeader{
 			Slot:          slot,
@@ -60,6 +63,7 @@ func (s *Simulator) generateBlockHeadersForSlot(
 		slashableBlock.Signature = sig.Marshal()
 
 		blocks = append(blocks, slashableBlock)
+		// 期望得到的slashing
 		slashings = append(slashings, &ethpb.ProposerSlashing{
 			Header_1: block,
 			Header_2: slashableBlock,

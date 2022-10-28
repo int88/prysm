@@ -1,6 +1,8 @@
 // Package node is the main process which handles the lifecycle of
 // the runtime services in a validator client process, gracefully shutting
 // everything down upon close.
+// node包是main process，它处理runtime services的生命周期，在一个validator client process
+// 在结束的时候优雅地关闭所有
 package node
 
 import (
@@ -60,6 +62,8 @@ import (
 
 // ValidatorClient defines an instance of an Ethereum validator that manages
 // the entire lifecycle of services attached to it participating in proof of stake.
+// ValidatorClient定义了一个Ethereum validator的实例，管理关联到它参与proof of stake的services的
+// 完整的生命周期
 type ValidatorClient struct {
 	cliCtx            *cli.Context
 	ctx               context.Context
@@ -143,6 +147,7 @@ func NewValidatorClient(cliCtx *cli.Context) (*ValidatorClient, error) {
 }
 
 // Start every service in the validator client.
+// 启动validator client里的每个service
 func (c *ValidatorClient) Start() {
 	c.lock.Lock()
 

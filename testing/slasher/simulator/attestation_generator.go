@@ -24,7 +24,9 @@ func (s *Simulator) generateAttestationsForSlot(
 	slashings := make([]*ethpb.AttesterSlashing, 0)
 	currentEpoch := slots.ToEpoch(slot)
 
+	// 获取slot的committee的数目
 	committeesPerSlot := helpers.SlotCommitteeCount(s.srvConfig.Params.NumValidators)
+	// 每个committee的validators的数目
 	valsPerCommittee := s.srvConfig.Params.NumValidators /
 		(committeesPerSlot * uint64(s.srvConfig.Params.SlotsPerEpoch))
 	valsPerSlot := committeesPerSlot * valsPerCommittee
@@ -39,7 +41,8 @@ func (s *Simulator) generateAttestationsForSlot(
 	endIdx := startIdx + valsPerCommittee
 	for c := types.CommitteeIndex(0); uint64(c) < committeesPerSlot; c++ {
 		attData := &ethpb.AttestationData{
-			Slot:            slot,
+			Slot: slot,
+			// committe的索引
 			CommitteeIndex:  c,
 			BeaconBlockRoot: bytesutil.PadTo([]byte("block"), 32),
 			Source: &ethpb.Checkpoint{
@@ -73,6 +76,7 @@ func (s *Simulator) generateAttestationsForSlot(
 			}
 
 			// Sign the attestation with a valid signature.
+			// 用合法的signature对attestations进行签名
 			aggSig, err := s.aggregateSigForAttestation(beaconState, att)
 			if err != nil {
 				return nil, nil, err

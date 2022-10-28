@@ -20,6 +20,7 @@ func setupService(t *testing.T, params *Parameters) *Simulator {
 
 	// We setup validators in the beacon state along with their
 	// private keys used to generate valid signatures in generated objects.
+	// 我们在beacon state中建立validators，用它们的private keys，来生成合法的signatures，在生成的对象中
 	validators := make([]*ethpb.Validator, params.NumValidators)
 	privKeys := make(map[types.ValidatorIndex]bls.SecretKey)
 	for valIdx := range validators {

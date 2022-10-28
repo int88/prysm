@@ -22,6 +22,7 @@ import (
 )
 
 // SubmitSyncCommitteeMessage submits the sync committee message to the beacon chain.
+// SubmitSyncCommitteeMessage提交sync committee message到beacon node
 func (v *validator) SubmitSyncCommitteeMessage(ctx context.Context, slot types.Slot, pubKey [fieldparams.BLSPubkeyLength]byte) {
 	ctx, span := trace.StartSpan(ctx, "validator.SubmitSyncCommitteeMessage")
 	defer span.End()
@@ -31,6 +32,7 @@ func (v *validator) SubmitSyncCommitteeMessage(ctx context.Context, slot types.S
 
 	res, err := v.validatorClient.GetSyncMessageBlockRoot(ctx, &emptypb.Empty{})
 	if err != nil {
+		// 不能请求sync message block root进行签署
 		log.WithError(err).Error("Could not request sync message block root to sign")
 		tracing.AnnotateError(span, err)
 		return
@@ -38,12 +40,14 @@ func (v *validator) SubmitSyncCommitteeMessage(ctx context.Context, slot types.S
 
 	duty, err := v.duty(pubKey)
 	if err != nil {
+		// 不能获取validator assignment
 		log.WithError(err).Error("Could not fetch validator assignment")
 		return
 	}
 
 	d, err := v.domainData(ctx, slots.ToEpoch(slot), params.BeaconConfig().DomainSyncCommittee[:])
 	if err != nil {
+		// 不能获取sync committee domain数据
 		log.WithError(err).Error("Could not get sync committee domain data")
 		return
 	}
@@ -75,6 +79,7 @@ func (v *validator) SubmitSyncCommitteeMessage(ctx context.Context, slot types.S
 		Signature:      sig.Marshal(),
 	}
 	if _, err := v.validatorClient.SubmitSyncMessage(ctx, msg); err != nil {
+		// 不能提交sync committee message
 		log.WithError(err).Error("Could not submit sync committee message")
 		return
 	}

@@ -25,6 +25,7 @@ type Parameters struct {
 // DefaultParams defines default values for slasher's important parameters, defined
 // based on optimization analysis for best and worst case scenarios for
 // slasher's performance.
+// DefaultParams定义了默认值用于slasher的重要参数，基于优化分析定义，用于slasher最差或者最好的场景
 //
 // The default values for chunkSize and validatorChunkSize were
 // decided after an optimization analysis performed by the Sigma Prime team.

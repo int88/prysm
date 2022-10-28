@@ -60,6 +60,7 @@ func (m mockSignature) Copy() bls.Signature {
 }
 
 func setup(t *testing.T) (*validator, *mocks, bls.SecretKey, func()) {
+	// 获取validator的key
 	validatorKey, err := bls.RandKey()
 	require.NoError(t, err)
 	return setupWithKey(t, validatorKey)
@@ -109,6 +110,7 @@ func TestProposeBlock_DoesNotProposeGenesisBlock(t *testing.T) {
 	defer finish()
 	pubKey := [fieldparams.BLSPubkeyLength]byte{}
 	copy(pubKey[:], validatorKey.PublicKey().Marshal())
+	// slot为0，则跳过proposal
 	validator.ProposeBlock(context.Background(), 0, pubKey)
 
 	require.LogsContain(t, hook, "Assigned to genesis slot, skipping proposal")
@@ -190,6 +192,7 @@ func TestProposeBlock_RequestBlockFailed(t *testing.T) {
 			).Return(nil /*response*/, errors.New("uh oh"))
 
 			validator.ProposeBlock(context.Background(), tt.slot, pubKey)
+			// 从beacon node请求block失败
 			require.LogsContain(t, hook, "Failed to request block from beacon node")
 		})
 	}
@@ -366,6 +369,7 @@ func TestProposeBlock_BlocksDoubleProposal(t *testing.T) {
 			require.LogsDoNotContain(t, hook, failedBlockSignLocalErr)
 
 			validator.ProposeBlock(context.Background(), slot, pubKey)
+			// 第二次proposal失败
 			require.LogsContain(t, hook, failedBlockSignLocalErr)
 		})
 	}
@@ -818,6 +822,7 @@ func TestSignBlock(t *testing.T) {
 
 	// Verify the returned block root matches the expected root using the proposer signature
 	// domain.
+	// 确认返回的block root匹配expected root，使用proposer signature domain
 	wantedBlockRoot, err := signing.ComputeSigningRoot(b, proposerDomain)
 	if err != nil {
 		require.NoError(t, err)

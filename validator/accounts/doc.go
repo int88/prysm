@@ -2,4 +2,5 @@
 // practices for user security, UX, and extensibility via different wallet types
 // including HD wallets, imported (non-HD) wallets, and remote-signing capable configurations. This model
 // is compliant with the EIP-2333, EIP-2334, and EIP-2335 standards for key management in Ethereum.
+// accounts包定义了一个新的模型，对于Prysm中的accounts management
 package accounts

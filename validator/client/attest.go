@@ -32,6 +32,9 @@ import (
 // It fetches the latest beacon block head along with the latest canonical beacon state
 // information in order to sign the block and include information about the validator's
 // participation in voting on the block.
+// SubmitAttestation完成validator client的attester职责，在一个给定的slot
+// 它拉取最新的beacon block head以及最新的canonical beacon state信息，为了能签署block并且
+// 包含关于validator参与这次投票的信息在block中
 func (v *validator) SubmitAttestation(ctx context.Context, slot types.Slot, pubKey [fieldparams.BLSPubkeyLength]byte) {
 	ctx, span := trace.StartSpan(ctx, "validator.SubmitAttestation")
 	defer span.End()
@@ -67,6 +70,7 @@ func (v *validator) SubmitAttestation(ctx context.Context, slot types.Slot, pubK
 		return
 	}
 	if len(duty.Committee) == 0 {
+		// 没有committee，不要attesting
 		log.Debug("Empty committee for validator duty, not attesting")
 		return
 	}
@@ -77,6 +81,7 @@ func (v *validator) SubmitAttestation(ctx context.Context, slot types.Slot, pubK
 	}
 	data, err := v.validatorClient.GetAttestationData(ctx, req)
 	if err != nil {
+		// 不能获取attestation数据
 		log.WithError(err).Error("Could not request attestation to sign at slot")
 		if v.emitAccountMetrics {
 			ValidatorAttestFailVec.WithLabelValues(fmtKey).Inc()
@@ -120,6 +125,7 @@ func (v *validator) SubmitAttestation(ctx context.Context, slot types.Slot, pubK
 		}
 	}
 	if !found {
+		// validator ID不能在committee中找到
 		log.Errorf("Validator ID %d not found in committee of %v", duty.ValidatorIndex, duty.Committee)
 		if v.emitAccountMetrics {
 			ValidatorAttestFailVec.WithLabelValues(fmtKey).Inc()
@@ -136,6 +142,7 @@ func (v *validator) SubmitAttestation(ctx context.Context, slot types.Slot, pubK
 	}
 
 	// Set the signature of the attestation and send it out to the beacon node.
+	// 设置attestation的signature并且发送到beacon node
 	indexedAtt.Signature = sig
 	if err := v.slashableAttestationCheck(ctx, indexedAtt, pubKey, signingRoot); err != nil {
 		log.WithError(err).Error("Failed attestation slashing protection check")
@@ -147,6 +154,7 @@ func (v *validator) SubmitAttestation(ctx context.Context, slot types.Slot, pubK
 	}
 	attResp, err := v.validatorClient.ProposeAttestation(ctx, attestation)
 	if err != nil {
+		// 不能提交attestation到beacon node
 		log.WithError(err).Error("Could not submit attestation to beacon node")
 		if v.emitAccountMetrics {
 			ValidatorAttestFailVec.WithLabelValues(fmtKey).Inc()
@@ -155,6 +163,7 @@ func (v *validator) SubmitAttestation(ctx context.Context, slot types.Slot, pubK
 		return
 	}
 
+	// 将attester index到data中，用于日志？
 	if err := v.saveAttesterIndexToData(data, duty.ValidatorIndex); err != nil {
 		log.WithError(err).Error("Could not save validator index for logging")
 		if v.emitAccountMetrics {
@@ -181,6 +190,7 @@ func (v *validator) SubmitAttestation(ctx context.Context, slot types.Slot, pubK
 }
 
 // Given the validator public key, this gets the validator assignment.
+// 给定validator的public key，这个获取validator assignment
 func (v *validator) duty(pubKey [fieldparams.BLSPubkeyLength]byte) (*ethpb.DutiesResponse_Duty, error) {
 	if v.duties == nil {
 		return nil, errors.New("no duties for validators")
@@ -196,6 +206,7 @@ func (v *validator) duty(pubKey [fieldparams.BLSPubkeyLength]byte) (*ethpb.Dutie
 }
 
 // Given validator's public key, this function returns the signature of an attestation data and its signing root.
+// 给定validator的public key，这个函数返回一个attestation data的signature以及它的signing root
 func (v *validator) signAtt(ctx context.Context, pubKey [fieldparams.BLSPubkeyLength]byte, data *ethpb.AttestationData, slot types.Slot) ([]byte, [32]byte, error) {
 	domain, root, err := v.getDomainAndSigningRoot(ctx, data)
 	if err != nil {
@@ -249,11 +260,15 @@ func (v *validator) saveAttesterIndexToData(data *ethpb.AttestationData, index t
 // waitOneThirdOrValidBlock waits until (a) or (b) whichever comes first:
 //   (a) the validator has received a valid block that is the same slot as input slot
 //   (b) one-third of the slot has transpired (SECONDS_PER_SLOT / 3 seconds after the start of slot)
+// waitOneThirdOrValidBlock等待直到(a)或者(b)先到来：
+// 	 (a) validator接收到一个valid block，和input slot有着同样的slot
+//   (b) 三分之一的slot已经发生了（SECONDS_PER_SLOT / 3秒，在slot启动之后）
 func (v *validator) waitOneThirdOrValidBlock(ctx context.Context, slot types.Slot) {
 	ctx, span := trace.StartSpan(ctx, "validator.waitOneThirdOrValidBlock")
 	defer span.End()
 
 	// Don't need to wait if requested slot is the same as highest valid slot.
+	// 不需要等待，如果请求的slot和最高的valid slot相同
 	v.highestValidSlotLock.Lock()
 	if slot <= v.highestValidSlot {
 		v.highestValidSlotLock.Unlock()
@@ -272,6 +287,7 @@ func (v *validator) waitOneThirdOrValidBlock(ctx context.Context, slot types.Slo
 	defer t.Stop()
 
 	bChannel := make(chan interfaces.SignedBeaconBlock, 1)
+	// 对block进行订阅
 	sub := v.blockFeed.Subscribe(bChannel)
 	defer sub.Unsubscribe()
 

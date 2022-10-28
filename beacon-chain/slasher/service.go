@@ -29,6 +29,8 @@ const (
 // ServiceConfig for the slasher service in the beacon node.
 // This struct allows us to specify required dependencies and
 // parameters for slasher to function as needed.
+// ServiceConfig用于beacon node中的slasher service，这个结构允许
+// 我们指定需要的依赖以及参数，让slasher能正常工作
 type ServiceConfig struct {
 	IndexedAttestationsFeed *event.Feed
 	BeaconBlockHeadersFeed  *event.Feed
@@ -42,6 +44,7 @@ type ServiceConfig struct {
 }
 
 // SlashingChecker is an interface for defining services that the beacon node may interact with to provide slashing data.
+// SlashingChecker是一个接口用于定义services，beacon node可以进行交互用来提供slashing data
 type SlashingChecker interface {
 	IsSlashableBlock(ctx context.Context, proposal *ethpb.SignedBeaconBlockHeader) (*ethpb.ProposerSlashing, error)
 	IsSlashableAttestation(ctx context.Context, attestation *ethpb.IndexedAttestation) ([]*ethpb.AttesterSlashing, error)
@@ -88,7 +91,9 @@ func New(ctx context.Context, srvCfg *ServiceConfig) (*Service, error) {
 
 // Start listening for received indexed attestations and blocks
 // and perform slashing detection on them.
+// Start监听接收到的indexed attestations以及blocks并且执行slahing detection
 func (s *Service) Start() {
+	// Start函数必须是non-blocking的
 	go s.run() // Start functions must be non-blocking.
 }
 
@@ -96,9 +101,11 @@ func (s *Service) run() {
 	s.waitForChainInitialization()
 	s.waitForSync(s.genesisTime)
 
+	// chain sync完成，开始slashing detection
 	log.Info("Completed chain sync, starting slashing detection")
 
 	// Get the latest eopch written for each validator from disk on startup.
+	// 获取最新的epoch，为磁盘中写入的每个validator，在启动的时候
 	headState, err := s.serviceCfg.HeadStateFetcher.HeadState(s.ctx)
 	if err != nil {
 		log.WithError(err).Error("Failed to fetch head state")
@@ -111,6 +118,7 @@ func (s *Service) run() {
 	}
 	start := time.Now()
 	log.Info("Reading last epoch written for each validator...")
+	// 读取最新的epoch，为每个validator写入
 	epochsByValidator, err := s.serviceCfg.Database.LastEpochWrittenForValidators(
 		s.ctx, validatorIndices,
 	)
@@ -127,6 +135,7 @@ func (s *Service) run() {
 
 	indexedAttsChan := make(chan *ethpb.IndexedAttestation, 1)
 	beaconBlockHeadersChan := make(chan *ethpb.SignedBeaconBlockHeader, 1)
+	// 接收attestations以及blocks
 	go s.receiveAttestations(s.ctx, indexedAttsChan)
 	go s.receiveBlocks(s.ctx, beaconBlockHeadersChan)
 
@@ -134,6 +143,7 @@ func (s *Service) run() {
 	s.attsSlotTicker = slots.NewSlotTicker(s.genesisTime, secondsPerSlot)
 	s.blocksSlotTicker = slots.NewSlotTicker(s.genesisTime, secondsPerSlot)
 	s.pruningSlotTicker = slots.NewSlotTicker(s.genesisTime, secondsPerSlot)
+	// 处理队列中的attestations，blocks
 	go s.processQueuedAttestations(s.ctx, s.attsSlotTicker.C())
 	go s.processQueuedBlocks(s.ctx, s.blocksSlotTicker.C())
 	go s.pruneSlasherData(s.ctx, s.pruningSlotTicker.C())
@@ -181,9 +191,11 @@ func (s *Service) waitForChainInitialization() {
 		select {
 		case stateEvent := <-stateChannel:
 			// Wait for us to receive the genesis time via a chain started notification.
+			// 等待接收到genesis time，通过一个chain started notification
 			if stateEvent.Type == statefeed.Initialized {
 				// Alternatively, if the chain has already started, we then read the genesis
 				// time value from this data.
+				// 如果chain已经启动了，我们从这个data里面读取genesis time
 				data, ok := stateEvent.Data.(*statefeed.InitializedData)
 				if !ok {
 					log.Error(

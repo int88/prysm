@@ -83,6 +83,7 @@ func (w Phase0SignedBeaconBlock) Proto() proto.Message {
 }
 
 // PbGenericBlock returns a generic signed beacon block.
+// PbGenericBlock返回一个通用的signed beacon block
 func (w Phase0SignedBeaconBlock) PbGenericBlock() (*eth.GenericSignedBeaconBlock, error) {
 	return &eth.GenericSignedBeaconBlock{
 		Block: &eth.GenericSignedBeaconBlock_Phase0{Phase0: w.b},

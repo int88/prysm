@@ -10,6 +10,7 @@ import ethpb "github.com/prysmaticlabs/prysm/proto/prysm/v1alpha1"
 //  t: target
 //
 //  a surrounds b if: s_a < s_b and t_b < t_a
+//	a和b的s和t有交集？
 //
 func IsSurround(a, b *ethpb.IndexedAttestation) bool {
 	return a.Data.Source.Epoch < b.Data.Source.Epoch && b.Data.Target.Epoch < a.Data.Target.Epoch

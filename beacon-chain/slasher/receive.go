@@ -13,8 +13,10 @@ import (
 )
 
 // Receive indexed attestations from some source event feed,
+// 从source event feed接收到indexed attestations
 // validating their integrity before appending them to an attestation queue
 // for batch processing in a separate routine.
+// 校验它们的完整性，在扩展它们到一个attestation queue之前，用于在另一个routine进行批量处理
 func (s *Service) receiveAttestations(ctx context.Context, indexedAttsChan chan *ethpb.IndexedAttestation) {
 	sub := s.serviceCfg.IndexedAttestationsFeed.Subscribe(indexedAttsChan)
 	defer sub.Unsubscribe()
@@ -33,6 +35,7 @@ func (s *Service) receiveAttestations(ctx context.Context, indexedAttsChan chan 
 				IndexedAttestation: att,
 				SigningRoot:        signingRoot,
 			}
+			// 加入到atts queue
 			s.attsQueue.push(attWrapper)
 		case err := <-sub.Err():
 			log.WithError(err).Debug("Subscriber closed with error")
@@ -44,6 +47,7 @@ func (s *Service) receiveAttestations(ctx context.Context, indexedAttsChan chan 
 }
 
 // Receive beacon blocks from some source event feed,
+// 从source event feed中接收beacon blocks
 func (s *Service) receiveBlocks(ctx context.Context, beaconBlockHeadersChan chan *ethpb.SignedBeaconBlockHeader) {
 	sub := s.serviceCfg.BeaconBlockHeadersFeed.Subscribe(beaconBlockHeadersChan)
 	defer sub.Unsubscribe()
@@ -76,6 +80,9 @@ func (s *Service) receiveBlocks(ctx context.Context, beaconBlockHeadersChan chan
 // these attestations from a queue, then group them all by validator chunk index.
 // This grouping will allow us to perform detection on batches of attestations
 // per validator chunk index which can be done concurrently.
+// 处理排队的attestations，每次一个slot ticker触发的时候，我们从一个队列获取attestations，之后将它们
+// 通过validator chunk index聚合，这个grouping会让我们批量执行detection，关于每个validator
+// chunk index，它们可以并行执行
 func (s *Service) processQueuedAttestations(ctx context.Context, slotTicker <-chan types.Slot) {
 	for {
 		select {
@@ -109,6 +116,7 @@ func (s *Service) processQueuedAttestations(ctx context.Context, slotTicker <-ch
 			}
 
 			// Check for slashings.
+			// 检查slashings
 			slashings, err := s.checkSlashableAttestations(ctx, currentEpoch, validAtts)
 			if err != nil {
 				log.WithError(err).Error("Could not check slashable attestations")
@@ -117,6 +125,8 @@ func (s *Service) processQueuedAttestations(ctx context.Context, slotTicker <-ch
 
 			// Process attester slashings by verifying their signatures, submitting
 			// to the beacon node's operations pool, and logging them.
+			// 处理attester slashings，通过校验它们的signatures，提交给beacon node的operations pool
+			// 并且日志记录
 			if err := s.processAttesterSlashings(ctx, slashings); err != nil {
 				log.WithError(err).Error("Could not process attester slashings")
 				continue
@@ -131,6 +141,8 @@ func (s *Service) processQueuedAttestations(ctx context.Context, slotTicker <-ch
 
 // Process queued blocks every time an epoch ticker fires. We retrieve
 // these blocks from a queue, then perform double proposal detection.
+// 每次在一个epoch ticker触发的时候处理queued blocks，我们从一个队列中获取blocks
+// 之后再进行double proposal detection
 func (s *Service) processQueuedBlocks(ctx context.Context, slotTicker <-chan types.Slot) {
 	for {
 		select {
@@ -148,6 +160,7 @@ func (s *Service) processQueuedBlocks(ctx context.Context, slotTicker <-chan typ
 
 			start := time.Now()
 			// Check for slashings.
+			// 检测slashings
 			slashings, err := s.detectProposerSlashings(ctx, blocks)
 			if err != nil {
 				log.WithError(err).Error("Could not detect proposer slashings")
@@ -156,6 +169,8 @@ func (s *Service) processQueuedBlocks(ctx context.Context, slotTicker <-chan typ
 
 			// Process proposer slashings by verifying their signatures, submitting
 			// to the beacon node's operations pool, and logging them.
+			// 通过校验它们的signatures来处理proposer slashing，提交它们到beacon node的operations pool
+			// 并且记录它们
 			if err := s.processProposerSlashings(ctx, slashings); err != nil {
 				log.WithError(err).Error("Could not process proposer slashings")
 				continue

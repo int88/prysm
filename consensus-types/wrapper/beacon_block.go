@@ -115,6 +115,8 @@ func WrappedBeaconBlockBody(i interface{}) (interfaces.BeaconBlockBody, error) {
 // BuildSignedBeaconBlock assembles a block.SignedBeaconBlock interface compatible struct from a
 // given beacon block an the appropriate signature. This method may be used to easily create a
 // signed beacon block.
+// BuildSignedBeaconBlock构建一个block.SignedBeaconBlock接口兼容的结构，从一个给定的beacon block以及
+// 合适的signature，这个方法可以用于简单地创建一个signed beacon block
 func BuildSignedBeaconBlock(blk interfaces.BeaconBlock, signature []byte) (interfaces.SignedBeaconBlock, error) {
 	switch b := blk.(type) {
 	case Phase0BeaconBlock:

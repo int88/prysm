@@ -38,6 +38,9 @@ const signExitErr = "could not sign voluntary exit proposal"
 // chain node to construct the new block. The new block is then processed with
 // the state root computation, and finally signed by the validator before being
 // sent back to the beacon node for broadcasting.
+// ProposeBlock提交一个新的beacon block，对于一个给定的slot，这个方法收集之前的beacon block，所有的
+// pending deposits以及来自beacon chain node的ETH1 data来构建新的block，这个新的block之后再
+// 由state root computation处理，并且最后由validator签发，在送回beacon node进行广播之前
 func (v *validator) ProposeBlock(ctx context.Context, slot types.Slot, pubKey [fieldparams.BLSPubkeyLength]byte) {
 	if slot == 0 {
 		log.Debug("Assigned to genesis slot, skipping proposal")
@@ -55,6 +58,7 @@ func (v *validator) ProposeBlock(ctx context.Context, slot types.Slot, pubKey [f
 	log := log.WithField("pubKey", fmt.Sprintf("%#x", bytesutil.Trunc(pubKey[:])))
 
 	// Sign randao reveal, it's used to request block from beacon node
+	// 签署randao reveal，用于从beacon node请求block
 	epoch := types.Epoch(slot / params.BeaconConfig().SlotsPerEpoch)
 	randaoReveal, err := v.signRandaoReveal(ctx, pubKey, epoch, slot)
 	if err != nil {
@@ -70,10 +74,13 @@ func (v *validator) ProposeBlock(ctx context.Context, slot types.Slot, pubKey [f
 		// Graffiti is not a critical enough to fail block production and cause
 		// validator to miss block reward. When failed, validator should continue
 		// to produce the block.
+		// Graffiti没有严重到能够让block production失败并且导致validator丢失block reward
+		// 当失败的时候，validator应该继续产生block
 		log.WithError(err).Warn("Could not get graffiti")
 	}
 
 	// Request block from beacon node
+	// 从beacon node请求block
 	b, err := v.validatorClient.GetBeaconBlock(ctx, &ethpb.BlockRequest{
 		Slot:         slot,
 		RandaoReveal: randaoReveal,
@@ -88,6 +95,7 @@ func (v *validator) ProposeBlock(ctx context.Context, slot types.Slot, pubKey [f
 	}
 
 	// Sign returned block from beacon node
+	// 签发来自beacon node的block
 	wb, err := wrapper.WrappedBeaconBlock(b.Block)
 	if err != nil {
 		log.WithError(err).Error("Failed to wrap block")
@@ -123,6 +131,7 @@ func (v *validator) ProposeBlock(ctx context.Context, slot types.Slot, pubKey [f
 	}
 
 	// Propose and broadcast block via beacon node
+	// 通过beacon node提出以及广播block
 	proposal, err := blk.PbGenericBlock()
 	if err != nil {
 		log.WithError(err).Error("Failed to create proposal request")
@@ -171,6 +180,7 @@ func (v *validator) ProposeBlock(ctx context.Context, slot types.Slot, pubKey [f
 		"numDeposits":     len(blk.Block().Body().Deposits()),
 		"graffiti":        string(blk.Block().Body().Graffiti()),
 		"fork":            version.String(blk.Block().Version()),
+		// 提交新的block
 	}).Info("Submitted new block")
 
 	if v.emitAccountMetrics {
@@ -179,7 +189,9 @@ func (v *validator) ProposeBlock(ctx context.Context, slot types.Slot, pubKey [f
 }
 
 // ProposeExit performs a voluntary exit on a validator.
+// ProposeExit在一个validator之上执行一个voluntary
 // The exit is signed by the validator before being sent to the beacon node for broadcasting.
+// 这个exit由validator签署，在发送给beacon node用于广播之前
 func ProposeExit(
 	ctx context.Context,
 	validatorClient ethpb.BeaconNodeValidatorClient,
@@ -190,6 +202,7 @@ func ProposeExit(
 	ctx, span := trace.StartSpan(ctx, "validator.ProposeExit")
 	defer span.End()
 
+	// 获取validator index
 	indexResponse, err := validatorClient.ValidatorIndex(ctx, &ethpb.ValidatorIndexRequest{PublicKey: pubKey})
 	if err != nil {
 		return errors.Wrap(err, "gRPC call to get validator index failed")
@@ -199,6 +212,7 @@ func ProposeExit(
 		return errors.Wrap(err, "gRPC call to get genesis time failed")
 	}
 	totalSecondsPassed := prysmTime.Now().Unix() - genesisResponse.GenesisTime.Seconds
+	// 获取genesis time以及流逝的时间，计算出当前的epoch
 	currentEpoch := types.Epoch(uint64(totalSecondsPassed) / uint64(params.BeaconConfig().SlotsPerEpoch.Mul(params.BeaconConfig().SecondsPerSlot)))
 
 	exit := &ethpb.VoluntaryExit{Epoch: currentEpoch, ValidatorIndex: indexResponse.Index}
@@ -208,6 +222,7 @@ func ProposeExit(
 	}
 
 	signedExit := &ethpb.SignedVoluntaryExit{Exit: exit, Signature: sig}
+	// 提交exit
 	exitResp, err := validatorClient.ProposeExit(ctx, signedExit)
 	if err != nil {
 		return errors.Wrap(err, "failed to propose voluntary exit")

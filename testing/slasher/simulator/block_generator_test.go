@@ -25,6 +25,7 @@ func TestGenerateBlockHeadersForSlot_Slashing(t *testing.T) {
 	require.NoError(t, err)
 	block2Root, err := slot1Blocks[1].HashTreeRoot()
 	require.NoError(t, err)
+	// proposer index相等，block root也相等
 	if slot1Blocks[0].Header.ProposerIndex == slot1Blocks[1].Header.ProposerIndex && bytes.Equal(block1Root[:], block2Root[:]) {
 		t.Error("Blocks received were not slashable")
 	}

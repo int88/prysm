@@ -45,6 +45,7 @@ func AggregateMultiplePubkeys(pubs []PublicKey) PublicKey {
 }
 
 // AggregateSignatures converts a list of signatures into a single, aggregated sig.
+// AggregateSignatures将一系列的signatrues到单个的，aggregated sig
 func AggregateSignatures(sigs []common.Signature) common.Signature {
 	return blst.AggregateSignatures(sigs)
 }

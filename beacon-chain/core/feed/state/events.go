@@ -48,6 +48,7 @@ type BlockProcessedData struct {
 }
 
 // ChainStartedData is the data sent with ChainStarted events.
+// ChainStartedData是在ChainStarted事件中发送的data
 type ChainStartedData struct {
 	// StartTime is the time at which the chain started.
 	StartTime time.Time
@@ -60,6 +61,7 @@ type SyncedData struct {
 }
 
 // InitializedData is the data sent with Initialized events.
+// InitializedData是在Initialized events中发送的data
 type InitializedData struct {
 	// StartTime is the time at which the chain started.
 	StartTime time.Time

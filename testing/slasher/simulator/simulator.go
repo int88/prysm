@@ -50,6 +50,7 @@ type Parameters struct {
 
 // Simulator defines a struct which can launch a slasher simulation
 // at scale using configuration parameters.
+// Simulator定义了一个结构，它扩展地启动一个slash simulation，使用配置的参数
 type Simulator struct {
 	ctx                   context.Context
 	slasher               *slasher.Service
@@ -78,6 +79,7 @@ func DefaultParams() *Parameters {
 
 // New initializes a slasher simulator from a beacon database
 // and configuration parameters.
+// New从一个beacon database以及配置的参数初始化一个slasher simulator
 func New(ctx context.Context, srvConfig *ServiceConfig) (*Simulator, error) {
 	indexedAttsFeed := new(event.Feed)
 	beaconBlocksFeed := new(event.Feed)
@@ -136,10 +138,13 @@ func (s *Simulator) Start() {
 	}()
 
 	// Start slasher in the background.
+	// 在后台启动slasher
 	go s.slasher.Start()
 
 	// Wait some time and then send a "chain started" event over a notifier
 	// for slasher to pick up a genesis time.
+	// 等待一些时间并且之后发送一个"chain started" event通过一个notifier，让slasher
+	// 能够拿到一个genesis time
 	time.Sleep(time.Second)
 	s.genesisTime = time.Now()
 	s.srvConfig.StateNotifier.StateFeed().Send(&feed.Event{
@@ -148,10 +153,13 @@ func (s *Simulator) Start() {
 	})
 
 	// We simulate blocks and attestations for N epochs.
+	// 我们模拟blocks以及attestations N个epochs
 	s.simulateBlocksAndAttestations(s.ctx)
 
 	// Verify the slashings we detected are the same as those the
 	// simulator produced, effectively checking slasher caught all slashable offenses.
+	// 校验我们检测到的slashings和我们simulator产生的是一样的，特别校验simulator抓到了所有的
+	// slashable offenses
 	s.verifySlashingsWereDetected(s.ctx)
 }
 
@@ -162,12 +170,14 @@ func (s *Simulator) Stop() error {
 
 func (s *Simulator) simulateBlocksAndAttestations(ctx context.Context) {
 	// Add a small offset to producing blocks and attestations a little bit after a slot starts.
+	// 添加一个小的offset来产生blocks以及attestations，在一个slot启动之后
 	ticker := slots.NewSlotTicker(s.genesisTime.Add(time.Millisecond*500), params.BeaconConfig().SecondsPerSlot)
 	defer ticker.Done()
 	for {
 		select {
 		case slot := <-ticker.C():
 			// We only run the simulator for a specified number of epochs.
+			// 我们只运行指定数目的epochs的simulator
 			totalEpochs := types.Epoch(s.srvConfig.Params.NumEpochs)
 			if slots.ToEpoch(slot) >= totalEpochs {
 				return
@@ -175,6 +185,8 @@ func (s *Simulator) simulateBlocksAndAttestations(ctx context.Context) {
 
 			// Since processing slashings requires at least one slot, we do nothing
 			// if we are a few slots from the end of the simulation.
+			// 因为处理slashings需要至少一个slot，我们什么都不做，如果我们离simulation结束
+			// 只有一些slots
 			endSlot, err := slots.EpochStart(totalEpochs)
 			if err != nil {
 				log.WithError(err).Fatal("Could not get epoch start slot")
@@ -185,6 +197,7 @@ func (s *Simulator) simulateBlocksAndAttestations(ctx context.Context) {
 
 			blockHeaders, propSlashings, err := s.generateBlockHeadersForSlot(ctx, slot)
 			if err != nil {
+				// 不能为slot产生block headers
 				log.WithError(err).Fatal("Could not generate block headers for slot")
 			}
 			log.WithFields(logrus.Fields{
@@ -199,6 +212,7 @@ func (s *Simulator) simulateBlocksAndAttestations(ctx context.Context) {
 				s.sentProposerSlashings[slashingRoot] = sl
 			}
 			for _, bb := range blockHeaders {
+				// 将block加入到feed中
 				s.beaconBlocksFeed.Send(bb)
 			}
 
@@ -227,9 +241,11 @@ func (s *Simulator) simulateBlocksAndAttestations(ctx context.Context) {
 }
 
 func (s *Simulator) verifySlashingsWereDetected(ctx context.Context) {
+	// 获取pending proposer slashings
 	poolProposerSlashings := s.srvConfig.SlashingsPool.PendingProposerSlashings(
 		ctx, nil, true, /* no limit */
 	)
+	// 获取pending attester slashings
 	poolAttesterSlashings := s.srvConfig.SlashingsPool.PendingAttesterSlashings(
 		ctx, nil, true, /* no limit */
 	)
@@ -251,6 +267,7 @@ func (s *Simulator) verifySlashingsWereDetected(ctx context.Context) {
 	}
 
 	// Check if the sent slashings made it into the slashings pool.
+	// 检查是否发送的slashings加入到了slashings pool
 	for slashingRoot, slashing := range s.sentProposerSlashings {
 		if _, ok := detectedProposerSlashings[slashingRoot]; !ok {
 			log.WithFields(logrus.Fields{
