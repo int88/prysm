@@ -15,6 +15,8 @@ import (
 
 // PoolManager maintains pending and seen voluntary exits.
 // This pool is used by proposers to insert voluntary exits into new blocks.
+// PoolManager维护了pending以及seed的voluntary exits
+// 这个pool由proposers使用来插入voluntary exits到新的blocks中
 type PoolManager interface {
 	PendingExits(state state.ReadOnlyBeaconState, slot types.Slot, noLimit bool) []*ethpb.SignedVoluntaryExit
 	InsertVoluntaryExit(ctx context.Context, state state.ReadOnlyBeaconState, exit *ethpb.SignedVoluntaryExit)

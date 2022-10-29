@@ -1,5 +1,7 @@
 // Package rpc defines a gRPC server implementing the Ethereum consensus API as needed
 // by validator clients and consumers of chain data.
+// rpc包定义了一个gRPC server，它实现了Ethereum consensu API，validator clients以及chain data的
+// consumers需要
 package rpc
 
 import (
@@ -190,6 +192,7 @@ func (s *Service) Start() {
 	withCache := stategen.WithCache(stateCache)
 	ch := stategen.NewCanonicalHistory(s.cfg.BeaconDB, s.cfg.ChainInfoFetcher, s.cfg.ChainInfoFetcher, withCache)
 
+	// 构建validator server
 	validatorServer := &validatorv1alpha1.Server{
 		Ctx:                    s.ctx,
 		AttestationCache:       cache.NewAttestationCache(),
@@ -243,6 +246,7 @@ func (s *Service) Start() {
 		SyncCommitteePool: s.cfg.SyncCommitteeObjectPool,
 	}
 
+	// 构建node server
 	nodeServer := &nodev1alpha1.Server{
 		LogsStreamer:         logs.NewStreamServer(),
 		StreamLogsBufferSize: 1000, // Enough to handle bursts of beacon node logs for gRPC streaming.
@@ -269,6 +273,7 @@ func (s *Service) Start() {
 		HeadFetcher:           s.cfg.HeadFetcher,
 	}
 
+	// 构建beacon chain server
 	beaconChainServer := &beaconv1alpha1.Server{
 		Ctx:                         s.ctx,
 		BeaconDB:                    s.cfg.BeaconDB,
@@ -323,6 +328,7 @@ func (s *Service) Start() {
 	ethpbv1alpha1.RegisterHealthServer(s.grpcServer, nodeServer)
 	ethpbv1alpha1.RegisterBeaconChainServer(s.grpcServer, beaconChainServer)
 	ethpbservice.RegisterBeaconChainServer(s.grpcServer, beaconChainServerV1)
+	// 构建event server
 	ethpbservice.RegisterEventsServer(s.grpcServer, &events.Server{
 		Ctx:               s.ctx,
 		StateNotifier:     s.cfg.StateNotifier,
@@ -330,6 +336,7 @@ func (s *Service) Start() {
 		OperationNotifier: s.cfg.OperationNotifier,
 	})
 	if s.cfg.EnableDebugRPCEndpoints {
+		// 构建debug gRPC endpoints
 		log.Info("Enabled debug gRPC endpoints")
 		debugServer := &debugv1alpha1.Server{
 			GenesisTimeFetcher: s.cfg.GenesisTimeFetcher,
@@ -356,9 +363,11 @@ func (s *Service) Start() {
 		ethpbv1alpha1.RegisterDebugServer(s.grpcServer, debugServer)
 		ethpbservice.RegisterBeaconDebugServer(s.grpcServer, debugServerV1)
 	}
+	// 注册validatro server
 	ethpbv1alpha1.RegisterBeaconNodeValidatorServer(s.grpcServer, validatorServer)
 	ethpbservice.RegisterBeaconValidatorServer(s.grpcServer, validatorServerV1)
 	// Register reflection service on gRPC server.
+	// 在gRPC server上注册反射服务
 	reflection.Register(s.grpcServer)
 
 	go func() {

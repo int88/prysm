@@ -20,6 +20,7 @@ import (
 )
 
 func (vs *Server) getBellatrixBeaconBlock(ctx context.Context, req *ethpb.BlockRequest) (*ethpb.GenericBeaconBlock, error) {
+	// 构建atlair beacon block
 	altairBlk, err := vs.buildAltairBeaconBlock(ctx, req)
 	if err != nil {
 		return nil, err

@@ -155,6 +155,7 @@ func TestService_Status_NoGenesisTimeSet(t *testing.T) {
 func TestListenForNewNodes(t *testing.T) {
 	params.SetupTestConfigCleanup(t)
 	// Setup bootnode.
+	// 创建bootnode
 	notifier := &mock.MockStateNotifier{}
 	cfg := &Config{StateNotifier: notifier}
 	port := 2000
@@ -173,6 +174,7 @@ func TestListenForNewNodes(t *testing.T) {
 	defer bootListener.Close()
 
 	// Use shorter period for testing.
+	// 使用更短的时间间隔用于测试
 	currentPeriod := pollingPeriod
 	pollingPeriod = 1 * time.Second
 	defer func() {
@@ -184,6 +186,7 @@ func TestListenForNewNodes(t *testing.T) {
 	var listeners []*discover.UDPv5
 	var hosts []host.Host
 	// setup other nodes.
+	// 构建其他nodes
 	cfg = &Config{
 		BootstrapNodeAddr:   []string{bootNode.String()},
 		Discv5BootStrapAddr: []string{bootNode.String()},
@@ -206,6 +209,7 @@ func TestListenForNewNodes(t *testing.T) {
 	}
 	defer func() {
 		// Close down all peers.
+		// 关闭所有的peers
 		for _, listener := range listeners {
 			listener.Close()
 		}
@@ -223,6 +227,7 @@ func TestListenForNewNodes(t *testing.T) {
 	cfg.UDPPort = 14000
 	cfg.TCPPort = 14001
 
+	// 构建新的p2p service
 	s, err = NewService(context.Background(), cfg)
 	require.NoError(t, err)
 	exitRoutine := make(chan bool)
@@ -232,6 +237,7 @@ func TestListenForNewNodes(t *testing.T) {
 	}()
 	time.Sleep(1 * time.Second)
 	// Send in a loop to ensure it is delivered (busy wait for the service to subscribe to the state feed).
+	// 在一个loop中发送来确保它被传输（busy wait相关的service，来订阅state feed）
 	for sent := 0; sent == 0; {
 		sent = s.stateNotifier.StateFeed().Send(&feed.Event{
 			Type: statefeed.Initialized,
@@ -242,6 +248,7 @@ func TestListenForNewNodes(t *testing.T) {
 		})
 	}
 	time.Sleep(4 * time.Second)
+	// 不是所有的peers都添加到了peerstore
 	assert.Equal(t, 5, len(s.host.Network().Peers()), "Not all peers added to peerstore")
 	require.NoError(t, s.Stop())
 	exitRoutine <- true

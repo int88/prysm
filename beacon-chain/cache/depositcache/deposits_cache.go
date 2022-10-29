@@ -31,6 +31,7 @@ var (
 )
 
 // DepositFetcher defines a struct which can retrieve deposit information from a store.
+// DepositFetcher定义一个结构，它可以从一个store中获取deposit信息
 type DepositFetcher interface {
 	AllDeposits(ctx context.Context, untilBlk *big.Int) []*ethpb.Deposit
 	DepositByPubkey(ctx context.Context, pubKey []byte) (*ethpb.Deposit, *big.Int)

@@ -11,6 +11,8 @@ var _ = Pool(&Store{})
 // validators. In the current design, aggregated attestations
 // are used by proposers and sync committee messages are used by
 // sync aggregators.
+// 在当前的设计中，aggregated attestations由proposers使用并且sync committee messages由
+// sync aggregators使用
 type Pool interface {
 	// Methods for Sync Contributions.
 	SaveSyncCommitteeContribution(contr *ethpb.SyncCommitteeContribution) error

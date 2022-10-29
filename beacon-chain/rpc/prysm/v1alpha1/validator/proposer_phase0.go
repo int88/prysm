@@ -19,6 +19,7 @@ import (
 )
 
 // blockData required to create a beacon block.
+// 创建一个beacon node所需的blockData
 type blockData struct {
 	ParentRoot        []byte
 	Graffiti          [32]byte
@@ -74,19 +75,23 @@ func (vs *Server) getPhase0BeaconBlock(ctx context.Context, req *ethpb.BlockRequ
 }
 
 // Build data required for creating a new beacon block, so this method can be shared across forks.
+// Build data需要创建一个新的beacon block，这样这个方法可以跨forks共享
 func (vs *Server) buildPhase0BlockData(ctx context.Context, req *ethpb.BlockRequest) (*blockData, error) {
 	ctx, span := trace.StartSpan(ctx, "ProposerServer.buildPhase0BlockData")
 	defer span.End()
 
 	if vs.SyncChecker.Syncing() {
+		// 正在同步到最新的head，没有准备好进行respond
 		return nil, fmt.Errorf("syncing to latest head, not ready to respond")
 	}
 
 	if err := vs.HeadUpdater.UpdateHead(ctx); err != nil {
+		// 不能处理attestations以及更新head
 		log.WithError(err).Error("Could not process attestations and update head")
 	}
 
 	// Retrieve the parent block as the current head of the canonical chain.
+	// 获取parent block，作为canonical chain的current head
 	parentRoot, err := vs.HeadFetcher.HeadRoot(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("could not retrieve head root: %v", err)
@@ -97,6 +102,7 @@ func (vs *Server) buildPhase0BlockData(ctx context.Context, req *ethpb.BlockRequ
 		return nil, fmt.Errorf("could not get head state %v", err)
 	}
 
+	// 不能移动slots来计算proposer index
 	head, err = transition.ProcessSlotsUsingNextSlotCache(ctx, head, parentRoot, req.Slot)
 	if err != nil {
 		return nil, fmt.Errorf("could not advance slots to calculate proposer index: %v", err)
@@ -104,9 +110,11 @@ func (vs *Server) buildPhase0BlockData(ctx context.Context, req *ethpb.BlockRequ
 
 	eth1Data, err := vs.eth1DataMajorityVote(ctx, head)
 	if err != nil {
+		// 不能获取eth1的数据
 		return nil, fmt.Errorf("could not get ETH1 data: %v", err)
 	}
 
+	// 对deposits和attestations进行封装
 	deposits, atts, err := vs.packDepositsAndAttestations(ctx, head, eth1Data)
 	if err != nil {
 		return nil, err
@@ -115,11 +123,13 @@ func (vs *Server) buildPhase0BlockData(ctx context.Context, req *ethpb.BlockRequ
 	graffiti := bytesutil.ToBytes32(req.Graffiti)
 
 	// Calculate new proposer index.
+	// 计算新的proposer的索引
 	idx, err := helpers.BeaconProposerIndex(ctx, head)
 	if err != nil {
 		return nil, fmt.Errorf("could not calculate proposer index %v", err)
 	}
 
+	// 获取合法的slashings
 	proposerSlashings := vs.SlashingsPool.PendingProposerSlashings(ctx, head, false /*noLimit*/)
 	validProposerSlashings := make([]*ethpb.ProposerSlashing, 0, len(proposerSlashings))
 	for _, slashing := range proposerSlashings {
@@ -141,6 +151,7 @@ func (vs *Server) buildPhase0BlockData(ctx context.Context, req *ethpb.BlockRequ
 		}
 		validAttSlashings = append(validAttSlashings, slashing)
 	}
+	// 构建合法的valid exits
 	exits := vs.ExitPool.PendingExits(head, req.Slot, false /*noLimit*/)
 	validExits := make([]*ethpb.SignedVoluntaryExit, 0, len(exits))
 	for _, exit := range exits {

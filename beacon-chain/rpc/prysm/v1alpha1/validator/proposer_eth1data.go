@@ -19,6 +19,8 @@ import (
 
 // eth1DataMajorityVote determines the appropriate eth1data for a block proposal using
 // an algorithm called Voting with the Majority. The algorithm works as follows:
+// eth1DataMajorityVote决定一个block proposal的合适的eth1data，使用一个算法叫做Voting with the
+// Majority，算法如下：
 //  - Determine the timestamp for the start slot for the eth1 voting period.
 //  - Determine the earliest and latest timestamps that a valid block can have.
 //  - Determine the first block not before the earliest timestamp. This block is the lower bound.

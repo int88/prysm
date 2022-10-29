@@ -34,6 +34,7 @@ type ChainInfoFetcher interface {
 
 // HeadUpdater defines a common interface for methods in blockchain service
 // which allow to update the head info
+// HeadUpdater定义了一个公共的接口，对于blockchain service中的方法，这允许更新head info
 type HeadUpdater interface {
 	UpdateHead(context.Context) error
 }
@@ -135,6 +136,7 @@ func (s *Service) HeadSlot() types.Slot {
 }
 
 // HeadRoot returns the root of the head of the chain.
+// HeadRoot返回chain的head的root
 func (s *Service) HeadRoot(ctx context.Context) ([]byte, error) {
 	s.headLock.RLock()
 	defer s.headLock.RUnlock()

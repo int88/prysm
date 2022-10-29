@@ -22,6 +22,7 @@ var (
 
 // PendingDepositsFetcher specifically outlines a struct that can retrieve deposits
 // which have not yet been included in the chain.
+// PendingDepositsFetcher具体概述了一个结构，可以获取deposits，还没有被包含在chain中
 type PendingDepositsFetcher interface {
 	PendingContainers(ctx context.Context, untilBlk *big.Int) []*ethpb.DepositContainer
 }

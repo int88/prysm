@@ -18,16 +18,19 @@ import (
 func (vs *Server) buildAltairBeaconBlock(ctx context.Context, req *ethpb.BlockRequest) (*ethpb.BeaconBlockAltair, error) {
 	ctx, span := trace.StartSpan(ctx, "ProposerServer.buildAltairBeaconBlock")
 	defer span.End()
+	// 构建phase0 block
 	blkData, err := vs.buildPhase0BlockData(ctx, req)
 	if err != nil {
 		return nil, fmt.Errorf("could not build block data: %v", err)
 	}
 
 	// Use zero hash as stub for state root to compute later.
+	// 使用zero hash作为stub，作为state root在后面计算
 	stateRoot := params.BeaconConfig().ZeroHash[:]
 
 	// No need for safe sub as req.Slot cannot be 0 if requesting Altair blocks. If 0, we will be throwing
 	// an error in the first validity check of this endpoint.
+	// 请求Altair blocks的话，req.Slot不可能为0
 	syncAggregate, err := vs.getSyncAggregate(ctx, req.Slot-1, bytesutil.ToBytes32(blkData.ParentRoot))
 	if err != nil {
 		return nil, err

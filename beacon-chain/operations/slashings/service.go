@@ -19,6 +19,7 @@ import (
 )
 
 // NewPool returns an initialized attester slashing and proposer slashing pool.
+// NewPool返回一个初始化的attester slashing以及proposer slashing pool
 func NewPool() *Pool {
 	return &Pool{
 		pendingProposerSlashing: make([]*ethpb.ProposerSlashing, 0),

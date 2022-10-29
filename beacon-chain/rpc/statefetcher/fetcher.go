@@ -71,6 +71,7 @@ func (e *StateRootNotFoundError) Error() string {
 }
 
 // Fetcher is responsible for retrieving info related with the beacon chain.
+// Fetcher负责获取beacon chain相关的数据
 type Fetcher interface {
 	State(ctx context.Context, stateId []byte) (state.BeaconState, error)
 	StateRoot(ctx context.Context, stateId []byte) ([]byte, error)
@@ -78,6 +79,7 @@ type Fetcher interface {
 }
 
 // StateProvider is a real implementation of Fetcher.
+// StateProvider是Fetcher真正的实现
 type StateProvider struct {
 	BeaconDB           db.ReadOnlyDatabase
 	ChainInfoFetcher   blockchain.ChainInfoFetcher
@@ -87,6 +89,8 @@ type StateProvider struct {
 }
 
 // State returns the BeaconState for a given identifier. The identifier can be one of:
+// State返回一个给定identifier的BeaconState，identifier可以是下面任意一个：
+// "head", "genesis", "finalized", "justified", slot, 以'0x'开头的hex encoded state
 //  - "head" (canonical head in node's view)
 //  - "genesis"
 //  - "finalized"

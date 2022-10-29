@@ -202,9 +202,11 @@ func (s *Service) createListener(
 		if err != nil {
 			return nil, errors.Wrap(err, "could not bootstrap addr")
 		}
+		// 保存到bootnodes
 		dv5Cfg.Bootnodes = append(dv5Cfg.Bootnodes, bootNode)
 	}
 
+	// 监听discV5
 	listener, err := discover.ListenV5(conn, localNode, dv5Cfg)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not listen to discV5")

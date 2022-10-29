@@ -824,6 +824,7 @@ func (b *BeaconNode) registerRPCService() error {
 		maxMsgSize = int(math.Max(float64(maxMsgSize), debugGrpcMaxMsgSize))
 	}
 
+	// 构建p2p服务
 	p2pService := b.fetchP2P()
 	rpcService := rpc.NewService(b.ctx, &rpc.Config{
 		Host:                    host,

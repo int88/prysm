@@ -59,6 +59,7 @@ const pubsubQueueSize = 600
 var maxDialTimeout = params.BeaconNetworkConfig().RespTimeout
 
 // Service for managing peer to peer (p2p) networking.
+// 用于管理p2p networking的Service
 type Service struct {
 	started               bool
 	isPreGenesis          bool
@@ -88,6 +89,8 @@ type Service struct {
 
 // NewService initializes a new p2p service compatible with shared.Service interface. No
 // connections are made until the Start function is called during the service registry startup.
+// NewService初始化一个新的p2p service，和shard.Service接口兼容，没有连接会被创建，直到Start函数在service
+// registry startup的时候被调用
 func NewService(ctx context.Context, cfg *Config) (*Service, error) {
 	var err error
 	ctx, cancel := context.WithCancel(ctx)

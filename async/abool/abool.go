@@ -1,5 +1,6 @@
 // Package abool provides atomic Boolean type for cleaner code and
 // better performance.
+// abool包提供了原子的Boolean类型，用于更干净的代码和更好的性能
 // All rights reserved to https://github.com/tevino/abool.
 package abool
 

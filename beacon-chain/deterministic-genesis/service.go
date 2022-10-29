@@ -27,6 +27,8 @@ var _ powchain.ChainStartFetcher = (*Service)(nil)
 
 // Service spins up an client interoperability service that handles responsibilities such
 // as kickstarting a genesis state for the beacon node from cli flags or a genesis.ssz file.
+// Service启动一个client interoperability service，负责例如启动一个genesis state，对于beacon node
+// 从cli flags或者一个genesis.ssz文件
 type Service struct {
 	cfg                *Config
 	ctx                context.Context

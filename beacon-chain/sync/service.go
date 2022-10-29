@@ -305,6 +305,7 @@ func (s *Service) markForChainStart() {
 
 // Checker defines a struct which can verify whether a node is currently
 // synchronizing a chain with the rest of peers in the network.
+// Checker定义了一个结构可以校验是否一个node正在和一个chain进行同步
 type Checker interface {
 	Initialized() bool
 	Syncing() bool
