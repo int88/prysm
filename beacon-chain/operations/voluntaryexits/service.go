@@ -31,6 +31,7 @@ type Pool struct {
 
 // NewPool accepts a head fetcher (for reading the validator set) and returns an initialized
 // voluntary exit pool.
+// NewPool接收一个head fetcher（用于读取validator set）并且返回一个初始化完成的voluntary exit pool
 func NewPool() *Pool {
 	return &Pool{
 		pending: make([]*ethpb.SignedVoluntaryExit, 0),
@@ -67,6 +68,7 @@ func (p *Pool) PendingExits(state state.ReadOnlyBeaconState, slot types.Slot, no
 
 // InsertVoluntaryExit into the pool. This method is a no-op if the pending exit already exists,
 // or the validator is already exited.
+// InsertVoluntaryExit到pool，这个方法是一个no-op，如果pending exit已经存在或者validator已经退出了e
 func (p *Pool) InsertVoluntaryExit(ctx context.Context, state state.ReadOnlyBeaconState, exit *ethpb.SignedVoluntaryExit) {
 	_, span := trace.StartSpan(ctx, "exitPool.InsertVoluntaryExit")
 	defer span.End()
@@ -82,6 +84,8 @@ func (p *Pool) InsertVoluntaryExit(ctx context.Context, state state.ReadOnlyBeac
 	// If the item exists in the pending list and includes a more favorable, earlier
 	// exit epoch, we replace it in the pending list. If it exists but the prior condition is false,
 	// we simply return.
+	// 如果item已经在pending list中存在并且包含一个more favorable，更早的exit epoch，我们在pending list中
+	// 替换它，如果它存在，但是之前的condition为false，我们简单地返回
 	if existsInPending {
 		if exit.Exit.Epoch < p.pending[index].Exit.Epoch {
 			p.pending[index] = exit
@@ -90,12 +94,14 @@ func (p *Pool) InsertVoluntaryExit(ctx context.Context, state state.ReadOnlyBeac
 	}
 
 	// Has the validator been exited already?
+	// validator已经退出了？
 	if v, err := state.ValidatorAtIndexReadOnly(exit.Exit.ValidatorIndex); err != nil ||
 		v.ExitEpoch() != params.BeaconConfig().FarFutureEpoch {
 		return
 	}
 
 	// Insert into pending list and sort.
+	// 插入到pending list并且排序
 	p.pending = append(p.pending, exit)
 	sort.Slice(p.pending, func(i, j int) bool {
 		return p.pending[i].Exit.ValidatorIndex < p.pending[j].Exit.ValidatorIndex

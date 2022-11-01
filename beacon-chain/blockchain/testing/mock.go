@@ -72,6 +72,7 @@ func (s *ChainService) ForkChoicer() forkchoice.ForkChoicer {
 }
 
 // StateNotifier mocks the same method in the chain service.
+// StateNotifier模拟了chain service中同样的方法
 func (s *ChainService) StateNotifier() statefeed.Notifier {
 	if s.stateNotifier == nil {
 		s.stateNotifier = &MockStateNotifier{}

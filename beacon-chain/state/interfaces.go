@@ -89,6 +89,7 @@ type WriteOnlyBeaconState interface {
 }
 
 // ReadOnlyValidator defines a struct which only has read access to validator methods.
+// ReadOnlyValidator定义了一个结构，对于validator方法只有read access
 type ReadOnlyValidator interface {
 	EffectiveBalance() uint64
 	ActivationEligibilityEpoch() types.Epoch

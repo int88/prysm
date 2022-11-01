@@ -22,11 +22,17 @@ import (
 // eth1DataMajorityVote决定一个block proposal的合适的eth1data，使用一个算法叫做Voting with the
 // Majority，算法如下：
 //  - Determine the timestamp for the start slot for the eth1 voting period.
+//	- 决定eht1 voting period的start slot的时间戳
 //  - Determine the earliest and latest timestamps that a valid block can have.
+//	- 决定一个合法的block可以有的最早的和最晚的时间戳
 //  - Determine the first block not before the earliest timestamp. This block is the lower bound.
+//	- 决定第一个不早于earliest timestamp的第一个block，这个block是lower bound
 //  - Determine the last block not after the latest timestamp. This block is the upper bound.
+//	- 决定最后一个不晚于latest timestamp的block，这个block是upper bound
 //  - If the last block is too early, use current eth1data from the beacon state.
+//	- 如果last block太早，使用当前的eth1data，来自beacon state
 //  - Filter out votes on unknown blocks and blocks which are outside of the range determined by the lower and upper bounds.
+//  - 过滤给unknown blocks的votes以及blocks在lower bound和upper bounds之外
 //  - If no blocks are left after filtering votes, use eth1data from the latest valid block.
 //  - Otherwise:
 //    - Determine the vote with the highest count. Prefer the vote with the highest eth1 block height in the event of a tie.

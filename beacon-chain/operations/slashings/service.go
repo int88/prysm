@@ -266,6 +266,9 @@ func (p *Pool) MarkIncludedProposerSlashing(ps *ethpb.ProposerSlashing) {
 // a proposer/attester slashing into the pool. First, it checks if the validator
 // has been recently included in the pool, then it checks if the validator is slashable.
 // Note: this method requires caller to hold the lock.
+// 这个函数检查关于一个validator的一些items，在处理之前，插入一个proposer/slasher到pool中
+// 首先，它检查是否validator已经被加入到pool中，之后它检查是否一个validator是slashable
+// 注意：这个方法需要持有锁
 func (p *Pool) validatorSlashingPreconditionCheck(
 	state state.ReadOnlyBeaconState,
 	valIdx types.ValidatorIndex,
@@ -275,6 +278,7 @@ func (p *Pool) validatorSlashingPreconditionCheck(
 	}
 
 	// Check if the validator index has been included recently.
+	// 检查validator index最近已经被包含了
 	if p.included[valIdx] {
 		return false, nil
 	}
@@ -283,6 +287,7 @@ func (p *Pool) validatorSlashingPreconditionCheck(
 		return false, err
 	}
 	// Checking if the validator is slashable.
+	// 检查validator是可以slash的
 	if !helpers.IsSlashableValidatorUsingTrie(validator, time.CurrentEpoch(state)) {
 		return false, nil
 	}

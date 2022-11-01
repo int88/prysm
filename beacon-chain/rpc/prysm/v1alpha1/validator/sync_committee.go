@@ -19,10 +19,12 @@ import (
 )
 
 // GetSyncMessageBlockRoot retrieves the sync committee block root of the beacon chain.
+// GetSyncMessageBlockRoot获取beacon chain的sync committee block root，
 func (vs *Server) GetSyncMessageBlockRoot(
 	ctx context.Context, _ *emptypb.Empty,
 ) (*ethpb.SyncMessageBlockRootResponse, error) {
 	// An optimistic validator MUST NOT participate in sync committees
+	// 一个optimistic validator必须不参与sync committees
 	// (i.e., sign across the DOMAIN_SYNC_COMMITTEE, DOMAIN_SYNC_COMMITTEE_SELECTION_PROOF or DOMAIN_CONTRIBUTION_AND_PROOF domains).
 	if err := vs.optimisticStatus(ctx); err != nil {
 		return nil, err
@@ -39,7 +41,9 @@ func (vs *Server) GetSyncMessageBlockRoot(
 }
 
 // SubmitSyncMessage submits the sync committee message to the network.
+// SubmitSyncMessage提交sync committee message到network
 // It also saves the sync committee message into the pending pool for block inclusion.
+// 它同时保存sync committee message到pending pool用于block inclusion
 func (vs *Server) SubmitSyncMessage(ctx context.Context, msg *ethpb.SyncCommitteeMessage) (*emptypb.Empty, error) {
 	errs, ctx := errgroup.WithContext(ctx)
 
@@ -49,6 +53,8 @@ func (vs *Server) SubmitSyncMessage(ctx context.Context, msg *ethpb.SyncCommitte
 	}
 	// Broadcasting and saving message into the pool in parallel. As one fail should not affect another.
 	// This broadcasts for all subnets.
+	// 并行地广播并且保存message到pool中，因为一个失败了不会影响另一个
+	// 它广播到所有的subnets
 	for _, index := range headSyncCommitteeIndices {
 		subCommitteeSize := params.BeaconConfig().SyncCommitteeSize / params.BeaconConfig().SyncCommitteeSubnetCount
 		subnet := uint64(index) / subCommitteeSize
@@ -62,6 +68,7 @@ func (vs *Server) SubmitSyncMessage(ctx context.Context, msg *ethpb.SyncCommitte
 	}
 
 	// Wait for p2p broadcast to complete and return the first error (if any)
+	// 等待p2p广播完成并且返回第一个error
 	err = errs.Wait()
 	return &emptypb.Empty{}, err
 }
@@ -118,6 +125,8 @@ func (vs *Server) GetSyncCommitteeContribution(
 
 // SubmitSignedContributionAndProof is called by a sync committee aggregator
 // to submit signed contribution and proof object.
+// SubmitSignedContributionAndProof被一个sync committee aggregator调用来提交
+// signed contribution以及proof对象
 func (vs *Server) SubmitSignedContributionAndProof(
 	ctx context.Context, s *ethpb.SignedContributionAndProof,
 ) (*emptypb.Empty, error) {

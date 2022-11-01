@@ -212,10 +212,13 @@ func (vs *Server) CheckDoppelGanger(ctx context.Context, req *ethpb.DoppelGanger
 
 // activationStatus returns the validator status response for the set of validators
 // requested by their pub keys.
+// activationStatus返回validator status response，对于请求的一系列validators，通过它们的pub keys
+// 进行请求
 func (vs *Server) activationStatus(
 	ctx context.Context,
 	pubKeys [][]byte,
 ) (bool, []*ethpb.ValidatorActivationResponse_Status, error) {
+	// 获取head state
 	headState, err := vs.HeadFetcher.HeadState(ctx)
 	if err != nil {
 		return false, nil, err
@@ -237,6 +240,7 @@ func (vs *Server) activationStatus(
 		}
 		statusResponses[i] = resp
 		if vStatus.Status == ethpb.ValidatorStatus_ACTIVE {
+			// 存在active validator
 			activeValidatorExists = true
 		}
 	}
@@ -268,6 +272,7 @@ func (vs *Server) optimisticStatus(ctx context.Context) error {
 }
 
 // validatorStatus searches for the requested validator's state and deposit to retrieve its inclusion estimate. Also returns the validators index.
+// validatorStatus查找请求的validator的state以及deposit来获取它的inclusion estimate，同时返回validators的index
 func (vs *Server) validatorStatus(
 	ctx context.Context,
 	headState state.ReadOnlyBeaconState,
@@ -298,14 +303,17 @@ func (vs *Server) validatorStatus(
 
 	switch resp.Status {
 	// Unknown status means the validator has not been put into the state yet.
+	// Unknown status意味着validator还没有被加入到state
 	case ethpb.ValidatorStatus_UNKNOWN_STATUS:
 		// If no connection to ETH1, the deposit block number or position in queue cannot be determined.
+		// 如果没有连接到ETH1，deposit block number或者队列中的位置不能确定
 		if !vs.Eth1InfoFetcher.IsConnectedToETH1() {
 			log.Warn("Not connected to ETH1. Cannot determine validator ETH1 deposit block number")
 			return resp, nonExistentIndex
 		}
 		dep, eth1BlockNumBigInt := vs.DepositFetcher.DepositByPubkey(ctx, pubKey)
 		if eth1BlockNumBigInt == nil { // No deposit found in ETH1.
+			// 在ETH1中没有找到deposit
 			return resp, nonExistentIndex
 		}
 		domain, err := signing.ComputeDomain(
@@ -323,17 +331,20 @@ func (vs *Server) validatorStatus(
 			return resp, nonExistentIndex
 		}
 		// Set validator deposit status if their deposit is visible.
+		// 设置validator deposit status，如果它们的deposit可见
 		resp.Status = depositStatus(dep.Data.Amount)
 		resp.Eth1DepositBlockNumber = eth1BlockNumBigInt.Uint64()
 
 		return resp, nonExistentIndex
 	// Deposited, Pending or Partially Deposited mean the validator has been put into the state.
+	// Deposited, Pending或者部分Deposited，意味着validator已经被放入state
 	case ethpb.ValidatorStatus_DEPOSITED, ethpb.ValidatorStatus_PENDING, ethpb.ValidatorStatus_PARTIALLY_DEPOSITED:
 		if resp.Status == ethpb.ValidatorStatus_PENDING {
 			if vs.DepositFetcher == nil {
 				log.Warn("Not connected to ETH1. Cannot determine validator ETH1 deposit.")
 			} else {
 				// Check if there was a deposit deposit.
+				// 检查是否有一个deposit
 				d, eth1BlockNumBigInt := vs.DepositFetcher.DepositByPubkey(ctx, pubKey)
 				if eth1BlockNumBigInt != nil {
 					resp.Status = depositStatus(d.Data.Amount)
@@ -354,6 +365,7 @@ func (vs *Server) validatorStatus(
 			}
 		}
 		// Our position in the activation queue is the above index - our validator index.
+		// 我们在activation queue中的位置已经超过了上面的index - 我们的validator index
 		if lastActivatedvalidatorIndex < idx {
 			resp.PositionInActivationQueue = uint64(idx - lastActivatedvalidatorIndex)
 		}
@@ -425,15 +437,20 @@ func assignmentStatus(beaconState state.ReadOnlyBeaconState, validatorIndex type
 		return depositStatus(validatorBalance)
 	}
 	if currentEpoch < validator.ActivationEpoch() {
+		// 当前的epoch小于validator的active epoch，则处于PENDING
 		return ethpb.ValidatorStatus_PENDING
 	}
 	if validator.ExitEpoch() == farFutureEpoch {
+		// 当前的epoch不小于ActivationEpoch，且Exit Epoch为farFutureEpoch，则状态为ACTIVE
 		return ethpb.ValidatorStatus_ACTIVE
 	}
 	if currentEpoch < validator.ExitEpoch() {
+		// 当ExitEpoch()不为fatFutureEpoch，则已经进入退出状态
 		if validator.Slashed() {
+			// 正在处于SLASHING
 			return ethpb.ValidatorStatus_SLASHING
 		}
+		// 正在退出
 		return ethpb.ValidatorStatus_EXITING
 	}
 	return ethpb.ValidatorStatus_EXITED

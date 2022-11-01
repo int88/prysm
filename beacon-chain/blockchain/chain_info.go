@@ -178,6 +178,8 @@ func (s *Service) HeadBlock(ctx context.Context) (interfaces.SignedBeaconBlock, 
 // HeadState returns the head state of the chain.
 // If the head is nil from service struct,
 // it will attempt to get the head state from DB.
+// HeadState返回chain的head state，如果来自service结构的head为nil
+// 它会试着从DB中获取head state
 func (s *Service) HeadState(ctx context.Context) (state.BeaconState, error) {
 	ctx, span := trace.StartSpan(ctx, "blockChain.HeadState")
 	defer span.End()

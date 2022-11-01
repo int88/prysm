@@ -51,6 +51,7 @@ type PriorityQueue struct {
 
 	// lock is a read/write mutex, and used to facilitate read/write locks on the
 	// data and dataMap fields
+	// lock是一个读/写的mutex，并且用于促进data以及dataMap字段的读写locks
 	lock sync.RWMutex
 }
 
@@ -76,6 +77,7 @@ type Item struct {
 }
 
 // Len returns the count of items in the Priority Queue
+// Len返回Priority Queue中的items的数目
 func (pq *PriorityQueue) Len() int {
 	pq.lock.RLock()
 	defer pq.lock.RUnlock()
@@ -151,6 +153,8 @@ func (pq *PriorityQueue) PopByKey(key string) (*Item, error) {
 
 // RetrieveByKey searches the queue for an item with the given key and returns it
 // from the queue if found. Returns nil if not found.
+// RetrieveByKey用给定的key从队列中找到一个item并且从队列中返回，如果找到的话，如果没找到
+// 则返回nil
 func (pq *PriorityQueue) RetrieveByKey(key string) *Item {
 	pq.lock.Lock()
 	defer pq.lock.Unlock()

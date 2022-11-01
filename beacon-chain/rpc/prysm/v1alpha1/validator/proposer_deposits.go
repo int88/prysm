@@ -62,6 +62,9 @@ func (vs *Server) packDepositsAndAttestations(ctx context.Context, head state.Be
 // this eth1data has enough support to be considered for deposits inclusion. If current vote has
 // enough support, then use that vote for basis of determining deposits, otherwise use current state
 // eth1data.
+// deposits返回一系列pending deposits，准备好包含在下一个beacon block，确定deposits取决于当前的eth1data vote
+// 对于block，这个eth1data是否有足够的支持，对于deposit inclusion，如果当前的vote有足够的支持，那使用
+// vote对于决定deposits，否则使用当前的state的eth1data
 func (vs *Server) deposits(
 	ctx context.Context,
 	beaconState state.BeaconState,
@@ -80,6 +83,8 @@ func (vs *Server) deposits(
 	}
 	// Need to fetch if the deposits up to the state's latest eth1 data matches
 	// the number of all deposits in this RPC call. If not, then we return nil.
+	// 需要去抓取，如果到state的最新的eth1 data的deposits匹配在这次RPC调用的所有的deposits的数目
+	// 如果没有的话，返回nil
 	canonicalEth1Data, canonicalEth1DataHeight, err := vs.canonicalEth1Data(ctx, beaconState, currentVote)
 	if err != nil {
 		return nil, err
@@ -91,6 +96,7 @@ func (vs *Server) deposits(
 	}
 
 	// If there are no pending deposits, exit early.
+	// 如果没有pending deposits，尽早退出
 	allPendingContainers := vs.PendingDepositsFetcher.PendingContainers(ctx, canonicalEth1DataHeight)
 	if len(allPendingContainers) == 0 {
 		log.Debug("no pending deposits for inclusion in block")

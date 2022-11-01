@@ -10,11 +10,15 @@ import (
 )
 
 // To give two slots tolerance for objects that arrive earlier.
+// 对于早到的对象，给两个slots的容忍
 // This account for previous slot, current slot, two future slots.
+// 这个用于之前的slot, 当前的slot，以及两个未来的slot
 const syncCommitteeMaxQueueSize = 4
 
 // SaveSyncCommitteeContribution saves a sync committee contribution in to a priority queue.
 // The priority queue is capped at syncCommitteeMaxQueueSize contributions.
+// SaveSyncCommitteeContribution保存一个sync committee contribution到一个优先级队列，这个优先级队列
+// 被限制在syncCommitteeMaxQueueSize个contributions
 func (s *Store) SaveSyncCommitteeContribution(cont *ethpb.SyncCommitteeContribution) error {
 	if cont == nil {
 		return errNilContribution
@@ -47,6 +51,7 @@ func (s *Store) SaveSyncCommitteeContribution(cont *ethpb.SyncCommitteeContribut
 	}
 
 	// Contribution does not exist. Insert new.
+	// Contribution不存在，插入新的
 	if err := s.contributionCache.Push(&queue.Item{
 		Key:      syncCommitteeKey(cont.Slot),
 		Value:    []*ethpb.SyncCommitteeContribution{copied},

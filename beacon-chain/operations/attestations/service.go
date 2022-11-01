@@ -1,6 +1,8 @@
 // Package attestations defines an attestation pool
 // service implementation which is used to manage the lifecycle
 // of aggregated, unaggregated, and fork-choice attestations.
+// attestations包定义了一个attestation pool service实现，它用于管理aggregated,
+// unaggregated以及fork-choice attestations的生命周期
 package attestations
 
 import (
@@ -67,6 +69,7 @@ func (s *Service) Stop() error {
 }
 
 // Status returns the current service err if there's any.
+// Status返回当前的service err，如果有的话
 func (s *Service) Status() error {
 	if s.err != nil {
 		return s.err

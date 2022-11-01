@@ -72,6 +72,7 @@ func (s *Service) BroadcastAttestation(ctx context.Context, subnet uint64, att *
 
 // BroadcastSyncCommitteeMessage broadcasts a sync committee message to the p2p network, the message is assumed to be
 // broadcasted to the current fork.
+// BroadcastSyncCommitteeMessage广播一个sync committee message到p2p network，message假设广播到当前的fork
 func (s *Service) BroadcastSyncCommitteeMessage(ctx context.Context, subnet uint64, sMsg *ethpb.SyncCommitteeMessage) error {
 	ctx, span := trace.StartSpan(ctx, "p2p.BroadcastSyncCommitteeMessage")
 	defer span.End()
@@ -83,6 +84,7 @@ func (s *Service) BroadcastSyncCommitteeMessage(ctx context.Context, subnet uint
 	}
 
 	// Non-blocking broadcast, with attempts to discover a subnet peer if none available.
+	// 非阻塞的广播，试着发现一个subnet peer，如果没有可用的话
 	go s.broadcastSyncCommittee(ctx, subnet, sMsg, forkDigest)
 
 	return nil

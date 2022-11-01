@@ -15,10 +15,12 @@ import (
 )
 
 // Prepare attestations for fork choice three times per slot.
+// 为fork choice准备attestations，每个slot三次
 var prepareForkChoiceAttsPeriod = slots.DivideSlotBy(3 /* times-per-slot */)
 
 // This prepares fork choice attestations by running batchForkChoiceAtts
 // every prepareForkChoiceAttsPeriod.
+// 这个准备fork choice attestations，通过运行batchForkChoiceAtts，每个prepareForkChoiceAttsPeriod
 func (s *Service) prepareForkChoiceAtts() {
 	ticker := time.NewTicker(prepareForkChoiceAttsPeriod)
 	defer ticker.Stop()

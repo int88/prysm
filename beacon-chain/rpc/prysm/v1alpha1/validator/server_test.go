@@ -45,6 +45,7 @@ func TestValidatorIndex_OK(t *testing.T) {
 		PublicKey: pubKey,
 	}
 	_, err = Server.ValidatorIndex(context.Background(), req)
+	// 不能获取validator index
 	assert.NoError(t, err, "Could not get validator index")
 }
 
@@ -92,6 +93,7 @@ func TestWaitForActivation_ContextClosed(t *testing.T) {
 
 func TestWaitForActivation_ValidatorOriginallyExists(t *testing.T) {
 	// This test breaks if it doesnt use mainnet config
+	// 这个test会breaks，如果它不适用mainnet的配置
 	params.SetupTestConfigCleanup(t)
 	params.OverrideBeaconConfig(params.MainnetConfig().Copy())
 	ctx := context.Background()
@@ -133,12 +135,14 @@ func TestWaitForActivation_ValidatorOriginallyExists(t *testing.T) {
 		Data: depData,
 	}
 	depositTrie, err := trie.NewTrie(params.BeaconConfig().DepositContractTreeDepth)
+	// 不能构建deposit trie
 	require.NoError(t, err, "Could not setup deposit trie")
 	depositCache, err := depositcache.New()
 	require.NoError(t, err)
 
 	root, err := depositTrie.HashTreeRoot()
 	require.NoError(t, err)
+	// 在cache中插入deposit
 	assert.NoError(t, depositCache.InsertDeposit(ctx, deposit, 10 /*blockNum*/, 0, root))
 	s, err := v1.InitializeFromProtoUnsafe(beaconState)
 	require.NoError(t, err)
@@ -164,6 +168,7 @@ func TestWaitForActivation_ValidatorOriginallyExists(t *testing.T) {
 				{
 					PublicKey: pubKey1,
 					Status: &ethpb.ValidatorStatusResponse{
+						// 状态是ACTIVE
 						Status: ethpb.ValidatorStatus_ACTIVE,
 					},
 					Index: 0,
@@ -224,7 +229,8 @@ func TestWaitForActivation_MultipleStatuses(t *testing.T) {
 	vs := &Server{
 		Ctx:               context.Background(),
 		ChainStartFetcher: &mockPOW.POWChain{},
-		HeadFetcher:       &mockChain.ChainService{State: s, Root: genesisRoot[:]},
+		// 将state作为参数传入
+		HeadFetcher: &mockChain.ChainService{State: s, Root: genesisRoot[:]},
 	}
 	req := &ethpb.ValidatorActivationRequest{
 		PublicKeys: [][]byte{pubKey1, pubKey2, pubKey3},
@@ -290,6 +296,7 @@ func TestWaitForChainStart_ContextClosed(t *testing.T) {
 		assert.ErrorContains(tt, "Context canceled", err)
 		<-exitRoutine
 	}(t)
+	// 取消context
 	cancel()
 	exitRoutine <- true
 }
@@ -307,6 +314,7 @@ func TestWaitForChainStart_AlreadyStarted(t *testing.T) {
 		ChainStartFetcher: &mockPOW.POWChain{
 			ChainFeed: new(event.Feed),
 		},
+		// 构建state notifier
 		StateNotifier: chainService.StateNotifier(),
 		HeadFetcher:   chainService,
 	}
@@ -328,6 +336,7 @@ func TestWaitForChainStart_HeadStateDoesNotExist(t *testing.T) {
 	genesisValidatorsRoot := params.BeaconConfig().ZeroHash
 
 	// Set head state to nil
+	// 设置head state为nil
 	chainService := &mockChain.ChainService{State: nil}
 	notifier := chainService.StateNotifier()
 	Server := &Server{
@@ -351,6 +360,7 @@ func TestWaitForChainStart_HeadStateDoesNotExist(t *testing.T) {
 	}()
 	// Simulate a late state initialization event, so that
 	// method is able to handle race condition here.
+	// 模拟一个late state initialization event，这样这个方法可以处理race condition
 	notifier.StateFeed().Send(&feed.Event{
 		Type: statefeed.Initialized,
 		Data: &statefeed.InitializedData{
@@ -392,6 +402,7 @@ func TestWaitForChainStart_NotStartedThenLogFired(t *testing.T) {
 	}(t)
 
 	// Send in a loop to ensure it is delivered (busy wait for the service to subscribe to the state feed).
+	// 在一个循环里发送，确保它被传递（对于service进行busy wait来订阅state feed）
 	for sent := 0; sent == 0; {
 		sent = Server.StateNotifier.StateFeed().Send(&feed.Event{
 			Type: statefeed.Initialized,
@@ -403,5 +414,6 @@ func TestWaitForChainStart_NotStartedThenLogFired(t *testing.T) {
 	}
 
 	exitRoutine <- true
+	// 发送genesis time
 	require.LogsContain(t, hook, "Sending genesis time")
 }

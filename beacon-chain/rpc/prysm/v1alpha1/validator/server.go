@@ -78,6 +78,8 @@ type Server struct {
 // WaitForActivation checks if a validator public key exists in the active validator registry of the current
 // beacon state, if not, then it creates a stream which listens for canonical states which contain
 // the validator with the public key as an active validator record.
+// WaitForActivation检查是否一个validator public key在active validator registry中存在，对于当前的beacon state
+// 如果不是的话，它创建一个stream，监听在canonical states，包含了validator，public keys作为一个active validator record
 func (vs *Server) WaitForActivation(req *ethpb.ValidatorActivationRequest, stream ethpb.BeaconNodeValidator_WaitForActivationServer) error {
 	activeValidatorExists, validatorStatuses, err := vs.activationStatus(stream.Context(), req.PublicKeys)
 	if err != nil {
@@ -96,6 +98,7 @@ func (vs *Server) WaitForActivation(req *ethpb.ValidatorActivationRequest, strea
 	for {
 		select {
 		// Pinging every slot for activation.
+		// 每个slot ping一次，用于activation
 		case <-time.After(time.Duration(params.BeaconConfig().SecondsPerSlot) * time.Second):
 			activeValidatorExists, validatorStatuses, err := vs.activationStatus(stream.Context(), req.PublicKeys)
 			if err != nil {
@@ -159,10 +162,12 @@ func (vs *Server) DomainData(_ context.Context, request *ethpb.DomainRequest) (*
 func (vs *Server) WaitForChainStart(_ *emptypb.Empty, stream ethpb.BeaconNodeValidator_WaitForChainStartServer) error {
 	head, err := vs.HeadFetcher.HeadState(stream.Context())
 	if err != nil {
+		// 不能获取head state
 		return status.Errorf(codes.Internal, "Could not retrieve head state: %v", err)
 	}
 	if head != nil && !head.IsNil() {
 		res := &ethpb.ChainStartResponse{
+			// 返回chain start response
 			Started:               true,
 			GenesisTime:           head.GenesisTime(),
 			GenesisValidatorsRoot: head.GenesisValidatorsRoot(),
@@ -171,6 +176,7 @@ func (vs *Server) WaitForChainStart(_ *emptypb.Empty, stream ethpb.BeaconNodeVal
 	}
 
 	stateChannel := make(chan *feed.Event, 1)
+	// 订阅state notifier
 	stateSub := vs.StateNotifier.StateFeed().Subscribe(stateChannel)
 	defer stateSub.Unsubscribe()
 	for {
@@ -182,6 +188,7 @@ func (vs *Server) WaitForChainStart(_ *emptypb.Empty, stream ethpb.BeaconNodeVal
 					return errors.New("event data is not type *statefeed.InitializedData")
 				}
 				log.WithField("starttime", data.StartTime).Debug("Received chain started event")
+				// 发送genesis time notification到连接的validator
 				log.Debug("Sending genesis time notification to connected validator clients")
 				res := &ethpb.ChainStartResponse{
 					Started:               true,
