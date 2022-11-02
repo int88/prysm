@@ -647,6 +647,7 @@ func (b *BeaconNode) registerBlockchainService() error {
 		blockchain.WithFinalizedStateAtStartUp(b.finalizedStateAtStartUp),
 		blockchain.WithProposerIdsCache(b.proposerIdsCache),
 	)
+	// 启动blockchain service
 	blockchainService, err := blockchain.NewService(b.ctx, opts...)
 	if err != nil {
 		return errors.Wrap(err, "could not register blockchain service")
@@ -731,6 +732,7 @@ func (b *BeaconNode) registerInitialSyncService() error {
 		return err
 	}
 
+	// 启动initial sync service
 	is := initialsync.NewService(b.ctx, &initialsync.Config{
 		DB:            b.db,
 		Chain:         chainService,
@@ -754,6 +756,7 @@ func (b *BeaconNode) registerSlasherService() error {
 		return err
 	}
 
+	// 构建slasher
 	slasherSrv, err := slasher.New(b.ctx, &slasher.ServiceConfig{
 		IndexedAttestationsFeed: b.slasherAttestationsFeed,
 		BeaconBlockHeadersFeed:  b.slasherBlockHeadersFeed,

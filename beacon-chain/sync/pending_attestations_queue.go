@@ -22,6 +22,7 @@ import (
 var processPendingAttsPeriod = slots.DivideSlotBy(2 /* twice per slot */)
 
 // This processes pending attestation queues on every `processPendingAttsPeriod`.
+// 处理pending attestation queues，每`processPendingAttsPeriod`
 func (s *Service) processPendingAttsQueue() {
 	// Prevents multiple queue processing goroutines (invoked by RunEvery) from contending for data.
 	mutex := new(sync.Mutex)
@@ -38,6 +39,10 @@ func (s *Service) processPendingAttsQueue() {
 // 1. Clean up invalid pending attestations from the queue.
 // 2. Check if pending attestations can be processed when the block has arrived.
 // 3. Request block from a random peer if unable to proceed step 2.
+// 定义了如何处理pending attestations，它包含如下特性：
+// 1. 从队列中清理非法的pending attestations
+// 2. 检查pending attestations能否被处理，当block到达的时候
+// 3. 从随机的peer请求block，如果不能处理step 2
 func (s *Service) processPendingAtts(ctx context.Context) error {
 	ctx, span := trace.StartSpan(ctx, "processPendingAtts")
 	defer span.End()

@@ -1,6 +1,8 @@
 // Package interopcoldstart allows for spinning up a deterministic-genesis
 // local chain without the need for eth1 deposits useful for
 // local client development and interoperability testing.
+// interopcoldstart包允许启动一个deterministic-genesis local chain，而不需要
+// eth1 deposits，对于本地的client开发和interoperability testing有用
 package interopcoldstart
 
 import (

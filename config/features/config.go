@@ -165,6 +165,7 @@ func applySepoliaFeatureFlags(ctx *cli.Context) {
 
 // ConfigureBeaconChain sets the global config based
 // on what flags are enabled for the beacon-chain client.
+// ConfigureBeaconChain设置全局的配置，基于使能了哪些flags，对于beacon-chain client
 func ConfigureBeaconChain(ctx *cli.Context) error {
 	complainOnDeprecatedFlags(ctx)
 	cfg := &Flags{}

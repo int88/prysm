@@ -7,6 +7,7 @@ import (
 )
 
 // Server defines a server implementation of the gRPC slasher service.
+// Server定义了一个server实现，对于gRPC slasher service
 type Server struct {
 	SlashingChecker slasherservice.SlashingChecker
 }

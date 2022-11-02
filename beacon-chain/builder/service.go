@@ -44,6 +44,7 @@ type Service struct {
 }
 
 // NewService instantiates a new service.
+// NewService实例化一个新的service
 func NewService(ctx context.Context, opts ...Option) (*Service, error) {
 	ctx, cancel := context.WithCancel(ctx)
 	s := &Service{

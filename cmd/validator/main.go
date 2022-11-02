@@ -38,6 +38,7 @@ func startNode(ctx *cli.Context) error {
 		return err
 	}
 
+	// 创建validator client
 	validatorClient, err := node.NewValidatorClient(ctx)
 	if err != nil {
 		return err

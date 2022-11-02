@@ -13,6 +13,7 @@ import (
 
 // Server defines a server implementation of the gRPC events service,
 // providing RPC endpoints to subscribe to events from the beacon node.
+// Server定义了一个gRPC events service的实现，提供RPC endpoints用于从beacon node订阅events
 type Server struct {
 	Ctx               context.Context
 	StateNotifier     statefeed.Notifier

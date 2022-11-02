@@ -699,6 +699,7 @@ func (p *Status) BestFinalized(maxPeers int, ourFinalizedEpoch types.Epoch) (typ
 
 // BestNonFinalized returns the highest known epoch, higher than ours,
 // and is shared by at least minPeers.
+// BestNonFinalized返回最高已知的epoch，比我们自己的更高，并且至少被minPeers共享
 func (p *Status) BestNonFinalized(minPeers int, ourHeadEpoch types.Epoch) (types.Epoch, []peer.ID) {
 	connected := p.Connected()
 	epochVotes := make(map[types.Epoch]uint64)
@@ -710,6 +711,7 @@ func (p *Status) BestNonFinalized(minPeers int, ourHeadEpoch types.Epoch) (types
 	for _, pid := range connected {
 		peerChainState, err := p.ChainState(pid)
 		if err == nil && peerChainState != nil && peerChainState.HeadSlot > ourHeadSlot {
+			// 计算出epoch
 			epoch := slots.ToEpoch(peerChainState.HeadSlot)
 			epochVotes[epoch]++
 			pidEpoch[pid] = epoch
@@ -719,6 +721,7 @@ func (p *Status) BestNonFinalized(minPeers int, ourHeadEpoch types.Epoch) (types
 	}
 
 	// Select the target epoch, which has enough peers' votes (>= minPeers).
+	// 选择target epoch，有着足够的peers的投票
 	var targetEpoch types.Epoch
 	for epoch, votes := range epochVotes {
 		if votes >= uint64(minPeers) && targetEpoch < epoch {
@@ -727,11 +730,13 @@ func (p *Status) BestNonFinalized(minPeers int, ourHeadEpoch types.Epoch) (types
 	}
 
 	// Sort PIDs by head slot, in decreasing order.
+	// 通过head slot对PIDs进行排序，按照降序
 	sort.Slice(potentialPIDs, func(i, j int) bool {
 		return pidHead[potentialPIDs[i]] > pidHead[potentialPIDs[j]]
 	})
 
 	// Trim potential peers to those on or after target epoch.
+	// 裁剪潜在的peers，在target epoch或者之后
 	for i, pid := range potentialPIDs {
 		if pidEpoch[pid] < targetEpoch {
 			potentialPIDs = potentialPIDs[:i]

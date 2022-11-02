@@ -73,6 +73,8 @@ func NewService(ctx context.Context, cfg *Config) *Service {
 
 	// The reason why we have this goroutine in the constructor is to avoid a race condition
 	// between services' Start method and the initialization event.
+	// 我们在constructor里有这个goroutine的原因是避免race condition，在service的Start方法
+	// 和initialization event之间
 	// See https://github.com/prysmaticlabs/prysm/issues/10602 for details.
 	go s.waitForStateInitialization()
 
@@ -80,6 +82,7 @@ func NewService(ctx context.Context, cfg *Config) *Service {
 }
 
 // Start the initial sync service.
+// 初始化initial sync service
 func (s *Service) Start() {
 	// Wait for state initialized event.
 	genesis := <-s.genesisChan
@@ -89,35 +92,43 @@ func (s *Service) Start() {
 	}
 	if flags.Get().DisableSync {
 		s.markSynced(genesis)
+		// 因为Sync被禁止了，立即进入regular sync
 		log.WithField("genesisTime", genesis).Info("Due to Sync Being Disabled, entering regular sync immediately.")
 		return
 	}
 	if genesis.After(prysmTime.Now()) {
 		s.markSynced(genesis)
+		// genesis time还没有达到，not syncing
 		log.WithField("genesisTime", genesis).Info("Genesis time has not arrived - not syncing")
 		return
 	}
 	currentSlot := slots.Since(genesis)
 	if slots.ToEpoch(currentSlot) == 0 {
+		// Chain在最新的epoch启动，不需要同步
 		log.WithField("genesisTime", genesis).Info("Chain started within the last epoch - not syncing")
 		s.markSynced(genesis)
 		return
 	}
 	s.chainStarted.Set()
+	// 启动initial chain sync
 	log.Info("Starting initial chain sync...")
 	// Are we already in sync, or close to it?
+	// 我们已经在sync，或者接近它？
 	if slots.ToEpoch(s.cfg.Chain.HeadSlot()) == slots.ToEpoch(currentSlot) {
+		// 已经同步到当前的chain head
 		log.Info("Already synced to the current chain head")
 		s.markSynced(genesis)
 		return
 	}
 	s.waitForMinimumPeers()
 	if err := s.roundRobinSync(genesis); err != nil {
+		// 错误只能是context canceled
 		if errors.Is(s.ctx.Err(), context.Canceled) {
 			return
 		}
 		panic(err)
 	}
+	// 已经同步到了slot
 	log.Infof("Synced up to slot %d", s.cfg.Chain.HeadSlot())
 	s.markSynced(genesis)
 }
@@ -172,6 +183,7 @@ func (s *Service) Resync() error {
 	return nil
 }
 
+// 等待最少数目的peers
 func (s *Service) waitForMinimumPeers() {
 	required := params.BeaconConfig().MaxPeersToSync
 	if flags.Get().MinimumSyncPeers < required {
@@ -186,6 +198,7 @@ func (s *Service) waitForMinimumPeers() {
 		log.WithFields(logrus.Fields{
 			"suitable": len(peers),
 			"required": required,
+			// 在同步之前，等待合适的peers的数目
 		}).Info("Waiting for enough suitable peers before syncing")
 		time.Sleep(handshakePollingInterval)
 	}
@@ -193,8 +206,11 @@ func (s *Service) waitForMinimumPeers() {
 
 // waitForStateInitialization makes sure that beacon node is ready to be accessed: it is either
 // already properly configured or system waits up until state initialized event is triggered.
+// waitForStateInitialization确保beacon node已经准备好被访问，它要么已经被正确配置或者系统一直等待
+// 直到initialized event被触发
 func (s *Service) waitForStateInitialization() {
 	// Wait for state to be initialized.
+	// 等待state初始化完成
 	stateChannel := make(chan *feed.Event, 1)
 	stateSub := s.cfg.StateNotifier.StateFeed().Subscribe(stateChannel)
 	defer stateSub.Unsubscribe()
@@ -215,6 +231,7 @@ func (s *Service) waitForStateInitialization() {
 		case <-s.ctx.Done():
 			log.Debug("Context closed, exiting goroutine")
 			// Send a zero time in the event we are exiting.
+			// 发送一个zero time，当遇到退出事件时
 			s.genesisChan <- time.Time{}
 			return
 		case err := <-stateSub.Err():

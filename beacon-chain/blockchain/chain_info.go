@@ -93,6 +93,7 @@ type FinalizationFetcher interface {
 }
 
 // OptimisticModeFetcher retrieves information about optimistic status of the node.
+// OptimisticModeFetcher获取关于node的optimistic status的信息
 type OptimisticModeFetcher interface {
 	IsOptimistic(ctx context.Context) (bool, error)
 	IsOptimisticForRoot(ctx context.Context, root [32]byte) (bool, error)

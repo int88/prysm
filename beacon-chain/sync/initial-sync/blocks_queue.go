@@ -95,6 +95,7 @@ type blocksQueueFetchedData struct {
 }
 
 // newBlocksQueue creates initialized priority queue.
+// newBlocksQueue创建初始化完成的优先级队列
 func newBlocksQueue(ctx context.Context, cfg *blocksQueueConfig) *blocksQueue {
 	ctx, cancel := context.WithCancel(ctx)
 

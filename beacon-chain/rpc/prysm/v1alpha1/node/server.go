@@ -30,6 +30,8 @@ import (
 // Server defines a server implementation of the gRPC Node service,
 // providing RPC endpoints for verifying a beacon node's sync status, genesis and
 // version information, and services the node implements and runs.
+// Server定义了gRPC Node service的server实现，提供RPC endpoints用于校验一个beacon node
+// 的sync status，genesis以及version信息，以及这个node实现以及运行的services
 type Server struct {
 	LogsStreamer         logs.Streamer
 	StreamLogsBufferSize int

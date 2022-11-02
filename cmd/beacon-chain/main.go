@@ -142,6 +142,7 @@ func main() {
 	app := cli.App{}
 	app.Name = "beacon-chain"
 	app.Usage = "this is a beacon chain implementation for Ethereum"
+	// 实现的方法是startNode
 	app.Action = startNode
 	app.Version = version.Version()
 	app.Commands = []*cli.Command{
@@ -153,6 +154,7 @@ func main() {
 
 	app.Before = func(ctx *cli.Context) error {
 		// Load flags from config file, if specified.
+		// 从配置文件加载flags，如果指定了的话
 		if err := cmd.LoadFlagsFromConfig(ctx, app.Flags); err != nil {
 			return err
 		}
@@ -280,10 +282,12 @@ func startNode(ctx *cli.Context) error {
 		}
 	}
 
+	// 构建一个新的node
 	beacon, err := node.New(ctx, opts...)
 	if err != nil {
 		return err
 	}
+	// 启动node
 	beacon.Start()
 	return nil
 }

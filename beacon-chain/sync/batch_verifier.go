@@ -23,6 +23,7 @@ type signatureVerifier struct {
 
 // A routine that runs in the background to perform batch
 // verifications of incoming messages from gossip.
+// 一个在后台运行的routine，来执行批量的verifications，对于来自gossip的incoming messages
 func (s *Service) verifierRoutine() {
 	verifierBatch := make([]*signatureVerifier, 0)
 	ticker := time.NewTicker(signatureVerificationInterval)
@@ -38,6 +39,7 @@ func (s *Service) verifierRoutine() {
 		case sig := <-s.signatureChan:
 			verifierBatch = append(verifierBatch, sig)
 			if len(verifierBatch) >= verifierLimit {
+				// 批量校验
 				verifyBatch(verifierBatch)
 				verifierBatch = []*signatureVerifier{}
 			}

@@ -77,6 +77,7 @@ type ValidatorClient struct {
 }
 
 // NewValidatorClient creates a new instance of the Prysm validator client.
+// NewValidatorClient创建一个新的Prysm validator client的实例
 func NewValidatorClient(cliCtx *cli.Context) (*ValidatorClient, error) {
 	// TODO(#9883) - Maybe we can pass in a new validator client config instead of the cliCTX to abstract away the use of flags here .
 	if err := tracing2.Setup(
@@ -244,6 +245,7 @@ func (c *ValidatorClient) initializeFromCLI(cliCtx *cli.Context) error {
 	}
 	log.WithField("databasePath", dataDir).Info("Checking DB")
 
+	// 构建KV store
 	valDB, err := kv.NewKVStore(cliCtx.Context, dataDir, &kv.Config{
 		PubKeys:         nil,
 		InitialMMapSize: cliCtx.Int(cmd.BoltMMapInitialSizeFlag.Name),

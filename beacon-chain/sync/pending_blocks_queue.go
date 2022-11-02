@@ -32,6 +32,7 @@ const numOfTries = 5
 const maxBlocksPerSlot = 3
 
 // processes pending blocks queue on every processPendingBlocksPeriod
+// 处理pending blocks queue，每processPendingBlocksPeriod
 func (s *Service) processPendingBlocksQueue() {
 	// Prevents multiple queue processing goroutines (invoked by RunEvery) from contending for data.
 	locker := new(sync.Mutex)

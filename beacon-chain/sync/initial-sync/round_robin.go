@@ -30,13 +30,19 @@ type blockReceiverFn func(ctx context.Context, block interfaces.SignedBeaconBloc
 type batchBlockReceiverFn func(ctx context.Context, blks []interfaces.SignedBeaconBlock, roots [][32]byte) error
 
 // Round Robin sync looks at the latest peer statuses and syncs up to the highest known epoch.
+// Round Robin sync寻找最新的peer statuses并且同步到最高已知的epoch
 //
 // Step 1 - Sync to finalized epoch.
 // Sync with peers having the majority on best finalized epoch greater than node's head state.
+// Step 1 - 同步到finalized epoch
+// 和peers进行同步，大多数在best finalized epoch，大于node的head state
 //
 // Step 2 - Sync to head from finalized epoch.
+// Step 2 - 从finalized epoch同步到head
 // Using enough peers (at least, MinimumSyncPeers*2, for example) obtain best non-finalized epoch,
 // known to majority of the peers, and keep fetching blocks, up until that epoch is reached.
+// 使用足够的peers（至少，MinimumSyncPeers*2，例如）获取最好的non-finalized epoch，
+// 对于大多数peers已知，保持获取blocks，直到到达epoch
 func (s *Service) roundRobinSync(genesis time.Time) error {
 	ctx, cancel := context.WithCancel(s.ctx)
 	defer cancel()
@@ -46,21 +52,25 @@ func (s *Service) roundRobinSync(genesis time.Time) error {
 	s.counter = ratecounter.NewRateCounter(counterSeconds * time.Second)
 
 	// Step 1 - Sync to end of finalized epoch.
+	// Step 1 - 同步到end of finalized epoch
 	if err := s.syncToFinalizedEpoch(ctx, genesis); err != nil {
 		return err
 	}
 
 	// Already at head, no need for 2nd phase.
+	// 已经在head了，不需要第二阶段
 	if s.cfg.Chain.HeadSlot() == slots.Since(genesis) {
 		return nil
 	}
 
 	// Step 2 - sync to head from majority of peers (from no less than MinimumSyncPeers*2 peers)
 	// having the same world view on non-finalized epoch.
+	// Step 2 - 从大多数的peers同步到head，对于non-finalized epoch有同样的world view
 	return s.syncToNonFinalizedEpoch(ctx, genesis)
 }
 
 // syncToFinalizedEpoch sync from head to best known finalized epoch.
+// syncToFinalizedEpoch从head同步到best known finalized epoch
 func (s *Service) syncToFinalizedEpoch(ctx context.Context, genesis time.Time) error {
 	highestFinalizedSlot, err := slots.EpochStart(s.highestFinalizedEpoch() + 1)
 	if err != nil {
@@ -68,6 +78,7 @@ func (s *Service) syncToFinalizedEpoch(ctx context.Context, genesis time.Time) e
 	}
 	if s.cfg.Chain.HeadSlot() >= highestFinalizedSlot {
 		// No need to sync, already synced to the finalized slot.
+		// 不需要进行同步，已经同步到了finalized slot
 		log.Debug("Already synced to finalized epoch")
 		return nil
 	}
@@ -83,12 +94,14 @@ func (s *Service) syncToFinalizedEpoch(ctx context.Context, genesis time.Time) e
 	}
 
 	for data := range queue.fetchedData {
+		// 处理fetched data
 		s.processFetchedData(ctx, genesis, s.cfg.Chain.HeadSlot(), data)
 	}
 
 	log.WithFields(logrus.Fields{
 		"syncedSlot":  s.cfg.Chain.HeadSlot(),
 		"currentSlot": slots.Since(genesis),
+		// 同步到了finalized epoch - 现在同步blocks到当前的head
 	}).Info("Synced to finalized epoch - now syncing blocks up to current head")
 	if err := queue.stop(); err != nil {
 		log.WithError(err).Debug("Error stopping queue")
@@ -99,6 +112,7 @@ func (s *Service) syncToFinalizedEpoch(ctx context.Context, genesis time.Time) e
 
 // syncToNonFinalizedEpoch sync from head to best known non-finalized epoch supported by majority
 // of peers (no less than MinimumSyncPeers*2 peers).
+// syncToNonFinalizedEpoch同步head到最好的已知的non-finalized epoch，由大多数peers支持
 func (s *Service) syncToNonFinalizedEpoch(ctx context.Context, genesis time.Time) error {
 	queue := newBlocksQueue(ctx, &blocksQueueConfig{
 		p2p:                 s.cfg.P2P,
@@ -125,6 +139,7 @@ func (s *Service) syncToNonFinalizedEpoch(ctx context.Context, genesis time.Time
 }
 
 // processFetchedData processes data received from queue.
+// processFetchedData处理从队列中获取的数据
 func (s *Service) processFetchedData(
 	ctx context.Context, genesis time.Time, startSlot types.Slot, data *blocksQueueFetchedData) {
 	defer s.updatePeerScorerStats(data.pid, startSlot)

@@ -15,6 +15,7 @@ type Endpoint struct {
 }
 
 // AuthorizationData holds all information necessary to authorize with HTTP.
+// AuthorizationData维护所有必要的，用于HTTP认证的信息
 type AuthorizationData struct {
 	Method authorization.AuthorizationMethod
 	Value  string

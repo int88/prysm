@@ -172,6 +172,7 @@ func (v *ValidatorService) Start() {
 
 	sPubKeys, err := v.db.EIPImportBlacklistedPublicKeys(v.ctx)
 	if err != nil {
+		// 不能从磁盘读取slashable public keys
 		log.Errorf("Could not read slashable public keys from disk: %v", err)
 		return
 	}

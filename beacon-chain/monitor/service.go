@@ -58,6 +58,8 @@ type ValidatorAggregatedPerformance struct {
 // ValidatorMonitorConfig contains the list of validator indices that the
 // monitor service tracks, and the event feed notifier that the
 // monitor needs to subscribe.
+// ValidatorMonitorConfig包含一系列validator索引，这个monitor service需要追踪，以及
+// event feed notifier，moniter需要订阅
 type ValidatorMonitorConfig struct {
 	StateNotifier       statefeed.Notifier
 	AttestationNotifier operation.Notifier
@@ -106,6 +108,7 @@ func NewService(ctx context.Context, config *ValidatorMonitorConfig, tracked []t
 }
 
 // Start sets up the TrackedValidators map and then calls to wait until the beacon is synced.
+// Start设置TrackedValidators map并且之后调用wait，直到beacon已经同步
 func (s *Service) Start() {
 	s.Lock()
 	defer s.Unlock()
@@ -127,6 +130,7 @@ func (s *Service) Start() {
 }
 
 // run waits until the beacon is synced and starts the monitoring system.
+// run等待直到beacon同步完成并且开始monitoring system
 func (s *Service) run(stateChannel chan *feed.Event, stateSub event.Subscription) {
 	if stateChannel == nil {
 		log.Error("State state is nil")
@@ -165,6 +169,8 @@ func (s *Service) run(stateChannel chan *feed.Event, stateSub event.Subscription
 
 // initializePerformanceStructures initializes the validatorLatestPerformance
 // and validatorAggregatedPerformance for each tracked validator.
+// initializePerformanceStructures为每个追踪的validator初始化validatorLatestPerformance
+// 和validatorAggregatedPerformance
 func (s *Service) initializePerformanceStructures(state state.BeaconState, epoch types.Epoch) {
 	for idx := range s.TrackedValidators {
 		balance, err := state.BalanceAtIndex(idx)
@@ -199,6 +205,7 @@ func (s *Service) Stop() error {
 }
 
 // waitForSync waits until the beacon node is synced to the latest head.
+// waitForSync等待直到beacon node已经同步到最新的head
 func (s *Service) waitForSync(stateChannel chan *feed.Event, stateSub event.Subscription) error {
 	for {
 		select {

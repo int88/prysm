@@ -170,6 +170,7 @@ func NewService(ctx context.Context, opts ...Option) *Service {
 }
 
 // Start the regular sync service.
+// Start启动regular sync service
 func (s *Service) Start() {
 	s.cfg.p2p.AddConnectionHandler(s.reValidatePeer, s.sendGoodbye)
 	s.cfg.p2p.AddDisconnectionHandler(func(_ context.Context, _ peer.ID) error {
@@ -177,7 +178,9 @@ func (s *Service) Start() {
 		return nil
 	})
 	s.cfg.p2p.AddPingMethod(s.sendPingRequest)
+	// 处理pending blocks queue
 	s.processPendingBlocksQueue()
+	// 处理pending attestations
 	s.processPendingAttsQueue()
 	s.maintainPeerStatuses()
 	if !flags.Get().DisableSync {
@@ -185,6 +188,7 @@ func (s *Service) Start() {
 	}
 
 	// Update sync metrics.
+	// 更新sync metrics
 	async.RunEvery(s.ctx, syncMetricsInterval, s.updateMetrics)
 }
 

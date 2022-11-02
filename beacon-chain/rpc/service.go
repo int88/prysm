@@ -59,6 +59,7 @@ import (
 const attestationBufferSize = 100
 
 // Service defining an RPC server for a beacon node.
+// Service定义了一个对于beacon node的RPC server
 type Service struct {
 	cfg                  *Config
 	ctx                  context.Context

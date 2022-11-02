@@ -54,6 +54,7 @@ type PubSubTopicUser interface {
 }
 
 // ConnectionHandler configures p2p to handle connections with a peer.
+// ConnectionHandler配置p2p来处理和一个peer的连接
 type ConnectionHandler interface {
 	AddConnectionHandler(f func(ctx context.Context, id peer.ID) error,
 		j func(ctx context.Context, id peer.ID) error)

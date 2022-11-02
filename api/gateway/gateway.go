@@ -56,6 +56,7 @@ type config struct {
 }
 
 // Gateway is the gRPC gateway to serve HTTP JSON traffic as a proxy and forward it to the gRPC server.
+// Gateway是gRPC gateway来服务HTTP JSON traffic作为一个proxy并且转发到gRPC server
 type Gateway struct {
 	cfg          *config
 	conn         *grpc.ClientConn

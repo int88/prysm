@@ -25,6 +25,7 @@ import (
 )
 
 // maintainPeerStatuses by infrequently polling peers for their latest status.
+// maintainPeerStatuses通过不频繁地从peers拉取它们的最新状态
 func (s *Service) maintainPeerStatuses() {
 	// Run twice per epoch.
 	interval := time.Duration(params.BeaconConfig().SlotsPerEpoch.Div(2).Mul(params.BeaconConfig().SecondsPerSlot)) * time.Second

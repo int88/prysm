@@ -60,14 +60,16 @@ func TestRPC_InsecureEndpoint(t *testing.T) {
 	hook := logTest.NewGlobal()
 	chainService := &mock.ChainService{Genesis: time.Now()}
 	rpcService := NewService(context.Background(), &Config{
-		Port:                "7777",
+		Port: "7777",
+		// 构建一个mock的Sync Service
 		SyncService:         &mockSync.Sync{IsSyncing: false},
 		BlockReceiver:       chainService,
 		GenesisTimeFetcher:  chainService,
 		AttestationReceiver: chainService,
 		HeadFetcher:         chainService,
-		POWChainService:     &mockPOW.POWChain{},
-		StateNotifier:       chainService.StateNotifier(),
+		// 构建一个mock的POW Chain
+		POWChainService: &mockPOW.POWChain{},
+		StateNotifier:   chainService.StateNotifier(),
 	})
 
 	rpcService.Start()
