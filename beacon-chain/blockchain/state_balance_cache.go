@@ -36,6 +36,8 @@ func newStateBalanceCache(sg *stategen.State) (*stateBalanceCache, error) {
 // update is called by get() when the requested root doesn't match
 // the previously read value. This cache assumes we only want to cache one
 // set of balances for a single root (the current justified root).
+// update被get()调用，当前请求的root不匹配之前的read value，这个cache假设我们只想要缓存
+// 一个set of balances，对于单个的root（当前的justified root）
 //
 // WARNING: this is not thread-safe on its own, relies on get() for locking
 func (c *stateBalanceCache) update(ctx context.Context, justifiedRoot [32]byte) ([]uint64, error) {

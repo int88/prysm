@@ -77,6 +77,7 @@ const (
 )
 
 // Status is the structure holding the peer status information.
+// Status是一个结构维护peer的状态信息
 type Status struct {
 	ctx       context.Context
 	scorers   *scorers.Service

@@ -122,6 +122,7 @@ func NewPowchainCollector(ctx context.Context) (*PowchainCollector, error) {
 	c := &PowchainCollector{
 		SyncEth1FallbackConfigured: prometheus.NewDesc(
 			prometheus.BuildFQName(namespace, "", "sync_eth1_fallback_configured"),
+			// Boolean记录是否一个fallback eth1 endpoint被配置
 			"Boolean recording whether a fallback eth1 endpoint was configured: 0=false, 1=true.",
 			nil,
 			nil,

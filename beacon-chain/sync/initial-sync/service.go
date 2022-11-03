@@ -85,8 +85,10 @@ func NewService(ctx context.Context, cfg *Config) *Service {
 // 初始化initial sync service
 func (s *Service) Start() {
 	// Wait for state initialized event.
+	// 等待state初始化完成的事件
 	genesis := <-s.genesisChan
 	if genesis.IsZero() {
+		// 退出Initial Sync Service
 		log.Debug("Exiting Initial Sync Service")
 		return
 	}
@@ -244,6 +246,7 @@ func (s *Service) waitForStateInitialization() {
 }
 
 // markSynced marks node as synced and notifies feed listeners.
+// markSynced将node标记为synced并且通知feed listeners
 func (s *Service) markSynced(genesis time.Time) {
 	s.synced.Set()
 	s.cfg.StateNotifier.StateFeed().Send(&feed.Event{

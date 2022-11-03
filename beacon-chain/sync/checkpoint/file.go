@@ -15,6 +15,8 @@ import (
 // Initializer describes a type that is able to obtain the checkpoint sync data (BeaconState and SignedBeaconBlock)
 // in some way and perform database setup to prepare the beacon node for syncing from the given checkpoint.
 // See FileInitializer and APIInitializer.
+// Initializer描述了一个类型，能够获取checkpoint sync data（BeaconState以及SignedBeaconBlock）
+//并且执行database setup，来准备beacon node，用于从给定的checkpoint同步
 type Initializer interface {
 	Initialize(ctx context.Context, d db.Database) error
 }

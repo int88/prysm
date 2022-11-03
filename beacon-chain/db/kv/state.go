@@ -61,6 +61,7 @@ func (s *Store) StateOrError(ctx context.Context, blockRoot [32]byte) (state.Bea
 }
 
 // GenesisState returns the genesis state in beacon chain.
+// GenesisState返回beacon chain中的genesis state
 func (s *Store) GenesisState(ctx context.Context) (state.BeaconState, error) {
 	ctx, span := trace.StartSpan(ctx, "BeaconDB.GenesisState")
 	defer span.End()
@@ -79,6 +80,7 @@ func (s *Store) GenesisState(ctx context.Context) (state.BeaconState, error) {
 	err = s.db.View(func(tx *bolt.Tx) error {
 		// Retrieve genesis block's signing root from blocks bucket,
 		// to look up what the genesis state is.
+		// 获取genesis block的signing root，从blocks bucket来查找genesis state是什么
 		bucket := tx.Bucket(blocksBucket)
 		genesisBlockRoot := bucket.Get(genesisBlockRootKey)
 
@@ -88,6 +90,7 @@ func (s *Store) GenesisState(ctx context.Context) (state.BeaconState, error) {
 			return nil
 		}
 		// get the validator entries of the genesis state
+		// 从genesis state中获取validator entries
 		valEntries, valErr := s.validatorEntries(ctx, bytesutil.ToBytes32(genesisBlockRoot))
 		if valErr != nil {
 			return valErr
@@ -454,6 +457,7 @@ func (s *Store) DeleteStates(ctx context.Context, blockRoots [][32]byte) error {
 }
 
 // unmarshal state from marshaled proto state bytes to versioned state struct type.
+// unmarshal state从marshaled proto state bytes到versioned state struct type
 func (s *Store) unmarshalState(_ context.Context, enc []byte, validatorEntries []*ethpb.Validator) (state.BeaconState, error) {
 	var err error
 	enc, err = snappy.Decode(nil, enc)

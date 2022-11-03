@@ -75,6 +75,7 @@ type finalizedInfo struct {
 }
 
 // StateGenOption is a functional option for controlling the initialization of a *State value
+// StateGenOption是一个功能选项，用于控制*State值的初始化
 type StateGenOption func(*State)
 
 func WithBackfillStatus(bfs *backfill.Status) StateGenOption {

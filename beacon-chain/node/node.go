@@ -427,6 +427,7 @@ func (b *BeaconNode) startDB(cliCtx *cli.Context, depositAddress string) error {
 
 	b.db = d
 
+	// 构建deposit cache
 	depositCache, err := depositcache.New()
 	if err != nil {
 		return errors.Wrap(err, "could not create deposit cache")
@@ -436,6 +437,8 @@ func (b *BeaconNode) startDB(cliCtx *cli.Context, depositAddress string) error {
 	if b.GenesisInitializer != nil {
 		if err := b.GenesisInitializer.Initialize(b.ctx, d); err != nil {
 			if err == db.ErrExistingGenesisState {
+				// 指定了genesis state，但是一个genesis state已经存在了
+				// 运行--clear-db并且确保你使用合适的testnet flag来加载给定的genesis state
 				return errors.New("Genesis state flag specified but a genesis state " +
 					"exists already. Run again with --clear-db and/or ensure you are using the " +
 					"appropriate testnet flag to load the given genesis state.")

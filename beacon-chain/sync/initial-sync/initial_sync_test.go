@@ -100,6 +100,7 @@ func initializeTestServices(t *testing.T, slots []types.Slot, peers []*peerData)
 }
 
 // makeGenesisTime where now is the current slot.
+// makeGenesisTime计算genesis time，如果现在是current slot
 func makeGenesisTime(currentSlot types.Slot) time.Time {
 	return prysmTime.Now().Add(-1 * time.Second * time.Duration(currentSlot) * time.Duration(params.BeaconConfig().SecondsPerSlot))
 }
@@ -157,6 +158,7 @@ func TestMakeSequence(t *testing.T) {
 
 // Connect peers with local host. This method sets up peer statuses and the appropriate handlers
 // for each test peer.
+// 将local host和peers相连，这个方法设置peer status以及合适的handlers，对于每个test peer
 func connectPeers(t *testing.T, host *p2pt.TestP2P, data []*peerData, peerStatus *peers.Status) {
 	for _, d := range data {
 		connectPeer(t, host, d, peerStatus)
@@ -164,6 +166,7 @@ func connectPeers(t *testing.T, host *p2pt.TestP2P, data []*peerData, peerStatus
 }
 
 // connectPeer connects a peer to a local host.
+// connectPeer连接一个peer到一个local host
 func connectPeer(t *testing.T, host *p2pt.TestP2P, datum *peerData, peerStatus *peers.Status) peer.ID {
 	const topic = "/eth2/beacon_chain/req/beacon_blocks_by_range/1/ssz_snappy"
 	p := p2pt.NewTestP2P(t)

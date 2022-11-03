@@ -15,6 +15,7 @@ import (
 func DepositContractAddress() (string, error) {
 	address := params.BeaconConfig().DepositContractAddress
 	if address == "" {
+		// 需要合法的desposit contract
 		return "", errors.New("valid deposit contract is required")
 	}
 

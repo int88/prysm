@@ -7,6 +7,7 @@ import (
 )
 
 // Metadata returns the interface of a p2p metadata type.
+// Metadata返回一个p2p metadata类型的接口
 type Metadata interface {
 	SequenceNumber() uint64
 	AttnetsBitfield() bitfield.Bitvector64

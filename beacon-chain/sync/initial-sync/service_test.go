@@ -27,6 +27,7 @@ import (
 
 func TestService_Constants(t *testing.T) {
 	if params.BeaconConfig().MaxPeersToSync*flags.Get().BlockBatchLimit > 1000 {
+		// rpc拒绝超过1000个range slots的请求
 		t.Fatal("rpc rejects requests over 1000 range slots")
 	}
 }
@@ -49,6 +50,7 @@ func TestService_InitStartStop(t *testing.T) {
 			name: "future genesis",
 			chainService: func() *mock.ChainService {
 				// Set to future time (genesis time hasn't arrived yet).
+				// 设置future time（genesis time还没有到达）
 				st, err := util.NewBeaconState()
 				require.NoError(t, err)
 
@@ -63,6 +65,7 @@ func TestService_InitStartStop(t *testing.T) {
 			},
 			methodRuns: func(fd *event.Feed) {
 				// Send valid event.
+				// 发送合法的event
 				fd.Send(&feed.Event{
 					Type: statefeed.Initialized,
 					Data: &statefeed.InitializedData{
@@ -72,7 +75,9 @@ func TestService_InitStartStop(t *testing.T) {
 				})
 			},
 			assert: func() {
+				// genesis time还没有到达
 				assert.LogsContain(t, hook, "Genesis time has not arrived - not syncing")
+				// 等待state初始化完成
 				assert.LogsContain(t, hook, "Waiting for state to be initialized")
 			},
 		},
@@ -80,6 +85,7 @@ func TestService_InitStartStop(t *testing.T) {
 			name: "zeroth epoch",
 			chainService: func() *mock.ChainService {
 				// Set to nearby slot.
+				// 设置到最近的slot
 				st, err := util.NewBeaconState()
 				require.NoError(t, err)
 				return &mock.ChainService{
@@ -87,12 +93,14 @@ func TestService_InitStartStop(t *testing.T) {
 					FinalizedCheckPoint: &eth.Checkpoint{
 						Epoch: 0,
 					},
+					// 设置genesis的时间
 					Genesis:        time.Now().Add(-5 * time.Minute),
 					ValidatorsRoot: [32]byte{},
 				}
 			},
 			methodRuns: func(fd *event.Feed) {
 				// Send valid event.
+				// 发送合法的event
 				fd.Send(&feed.Event{
 					Type: statefeed.Initialized,
 					Data: &statefeed.InitializedData{
@@ -102,8 +110,10 @@ func TestService_InitStartStop(t *testing.T) {
 				})
 			},
 			assert: func() {
+				// Chain已经在last epoch -- 不同步
 				assert.LogsContain(t, hook, "Chain started within the last epoch - not syncing")
 				assert.LogsDoNotContain(t, hook, "Genesis time has not arrived - not syncing")
+				// 等待state被初始化
 				assert.LogsContain(t, hook, "Waiting for state to be initialized")
 			},
 		},
@@ -111,6 +121,7 @@ func TestService_InitStartStop(t *testing.T) {
 			name: "already synced",
 			chainService: func() *mock.ChainService {
 				// Set to some future slot, and then make sure that current head matches it.
+				// 设置一些future slot，并且确保当前的head匹配
 				st, err := util.NewBeaconState()
 				require.NoError(t, err)
 				futureSlot := types.Slot(27354)
@@ -127,6 +138,7 @@ func TestService_InitStartStop(t *testing.T) {
 			methodRuns: func(fd *event.Feed) {
 				futureSlot := types.Slot(27354)
 				// Send valid event.
+				// 发送合法的event
 				fd.Send(&feed.Event{
 					Type: statefeed.Initialized,
 					Data: &statefeed.InitializedData{
@@ -136,7 +148,9 @@ func TestService_InitStartStop(t *testing.T) {
 				})
 			},
 			assert: func() {
+				// 启动initial chain sync
 				assert.LogsContain(t, hook, "Starting initial chain sync...")
+				// 已经同步到了当前的chain head
 				assert.LogsContain(t, hook, "Already synced to the current chain head")
 				assert.LogsDoNotContain(t, hook, "Chain started within the last epoch - not syncing")
 				assert.LogsDoNotContain(t, hook, "Genesis time has not arrived - not syncing")
@@ -157,11 +171,14 @@ func TestService_InitStartStop(t *testing.T) {
 			defer cancel()
 			mc := &mock.ChainService{Genesis: time.Now(), ValidatorsRoot: [32]byte{}}
 			// Allow overriding with customized chain service.
+			// 允许用自定义的chain service进行覆盖
 			if tt.chainService != nil {
 				mc = tt.chainService()
 			}
 			// Initialize feed
+			// 初始化feed
 			notifier := &mock.MockStateNotifier{}
+			// 构建initial sync service
 			s := NewService(ctx, &Config{
 				P2P:           p,
 				Chain:         mc,
@@ -170,12 +187,14 @@ func TestService_InitStartStop(t *testing.T) {
 			time.Sleep(500 * time.Millisecond)
 			assert.NotNil(t, s)
 			if tt.methodRuns != nil {
+				// 运行method
 				tt.methodRuns(notifier.StateFeed())
 			}
 
 			wg := &sync.WaitGroup{}
 			wg.Add(1)
 			go func() {
+				// 启动initial sync service
 				s.Start()
 				wg.Done()
 			}()
@@ -183,6 +202,7 @@ func TestService_InitStartStop(t *testing.T) {
 			go func() {
 				// Allow to exit from test (on no head loop waiting for head is started).
 				// In most tests, this is redundant, as Start() already exited.
+				// 允许从test退出，大多数情况下都是冗余的，因为Start()已经退出了
 				time.AfterFunc(3*time.Second, func() {
 					cancel()
 				})

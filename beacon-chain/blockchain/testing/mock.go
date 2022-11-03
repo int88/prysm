@@ -288,6 +288,7 @@ func (s *ChainService) CurrentFork() *ethpb.Fork {
 }
 
 // FinalizedCheckpt mocks FinalizedCheckpt method in chain service.
+// FinalizedCheckpt mocks FinalizedCheckpt方法，在chain service中
 func (s *ChainService) FinalizedCheckpt() *ethpb.Checkpoint {
 	return s.FinalizedCheckPoint
 }

@@ -96,6 +96,7 @@ type PeersProvider interface {
 }
 
 // MetadataProvider returns the metadata related information for the local peer.
+// MetadataProvider返回metadata相关的信息，对于local peer
 type MetadataProvider interface {
 	Metadata() metadata.Metadata
 	MetadataSeq() uint64

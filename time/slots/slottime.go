@@ -63,6 +63,7 @@ func AbsoluteValueSlotDifference(x, y types.Slot) uint64 {
 }
 
 // ToEpoch returns the epoch number of the input slot.
+// ToEpoch返回input slot的epoch number
 //
 // Spec pseudocode definition:
 //  def compute_epoch_at_slot(slot: Slot) -> Epoch:
@@ -157,6 +158,7 @@ func ToTime(genesisTimeSec uint64, slot types.Slot) (time.Time, error) {
 }
 
 // Since computes the number of time slots that have occurred since the given timestamp.
+// Since计算给定的时间戳以来，经过的time slots
 func Since(time time.Time) types.Slot {
 	return CurrentSlot(uint64(time.Unix()))
 }

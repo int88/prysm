@@ -16,6 +16,7 @@ import (
 )
 
 // SaveGenesisData bootstraps the beaconDB with a given genesis state.
+// SaveGenesisData用给定的genesis state启动beaconDB
 func (s *Store) SaveGenesisData(ctx context.Context, genesisState state.BeaconState) error {
 	stateRoot, err := genesisState.HashTreeRoot(ctx)
 	if err != nil {
@@ -24,6 +25,7 @@ func (s *Store) SaveGenesisData(ctx context.Context, genesisState state.BeaconSt
 	genesisBlk := blocks.NewGenesisBlock(stateRoot[:])
 	genesisBlkRoot, err := genesisBlk.Block.HashTreeRoot()
 	if err != nil {
+		// 不能获取genesis block root
 		return errors.Wrap(err, "could not get genesis block root")
 	}
 	wsb, err := wrapper.WrappedSignedBeaconBlock(genesisBlk)
@@ -31,9 +33,11 @@ func (s *Store) SaveGenesisData(ctx context.Context, genesisState state.BeaconSt
 		return errors.Wrap(err, "could not wrap genesis block")
 	}
 	if err := s.SaveBlock(ctx, wsb); err != nil {
+		// 保存genesis block
 		return errors.Wrap(err, "could not save genesis block")
 	}
 	if err := s.SaveState(ctx, genesisState, genesisBlkRoot); err != nil {
+		// 保存genesis state
 		return errors.Wrap(err, "could not save genesis state")
 	}
 	if err := s.SaveStateSummary(ctx, &ethpb.StateSummary{
@@ -44,15 +48,18 @@ func (s *Store) SaveGenesisData(ctx context.Context, genesisState state.BeaconSt
 	}
 
 	if err := s.SaveHeadBlockRoot(ctx, genesisBlkRoot); err != nil {
+		// 不能保存head block root
 		return errors.Wrap(err, "could not save head block root")
 	}
 	if err := s.SaveGenesisBlockRoot(ctx, genesisBlkRoot); err != nil {
+		// 不能保存genesis block root
 		return errors.Wrap(err, "could not save genesis block root")
 	}
 	return nil
 }
 
 // LoadGenesis loads a genesis state from a ssz-serialized byte slice, if no genesis exists already.
+// LoadGenesis从一个ssz-serialized byte slice加载一个genesis state，如果没有genesis存在的话
 func (s *Store) LoadGenesis(ctx context.Context, sb []byte) error {
 	st := &ethpb.BeaconState{}
 	if err := st.UnmarshalSSZ(sb); err != nil {
@@ -68,6 +75,7 @@ func (s *Store) LoadGenesis(ctx context.Context, sb []byte) error {
 	}
 	// If some different genesis state existed already, return an error. The same genesis state is
 	// considered a no-op.
+	// 如果有些不同的genesis state已经存在了，返回一个error，同样的genesis state则是no-op
 	if existing != nil && !existing.IsNil() {
 		a, err := existing.HashTreeRoot(ctx)
 		if err != nil {
@@ -93,6 +101,9 @@ func (s *Store) LoadGenesis(ctx context.Context, sb []byte) error {
 // EnsureEmbeddedGenesis checks that a genesis block has been generated when an embedded genesis
 // state is used. If a genesis block does not exist, but a genesis state does, then we should call
 // SaveGenesisData on the existing genesis state.
+// EnsureEmbeddedGenesis检查一个genesis block已经生成了，当一个embedded genesis state被使用的话
+// 如果一个genesis block不存在，但是一个genesis state存在，我们应该在已有的genesis state调用
+// SaveGenesisData
 func (s *Store) EnsureEmbeddedGenesis(ctx context.Context) error {
 	gb, err := s.GenesisBlock(ctx)
 	if err != nil {
@@ -106,6 +117,7 @@ func (s *Store) EnsureEmbeddedGenesis(ctx context.Context) error {
 		return err
 	}
 	if gs != nil && !gs.IsNil() {
+		// 保存genesis data
 		return s.SaveGenesisData(ctx, gs)
 	}
 	return nil

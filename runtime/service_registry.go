@@ -16,11 +16,14 @@ var log = logrus.WithField("prefix", "registry")
 // Service是一个可以注册到ServiceRegistry的结构，用于简单的依赖管理
 type Service interface {
 	// Start spawns any goroutines required by the service.
+	// Start生成这个service所需的任何goroutine
 	Start()
 	// Stop terminates all goroutines belonging to the service,
 	// blocking until they are all terminated.
+	// Stop终止所有属于这个service的goroutines，阻塞直到它们全都终止
 	Stop() error
 	// Status returns error if the service is not considered healthy.
+	// Status返回error，如果service不被认为是健康的
 	Status() error
 }
 

@@ -55,8 +55,10 @@ type ChainStartedData struct {
 }
 
 // SyncedData is the data sent with Synced events.
+// SyncedData是在Synced events中发送的data
 type SyncedData struct {
 	// StartTime is the time at which the chain started.
+	// StartTime是chain启动的时间
 	StartTime time.Time
 }
 

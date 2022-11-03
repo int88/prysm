@@ -17,6 +17,7 @@ import (
 
 const (
 	// queueStopCallTimeout is time allowed for queue to release resources when quitting.
+	// queueStopCallTimeout是允许队列释放资源的时间
 	queueStopCallTimeout = 1 * time.Second
 	// pollingInterval defines how often state machine needs to check for new events.
 	pollingInterval = 200 * time.Millisecond
@@ -59,6 +60,7 @@ const (
 type syncMode uint8
 
 // blocksQueueConfig is a config to setup block queue service.
+// blocksQueueConfig是一个config，来设置block queue service
 type blocksQueueConfig struct {
 	blocksFetcher       *blocksFetcher
 	chain               blockchainService
@@ -146,6 +148,7 @@ func newBlocksQueue(ctx context.Context, cfg *blocksQueueConfig) *blocksQueue {
 }
 
 // start boots up the queue processing.
+// start启动队列的处理
 func (q *blocksQueue) start() error {
 	select {
 	case <-q.ctx.Done():
@@ -168,6 +171,7 @@ func (q *blocksQueue) stop() error {
 }
 
 // loop is a main queue loop.
+// loop是主要的队列循环
 func (q *blocksQueue) loop() {
 	defer close(q.quit)
 
@@ -181,6 +185,7 @@ func (q *blocksQueue) loop() {
 	}
 
 	// Define initial state machines.
+	// 定义初始的state machines
 	startSlot := q.chain.HeadSlot()
 	if startSlot > startBackSlots {
 		startSlot -= startBackSlots
@@ -230,6 +235,7 @@ func (q *blocksQueue) loop() {
 					}
 				}
 				// Do garbage collection, and advance sliding window forward.
+				// 进行垃圾回收，并且将sliding window前移
 				if q.chain.HeadSlot() >= fsm.start.Add(blocksPerRequest-1) {
 					highestStartSlot, err := q.smm.highestStartSlot()
 					if err != nil {
@@ -259,6 +265,7 @@ func (q *blocksQueue) loop() {
 						"epoch": slots.ToEpoch(fsm.start),
 						"error": err.Error(),
 					}).Debug("Can not process event")
+					// 不能处理state
 					fsm.setState(stateNew)
 					continue
 				}
