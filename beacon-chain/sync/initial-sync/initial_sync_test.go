@@ -44,11 +44,13 @@ type testCache struct {
 var cache = &testCache{}
 
 type peerData struct {
+	// 那些这个peer有blocks的slots
 	blocks         []types.Slot // slots that peer has blocks
 	finalizedEpoch types.Epoch
 	headSlot       types.Slot
-	failureSlots   []types.Slot // slots at which the peer will return an error
-	forkedPeer     bool
+	// 那些这个peer会返回error的slots
+	failureSlots []types.Slot // slots at which the peer will return an error
+	forkedPeer   bool
 }
 
 func TestMain(m *testing.M) {
@@ -113,6 +115,7 @@ func TestMakeGenesisTime(t *testing.T) {
 }
 
 // helper function for sequences of block slots
+// 帮助函数用于生成block slots的序列
 func makeSequence(start, end types.Slot) []types.Slot {
 	if end < start {
 		panic("cannot make sequence where end is before start")
@@ -132,6 +135,7 @@ func (c *testCache) initializeRootCache(reqSlots []types.Slot, t *testing.T) {
 	c.parentSlotCache = make(map[types.Slot]types.Slot)
 	parentSlot := types.Slot(0)
 
+	// 构建genesis block
 	genesisBlock := util.NewBeaconBlock().Block
 	genesisRoot, err := genesisBlock.HashTreeRoot()
 	require.NoError(t, err)
@@ -141,6 +145,7 @@ func (c *testCache) initializeRootCache(reqSlots []types.Slot, t *testing.T) {
 		currentBlock := util.NewBeaconBlock().Block
 		currentBlock.Slot = slot
 		currentBlock.ParentRoot = parentRoot[:]
+		// 当前block的root变为parentRoot
 		parentRoot, err = currentBlock.HashTreeRoot()
 		require.NoError(t, err)
 		c.rootCache[slot] = parentRoot

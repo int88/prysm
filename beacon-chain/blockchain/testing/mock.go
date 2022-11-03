@@ -138,6 +138,7 @@ func (msn *MockStateNotifier) StateFeed() *event.Feed {
 				select {
 				case evt := <-msn.recvCh:
 					msn.recvLock.Lock()
+					// 扩展recv channel
 					msn.recv = append(msn.recv, evt)
 					msn.recvLock.Unlock()
 				case <-sub.Err():

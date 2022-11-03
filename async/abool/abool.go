@@ -31,6 +31,7 @@ func (ab *AtomicBool) Set() {
 }
 
 // UnSet sets the Boolean to false.
+// UnSet将Boolean设置为false
 func (ab *AtomicBool) UnSet() {
 	atomic.StoreInt32((*int32)(ab), 0)
 }

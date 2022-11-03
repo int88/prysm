@@ -247,6 +247,7 @@ func TestService_waitForStateInitialization(t *testing.T) {
 		}()
 		go func() {
 			time.AfterFunc(500*time.Millisecond, func() {
+				// 先canel
 				cancel()
 			})
 		}()
@@ -278,11 +279,13 @@ func TestService_waitForStateInitialization(t *testing.T) {
 		go func() {
 			time.AfterFunc(500*time.Millisecond, func() {
 				// Send invalid event at first.
+				// 首先发送一个非法的event
 				s.cfg.StateNotifier.StateFeed().Send(&feed.Event{
 					Type: statefeed.Initialized,
 					Data: &statefeed.BlockProcessedData{},
 				})
 				// Send valid event.
+				// 发送合法的event
 				s.cfg.StateNotifier.StateFeed().Send(&feed.Event{
 					Type: statefeed.Initialized,
 					Data: &statefeed.InitializedData{
@@ -433,6 +436,7 @@ func TestService_Resync(t *testing.T) {
 			},
 			assert: func(s *Service) {
 				assert.LogsContain(t, hook, "Resync attempt complete")
+				// 最后head slot为160
 				assert.Equal(t, types.Slot(160), s.cfg.Chain.HeadSlot())
 			},
 		},

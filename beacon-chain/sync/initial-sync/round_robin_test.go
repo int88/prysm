@@ -305,6 +305,7 @@ func TestService_roundRobinSync(t *testing.T) {
 			}
 			assert.NoError(t, s.roundRobinSync(makeGenesisTime(tt.currentSlot)))
 			if s.cfg.Chain.HeadSlot() < tt.currentSlot {
+				// head slot小于期望的currentSlot
 				t.Errorf("Head slot (%d) is less than expected currentSlot (%d)", s.cfg.Chain.HeadSlot(), tt.currentSlot)
 			}
 			assert.Equal(t, true, len(tt.expectedBlockSlots) <= len(mc.BlocksReceived), "Processes wrong number of blocks")
@@ -357,6 +358,7 @@ func TestService_processBlock(t *testing.T) {
 		blk2.Block.ParentRoot = blk1Root[:]
 
 		// Process block normally.
+		// 正常处理block
 		wsb, err := wrapper.WrappedSignedBeaconBlock(blk1)
 		require.NoError(t, err)
 		err = s.processBlock(ctx, genesis, wsb, func(
@@ -367,6 +369,7 @@ func TestService_processBlock(t *testing.T) {
 		assert.NoError(t, err)
 
 		// Duplicate processing should trigger error.
+		// 重复处理应该会触发error
 		wsb, err = wrapper.WrappedSignedBeaconBlock(blk1)
 		require.NoError(t, err)
 		err = s.processBlock(ctx, genesis, wsb, func(
@@ -376,6 +379,7 @@ func TestService_processBlock(t *testing.T) {
 		assert.ErrorContains(t, errBlockAlreadyProcessed.Error(), err)
 
 		// Continue normal processing, should proceed w/o errors.
+		// 继续正常处理，应该没有错误
 		wsb, err = wrapper.WrappedSignedBeaconBlock(blk2)
 		require.NoError(t, err)
 		err = s.processBlock(ctx, genesis, wsb, func(
@@ -445,6 +449,7 @@ func TestService_processBlockBatch(t *testing.T) {
 		}
 
 		// Process block normally.
+		// 正常处理block
 		err = s.processBatchedBlocks(ctx, genesis, batch, func(
 			ctx context.Context, blks []interfaces.SignedBeaconBlock, blockRoots [][32]byte) error {
 			assert.NoError(t, s.cfg.Chain.ReceiveBlockBatch(ctx, blks, blockRoots))
@@ -462,6 +467,7 @@ func TestService_processBlockBatch(t *testing.T) {
 		var badBatch2 []interfaces.SignedBeaconBlock
 		for i, b := range batch2 {
 			// create a non-linear batch
+			// 创建一个非线性的batch
 			if i%3 == 0 && i != 0 {
 				continue
 			}
@@ -469,6 +475,7 @@ func TestService_processBlockBatch(t *testing.T) {
 		}
 
 		// Bad batch should fail because it is non linear
+		// Bad batch应该失败，因为它不是线性的
 		err = s.processBatchedBlocks(ctx, genesis, badBatch2, func(
 			ctx context.Context, blks []interfaces.SignedBeaconBlock, blockRoots [][32]byte) error {
 			return nil
@@ -477,6 +484,7 @@ func TestService_processBlockBatch(t *testing.T) {
 		assert.ErrorContains(t, expectedSubErr, err)
 
 		// Continue normal processing, should proceed w/o errors.
+		// 继续正常处理，应该没有错误
 		err = s.processBatchedBlocks(ctx, genesis, batch2, func(
 			ctx context.Context, blks []interfaces.SignedBeaconBlock, blockRoots [][32]byte) error {
 			assert.NoError(t, s.cfg.Chain.ReceiveBlockBatch(ctx, blks, blockRoots))

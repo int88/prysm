@@ -166,14 +166,18 @@ func (s *Service) Synced() bool {
 
 // Resync allows a node to start syncing again if it has fallen
 // behind the current network head.
+// Resync允许一个node再次开始syncing，如果它已经在当前的network head之后了
 func (s *Service) Resync() error {
 	headState, err := s.cfg.Chain.HeadState(s.ctx)
 	if err != nil || headState == nil || headState.IsNil() {
+		// 不能获取head state
 		return errors.Errorf("could not retrieve head state: %v", err)
 	}
 
 	// Set it to false since we are syncing again.
+	// 当我们又开始syncing的时候，设置为false
 	s.synced.UnSet()
+	// 这个方法的最后，重新设置
 	defer func() { s.synced.Set() }()                       // Reset it at the end of the method.
 	genesis := time.Unix(int64(headState.GenesisTime()), 0) // lint:ignore uintcast -- Genesis time will not exceed int64 in your lifetime.
 
@@ -181,6 +185,7 @@ func (s *Service) Resync() error {
 	if err = s.roundRobinSync(genesis); err != nil {
 		log = log.WithError(err)
 	}
+	// resync尝试完成
 	log.WithField("slot", s.cfg.Chain.HeadSlot()).Info("Resync attempt complete")
 	return nil
 }
@@ -231,6 +236,7 @@ func (s *Service) waitForStateInitialization() {
 				return
 			}
 		case <-s.ctx.Done():
+			// 还在等待Initialized Event的时候，就已经退出了
 			log.Debug("Context closed, exiting goroutine")
 			// Send a zero time in the event we are exiting.
 			// 发送一个zero time，当遇到退出事件时

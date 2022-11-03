@@ -347,6 +347,7 @@ func (_ *TestP2P) Started() bool {
 }
 
 // Peers returns the peer status.
+// Peers返回peers的status
 func (p *TestP2P) Peers() *peers.Status {
 	return p.peers
 }

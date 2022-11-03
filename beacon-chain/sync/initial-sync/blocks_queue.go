@@ -20,6 +20,7 @@ const (
 	// queueStopCallTimeout是允许队列释放资源的时间
 	queueStopCallTimeout = 1 * time.Second
 	// pollingInterval defines how often state machine needs to check for new events.
+	// pollingInterval定义了多频繁地检查新的events
 	pollingInterval = 200 * time.Millisecond
 	// staleEpochTimeout is an period after which epoch's state is considered stale.
 	staleEpochTimeout = 1 * time.Second
@@ -91,6 +92,7 @@ type blocksQueue struct {
 }
 
 // blocksQueueFetchedData is a data container that is returned from a queue on each step.
+// blocksQueueFetchedData是一个data container，从一个队列中返回，在每个step
 type blocksQueueFetchedData struct {
 	pid    peer.ID
 	blocks []interfaces.SignedBeaconBlock

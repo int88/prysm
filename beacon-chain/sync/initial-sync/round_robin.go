@@ -145,12 +145,14 @@ func (s *Service) processFetchedData(
 	defer s.updatePeerScorerStats(data.pid, startSlot)
 
 	// Use Batch Block Verify to process and verify batches directly.
+	// 使用Batch Block Verify来处理并且校验batches
 	if err := s.processBatchedBlocks(ctx, genesis, data.blocks, s.cfg.Chain.ReceiveBlockBatch); err != nil {
 		log.WithError(err).Warn("Batch is not processed")
 	}
 }
 
 // processFetchedData processes data received from queue.
+// processFetchedData处理从队列中接收到的数据
 func (s *Service) processFetchedDataRegSync(
 	ctx context.Context, genesis time.Time, startSlot types.Slot, data *blocksQueueFetchedData) {
 	defer s.updatePeerScorerStats(data.pid, startSlot)
@@ -159,6 +161,7 @@ func (s *Service) processFetchedDataRegSync(
 	invalidBlocks := 0
 	blksWithoutParentCount := 0
 	for _, blk := range data.blocks {
+		// 处理blocks
 		if err := s.processBlock(ctx, genesis, blk, blockReceiver); err != nil {
 			switch {
 			case errors.Is(err, errBlockAlreadyProcessed):
@@ -168,6 +171,7 @@ func (s *Service) processFetchedDataRegSync(
 				blksWithoutParentCount++
 				invalidBlocks++
 			default:
+				// block没有被处理
 				log.WithError(err).Warn("Block is not processed")
 			}
 			continue
@@ -181,6 +185,7 @@ func (s *Service) processFetchedDataRegSync(
 		}).Debug("Could not process batch blocks due to missing parent")
 	}
 	// Add more visible logging if all blocks cannot be processed.
+	// 添加更加可见的logging，如果所有的blocks都不能被处理
 	if len(data.blocks) == invalidBlocks {
 		log.WithField("error", "Range had no valid blocks to process").Warn("Range is not processed")
 	}
@@ -201,6 +206,7 @@ func (s *Service) highestFinalizedEpoch() types.Epoch {
 }
 
 // logSyncStatus and increment block processing counter.
+// logSyncStatus记录同步状态并且将processing counter + 1
 func (s *Service) logSyncStatus(genesis time.Time, blk interfaces.BeaconBlock, blkRoot [32]byte) {
 	s.counter.Incr(1)
 	rate := float64(s.counter.Rate()) / counterSeconds
@@ -240,6 +246,7 @@ func (s *Service) logBatchSyncStatus(genesis time.Time, blks []interfaces.Signed
 }
 
 // processBlock performs basic checks on incoming block, and triggers receiver function.
+// processBlock对于incoming block做基本的检查，并且触发receiver函数
 func (s *Service) processBlock(
 	ctx context.Context,
 	genesis time.Time,
@@ -294,6 +301,7 @@ func (s *Service) processBatchedBlocks(ctx context.Context, genesis time.Time,
 	for i := 1; i < len(blks); i++ {
 		b := blks[i]
 		if !bytes.Equal(b.Block().ParentRoot(), blockRoots[i-1][:]) {
+			// 期望获取线性的block list
 			return fmt.Errorf("expected linear block list with parent root of %#x but received %#x",
 				blockRoots[i-1][:], b.Block().ParentRoot())
 		}
@@ -322,6 +330,7 @@ func (s *Service) updatePeerScorerStats(pid peer.ID, startSlot types.Slot) {
 }
 
 // isProcessedBlock checks DB and local cache for presence of a given block, to avoid duplicates.
+// isProcessedBlock检查DB以及local cache，对于一个给定block是否出现，来避免重复
 func (s *Service) isProcessedBlock(ctx context.Context, blk interfaces.SignedBeaconBlock, blkRoot [32]byte) bool {
 	cp := s.cfg.Chain.FinalizedCheckpt()
 	finalizedSlot, err := slots.EpochStart(cp.Epoch)
@@ -330,11 +339,13 @@ func (s *Service) isProcessedBlock(ctx context.Context, blk interfaces.SignedBea
 	}
 	// If block is before our finalized checkpoint
 	// we do not process it.
+	// 如果block在finalized checkpoint之前，则不处理
 	if blk.Block().Slot() <= finalizedSlot {
 		return true
 	}
 	// If block exists in our db and is before or equal to our current head
 	// we ignore it.
+	// 如果block存在于我们的db中并且早于或者等于我们当前的head，忽略它
 	if s.cfg.Chain.HeadSlot() >= blk.Block().Slot() && s.cfg.Chain.HasBlock(ctx, blkRoot) {
 		return true
 	}
