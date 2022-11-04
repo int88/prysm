@@ -21,6 +21,7 @@ var eth2ENRKey = params.BeaconNetworkConfig().ETH2Key
 
 // ForkDigest returns the current fork digest of
 // the node according to the local clock.
+// ForkDigest返回当前节点的fork digest，根据local clock
 func (s *Service) currentForkDigest() ([4]byte, error) {
 	if !s.isInitialized() {
 		return [4]byte{}, errors.New("state is not initialized")

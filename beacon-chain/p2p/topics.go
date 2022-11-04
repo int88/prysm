@@ -5,10 +5,13 @@ const (
 	GossipProtocolAndDigest = "/eth2/%x/"
 
 	// Message Types
+	// Message的类型
 	//
 	// GossipAttestationMessage is the name for the attestation message type. It is
 	// specially extracted so as to determine the correct message type from an attestation
 	// subnet.
+	// GossipAttestationMessage是attestation message类型的名字，它特定被抽去出来，为了决定正确的
+	// message类型，从一个attestation subnet
 	GossipAttestationMessage = "beacon_attestation"
 	// GossipSyncCommitteeMessage is the name for the sync committee message type. It is
 	// specially extracted so as to determine the correct message type from a sync committee
@@ -19,8 +22,10 @@ const (
 	// GossipExitMessage is the name for the voluntary exit message type.
 	GossipExitMessage = "voluntary_exit"
 	// GossipProposerSlashingMessage is the name for the proposer slashing message type.
+	// 用于proposer slashing message的类型
 	GossipProposerSlashingMessage = "proposer_slashing"
 	// GossipAttesterSlashingMessage is the name for the attester slashing message type.
+	// 用于attester slashing message的类型
 	GossipAttesterSlashingMessage = "attester_slashing"
 	// GossipAggregateAndProofMessage is the name for the attestation aggregate and proof message type.
 	GossipAggregateAndProofMessage = "beacon_aggregate_and_proof"
@@ -28,6 +33,7 @@ const (
 	GossipContributionAndProofMessage = "sync_committee_contribution_and_proof"
 
 	// Topic Formats
+	// Topic的格式
 	//
 	// AttestationSubnetTopicFormat is the topic format for the attestation subnet.
 	AttestationSubnetTopicFormat = GossipProtocolAndDigest + GossipAttestationMessage + "_%d"

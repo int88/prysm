@@ -69,9 +69,11 @@ func TestRegisterRPC_ReceivesValidMessage(t *testing.T) {
 	}
 	prysmP2P.RPCTopicMappings[topic] = new(ethpb.Fork)
 	// Cleanup Topic mappings
+	// 清理topic的映射
 	defer func() {
 		delete(prysmP2P.RPCTopicMappings, topic)
 	}()
+	// 注册topic到handler之间的映射
 	r.registerRPC(topic, handler)
 
 	p2p.ReceiveRPC(topic, &ethpb.Fork{CurrentVersion: []byte("fooo"), PreviousVersion: []byte("barr")})

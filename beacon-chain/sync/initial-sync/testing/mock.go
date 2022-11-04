@@ -1,5 +1,6 @@
 // Package testing includes useful mocks for testing initial
 // sync status in unit tests.
+// testing包包含了有用的mocks对于测试初始的initial  sync status，在单元测试中
 package testing
 
 // Sync defines a mock for the sync service.

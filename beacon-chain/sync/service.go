@@ -219,6 +219,7 @@ func (s *Service) Status() error {
 	// 如果我们的head slot在之前的epoch并且我们的peers报告了它们的head block在最近的epoch
 	// 那么我们可能已经out of sync
 	if headEpoch := slots.ToEpoch(s.cfg.chain.HeadSlot()); headEpoch+1 < slots.ToEpoch(s.cfg.chain.CurrentSlot()) &&
+		// 小于peers中的最高epoch
 		headEpoch+1 < s.cfg.p2p.Peers().HighestEpoch() {
 		return errors.New("out of sync")
 	}
@@ -252,6 +253,7 @@ func (s *Service) registerHandlers() {
 		select {
 		case e := <-stateChannel:
 			switch e.Type {
+			// 初始化事件
 			case statefeed.Initialized:
 				data, ok := e.Data.(*statefeed.InitializedData)
 				if !ok {
@@ -268,12 +270,14 @@ func (s *Service) registerHandlers() {
 				// 在另外一个goroutine等待chainstart
 				go func() {
 					if startTime.After(prysmTime.Now()) {
+						// 睡眠直到starttime
 						time.Sleep(prysmTime.Until(startTime))
 					}
 					log.WithField("starttime", startTime).Debug("Chain started in sync service")
 					s.markForChainStart()
 				}()
 			case statefeed.Synced:
+				// 同步完成的事件
 				_, ok := e.Data.(*statefeed.SyncedData)
 				if !ok {
 					log.Error("Event feed data is not type *statefeed.SyncedData")
@@ -303,6 +307,7 @@ func (s *Service) registerHandlers() {
 }
 
 // marks the chain as having started.
+// 将chain标记为started
 func (s *Service) markForChainStart() {
 	s.chainStarted.Set()
 }

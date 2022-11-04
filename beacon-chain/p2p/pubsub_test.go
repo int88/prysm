@@ -31,15 +31,18 @@ func TestService_PublishToTopicConcurrentMapWrite(t *testing.T) {
 	}
 
 	// Set up two connected test hosts.
+	// 建立两个互相连接的test hosts
 	p0 := testp2p.NewTestP2P(t)
 	p1 := testp2p.NewTestP2P(t)
 	p0.Connect(p1)
 	s.host = p0.BHost
 	s.pubsub = p0.PubSub()
 
+	// 构建topic
 	topic := fmt.Sprintf(BlockSubnetTopicFormat, fd) + "/" + encoder.ProtocolSuffixSSZSnappy
 
 	// Establish the remote peer to be subscribed to the outgoing topic.
+	// 让remote peer订阅outgoing topic
 	_, err = p1.SubscribeToTopic(topic)
 	require.NoError(t, err)
 
@@ -47,6 +50,7 @@ func TestService_PublishToTopicConcurrentMapWrite(t *testing.T) {
 	wg.Add(10)
 	for i := 0; i < 10; i++ {
 		go func(i int) {
+			// 发布到topic
 			assert.NoError(t, s.PublishToTopic(ctx, topic, []byte{}))
 			wg.Done()
 		}(i)

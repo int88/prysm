@@ -68,11 +68,13 @@ type EncodingProvider interface {
 }
 
 // PubSubProvider provides the p2p pubsub protocol.
+// PubSubProvider提供了p2p的pubsub协议
 type PubSubProvider interface {
 	PubSub() *pubsub.PubSub
 }
 
 // PeerManager abstracts some peer management methods from libp2p.
+// PeerManager从libp2p抽象出一些peer management方法
 type PeerManager interface {
 	Disconnect(peer.ID) error
 	PeerID() peer.ID

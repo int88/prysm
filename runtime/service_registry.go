@@ -96,6 +96,7 @@ func (s *ServiceRegistry) RegisterService(service Service) error {
 // 这能确保input argument被设置为正确的pointer，引用到原始注册的service
 func (s *ServiceRegistry) FetchService(service interface{}) error {
 	if reflect.TypeOf(service).Kind() != reflect.Ptr {
+		// 输入的必须是指针类型
 		return fmt.Errorf("input must be of pointer type, received value type instead: %T", service)
 	}
 	element := reflect.ValueOf(service).Elem()

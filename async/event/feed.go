@@ -134,7 +134,9 @@ func (f *Feed) remove(sub *feedSub) {
 }
 
 // Send delivers to all subscribed channels simultaneously.
+// Send同时发送给所有订阅的channels
 // It returns the number of subscribers that the value was sent to.
+// 返回values发给的subscribers的数目
 func (f *Feed) Send(value interface{}) (nsent int) {
 	rvalue := reflect.ValueOf(value)
 

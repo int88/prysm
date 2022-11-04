@@ -25,6 +25,7 @@ import (
 
 const (
 	// maxPendingRequests limits how many concurrent fetch request one can initiate.
+	// maxPendingRequests限制了最多能并行的fetch request
 	maxPendingRequests = 64
 	// peersPercentagePerRequest caps percentage of peers to be used in a request.
 	peersPercentagePerRequest = 0.75
@@ -315,6 +316,7 @@ func (f *blocksFetcher) fetchBlocksFromPeer(
 }
 
 // requestBlocks is a wrapper for handling BeaconBlocksByRangeRequest requests/streams.
+// requestBlocks是一个wrapper用于处理BeaconBlocksByRangeRequest requests/streams
 func (f *blocksFetcher) requestBlocks(
 	ctx context.Context,
 	req *p2ppb.BeaconBlocksByRangeRequest,
@@ -374,6 +376,7 @@ func (f *blocksFetcher) requestBlocksByRoot(
 }
 
 // waitForBandwidth blocks up until peer's bandwidth is restored.
+// waitForBandwidth阻塞直到peer的带宽恢复了
 func (f *blocksFetcher) waitForBandwidth(pid peer.ID) error {
 	log.WithField("peer", pid).Debug("Slowing down for rate limit")
 	timer := time.NewTimer(f.rateLimiter.TillEmpty(pid.String()))

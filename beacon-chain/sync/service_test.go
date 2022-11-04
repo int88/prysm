@@ -108,12 +108,14 @@ func TestSyncHandlers_WaitForChainStart(t *testing.T) {
 	i := r.cfg.stateNotifier.StateFeed().Send(&feed.Event{
 		Type: statefeed.Initialized,
 		Data: &statefeed.InitializedData{
+			// 要经过2s才是启动时间
 			StartTime: time.Now().Add(2 * time.Second),
 		},
 	})
 	if i == 0 {
 		t.Fatal("didn't send genesis time to subscribers")
 	}
+	// chainstart过早地被设置
 	require.Equal(t, false, r.chainStarted.IsSet(), "Chainstart was marked prematurely")
 
 	// wait for chainstart to be sent
@@ -123,6 +125,7 @@ func TestSyncHandlers_WaitForChainStart(t *testing.T) {
 }
 
 func TestSyncHandlers_WaitTillSynced(t *testing.T) {
+	// 等待直到同步完成
 	p2p := p2ptest.NewTestP2P(t)
 	chainService := &mockChain.ChainService{
 		Genesis:        time.Now(),
@@ -160,6 +163,7 @@ func TestSyncHandlers_WaitTillSynced(t *testing.T) {
 		})
 	}
 	for !r.chainStarted.IsSet() {
+		// 等待到chain启动
 		assert.NoError(t, ctx.Err())
 		time.Sleep(time.Millisecond)
 	}
@@ -186,6 +190,7 @@ func TestSyncHandlers_WaitTillSynced(t *testing.T) {
 
 	topic := "/eth2/%x/beacon_block"
 	p2p.ReceivePubSub(topic, msg)
+	// 尽管还没有完全同步，但是block从sync service中收到了
 	assert.Equal(t, 0, len(blockChan), "block was received by sync service despite not being fully synced")
 
 	for i := 0; i == 0; {
@@ -206,6 +211,7 @@ func TestSyncHandlers_WaitTillSynced(t *testing.T) {
 	case <-blockChan:
 	case <-ctx.Done():
 	}
+	// 确保不是context取消
 	assert.NoError(t, ctx.Err())
 }
 
@@ -246,6 +252,7 @@ func TestSyncService_StopCleanly(t *testing.T) {
 	require.NoError(t, err)
 
 	// wait for chainstart to be sent
+	// 等待chainstart被发送
 	time.Sleep(2 * time.Second)
 	require.Equal(t, true, r.chainStarted.IsSet(), "Did not receive chain start event.")
 
@@ -265,9 +272,11 @@ func TestSyncService_StopCleanly(t *testing.T) {
 	require.NotEqual(t, 0, len(r.cfg.p2p.Host().Mux().Protocols()))
 
 	// Both pubsub and rpc topcis should be unsubscribed.
+	// pubsub以及rpc topics都应该取消订阅
 	require.NoError(t, r.Stop())
 
 	// Sleep to allow pubsub topics to be deregistered.
+	// 睡眠从而允许pubsub topics被解注册
 	time.Sleep(1 * time.Second)
 	require.Equal(t, 0, len(r.cfg.p2p.PubSub().GetTopics()))
 	require.Equal(t, 0, len(r.cfg.p2p.Host().Mux().Protocols()))

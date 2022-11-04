@@ -106,6 +106,7 @@ func NewService(ctx context.Context, cfg *Config) (*Service, error) {
 		subnetsLock:   make(map[uint64]*sync.RWMutex),
 	}
 
+	// 解析bootstrap的地址
 	dv5Nodes := parseBootStrapAddrs(s.cfg.BootstrapNodeAddr)
 
 	cfg.Discv5BootStrapAddr = dv5Nodes
@@ -113,16 +114,19 @@ func NewService(ctx context.Context, cfg *Config) (*Service, error) {
 	ipAddr := ipAddr()
 	s.privKey, err = privKey(s.cfg)
 	if err != nil {
+		// 生成p2p private key失败
 		log.WithError(err).Error("Failed to generate p2p private key")
 		return nil, err
 	}
 	s.metaData, err = metaDataFromConfig(s.cfg)
 	if err != nil {
+		// 创建peer metadata失败
 		log.WithError(err).Error("Failed to create peer metadata")
 		return nil, err
 	}
 	s.addrFilter, err = configureFilter(s.cfg)
 	if err != nil {
+		// 创建address filter失败
 		log.WithError(err).Error("Failed to create address filter")
 		return nil, err
 	}
@@ -131,6 +135,7 @@ func NewService(ctx context.Context, cfg *Config) (*Service, error) {
 	opts := s.buildOptions(ipAddr, s.privKey)
 	h, err := libp2p.New(opts...)
 	if err != nil {
+		// 构建libp2p的host
 		log.WithError(err).Error("Failed to create p2p host")
 		return nil, err
 	}
@@ -141,6 +146,8 @@ func NewService(ctx context.Context, cfg *Config) (*Service, error) {
 	// due to libp2p's gossipsub implementation not taking into
 	// account previously added peers when creating the gossipsub
 	// object.
+	// Gossipsub注册完成，在我们添加任何新的peers之前，因为libp2p的gossipsub实现
+	// 不会考虑之前添加的peers，当创建gossipsub对象时
 	psOpts := []pubsub.Option{
 		pubsub.WithMessageSignaturePolicy(pubsub.StrictNoSign),
 		pubsub.WithNoAuthor(),
@@ -155,13 +162,16 @@ func NewService(ctx context.Context, cfg *Config) (*Service, error) {
 		pubsub.WithGossipSubParams(pubsubGossipParam()),
 	}
 	// Set the pubsub global parameters that we require.
+	// 设置我们需要的pubsub global parameters
 	setPubSubParameters()
 	// Reinitialize them in the event we are running a custom config.
+	// 重新初始化他们，当我们在运行一个custom config
 	attestationSubnetCount = params.BeaconNetworkConfig().AttestationSubnetCount
 	syncCommsSubnetCount = params.BeaconConfig().SyncCommitteeSubnetCount
 
 	gs, err := pubsub.NewGossipSub(s.ctx, s.host, psOpts...)
 	if err != nil {
+		// 启动pubsub失败
 		log.WithError(err).Error("Failed to start pubsub")
 		return nil, err
 	}
@@ -178,6 +188,7 @@ func NewService(ctx context.Context, cfg *Config) (*Service, error) {
 	})
 
 	// Initialize Data maps.
+	// 初始化Data maps
 	types.InitializeDataMaps()
 
 	return s, nil
@@ -399,6 +410,8 @@ func (s *Service) pingPeers() {
 // Waits for the beacon state to be initialized, important
 // for initializing the p2p service as p2p needs to be aware
 // of genesis information for peering.
+// 等待beacon state完成初始化，这对于p2p service的初始化是非常重要的
+// 因为p2p需要知道genesis信息，用于peering
 func (s *Service) awaitStateInitialized() {
 	s.initializationLock.Lock()
 	defer s.initializationLock.Unlock()
@@ -495,6 +508,8 @@ func (s *Service) connectToBootnodes() error {
 
 // Returns true if the service is aware of the genesis time and genesis validators root. This is
 // required for discovery and pubsub validation.
+// 返回true，如果service意识到genesis time以及genesis validators root，这对于discovery以及pubsub validation
+// 是必须的
 func (s *Service) isInitialized() bool {
 	return !s.genesisTime.IsZero() && len(s.genesisValidatorsRoot) == 32
 }

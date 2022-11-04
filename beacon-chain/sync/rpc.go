@@ -30,6 +30,8 @@ var respTimeout = params.BeaconNetworkConfig().RespTimeout
 // rpcHandler is responsible for handling and responding to any incoming message.
 // This method may return an error to internal monitoring, but the error will
 // not be relayed to the peer.
+// rpcHandler负责处理以及响应任何的incoming message，这个方法可能返回error到internal monitoring
+// 但是这个error不会中继到peer
 type rpcHandler func(context.Context, interface{}, libp2pcore.Stream) error
 
 // registerRPCHandlers for p2p RPC.
@@ -108,9 +110,11 @@ func (s *Service) unregisterPhase0Handlers() {
 }
 
 // registerRPC for a given topic with an expected protobuf message type.
+// registerRPC为一个给定的topic，有着一个期望的protobuf message类型
 func (s *Service) registerRPC(baseTopic string, handle rpcHandler) {
 	topic := baseTopic + s.cfg.p2p.Encoding().ProtocolSuffix()
 	log := log.WithField("topic", topic)
+	// 设置stream handler
 	s.cfg.p2p.SetStreamHandler(topic, func(stream network.Stream) {
 		defer func() {
 			if r := recover(); r != nil {
@@ -170,6 +174,7 @@ func (s *Service) registerRPC(baseTopic string, handle rpcHandler) {
 
 		// since metadata requests do not have any data in the payload, we
 		// do not decode anything.
+		// 因为metadata requests在payload中没有任何的数据，因此我们不做任何的decode
 		if baseTopic == p2p.RPCMetaDataTopicV1 || baseTopic == p2p.RPCMetaDataTopicV2 {
 			if err := handle(ctx, base, stream); err != nil {
 				messageFailedProcessingCounter.WithLabelValues(topic).Inc()

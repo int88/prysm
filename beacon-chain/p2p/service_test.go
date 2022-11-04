@@ -320,6 +320,7 @@ func TestService_JoinLeaveTopic(t *testing.T) {
 
 // initializeStateWithForkDigest sets up the state feed initialized event and returns the fork
 // digest associated with that genesis event.
+// initializeStateWithForkDigest设置state feed initialized event并且返回和genesis event相关的fork diegest
 func initializeStateWithForkDigest(ctx context.Context, t *testing.T, ef *event.Feed) [4]byte {
 	gt := prysmTime.Now()
 	gvr := bytesutil.PadTo([]byte("genesis validators root"), 32)
@@ -339,6 +340,7 @@ func initializeStateWithForkDigest(ctx context.Context, t *testing.T, ef *event.
 	fd, err := forks.CreateForkDigest(gt, gvr)
 	require.NoError(t, err)
 
+	// 等待pubsub filter初始化
 	time.Sleep(50 * time.Millisecond) // wait for pubsub filter to initialize.
 
 	return fd

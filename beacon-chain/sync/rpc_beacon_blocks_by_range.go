@@ -19,6 +19,7 @@ import (
 )
 
 // beaconBlocksByRangeRPCHandler looks up the request blocks from the database from a given start block.
+// beaconBlocksByRangeRPCHandler查找请求的blocks，从database，从一个给定的start block开始
 func (s *Service) beaconBlocksByRangeRPCHandler(ctx context.Context, msg interface{}, stream libp2pcore.Stream) error {
 	ctx, span := trace.StartSpan(ctx, "sync.BeaconBlocksByRangeHandler")
 	defer span.End()
@@ -102,6 +103,7 @@ func (s *Service) beaconBlocksByRangeRPCHandler(ctx context.Context, msg interfa
 		}
 
 		// Recalculate start and end slots for the next batch to be returned to the remote peer.
+		// 重新计算start以及end slots，对于下一个返回给remote peer的batch
 		startSlot = endSlot.Add(m.Step)
 		endSlot = startSlot.Add(m.Step * (allowedBlocksPerSecond - 1))
 		if endSlot > endReqSlot {
@@ -109,11 +111,13 @@ func (s *Service) beaconBlocksByRangeRPCHandler(ctx context.Context, msg interfa
 		}
 
 		// do not wait if all blocks have already been sent.
+		// 不要等待，如果所有的blocks已经被发送
 		if startSlot > endReqSlot {
 			break
 		}
 
 		// wait for ticker before resuming streaming blocks to remote peer.
+		// 等待ticker，在继续streaming blocks到remote peer之前
 		<-ticker.C
 	}
 	closeStream(stream, log)

@@ -54,6 +54,8 @@ func ForkDigestFromEpoch(currentEpoch types.Epoch, genesisValidatorsRoot []byte)
 // CreateForkDigest creates a fork digest from a genesis time and genesis
 // validators root, utilizing the current slot to determine
 // the active fork version in the node.
+// CreateForkDigest创建一个fork digest，从一个genesis time以及genesis validators root
+// 使用当前的slot来确定
 func CreateForkDigest(
 	genesisTime time.Time,
 	genesisValidatorsRoot []byte,

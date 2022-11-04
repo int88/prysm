@@ -76,6 +76,7 @@ func (s *Service) LeaveTopic(topic string) error {
 }
 
 // PublishToTopic joins (if necessary) and publishes a message to a PubSub topic.
+// PublishToTopic加入（如果需要的话）并且发送一个message到一个PubSub topic
 func (s *Service) PublishToTopic(ctx context.Context, topic string, data []byte, opts ...pubsub.PubOpt) error {
 	topicHandle, err := s.JoinTopic(topic)
 	if err != nil {
@@ -83,6 +84,7 @@ func (s *Service) PublishToTopic(ctx context.Context, topic string, data []byte,
 	}
 
 	// Wait for at least 1 peer to be available to receive the published message.
+	// 等待至少一个peer可用来接收published message
 	for {
 		if len(topicHandle.ListPeers()) > 0 || flags.Get().MinimumSyncPeers == 0 {
 			return topicHandle.Publish(ctx, data, opts...)

@@ -158,6 +158,7 @@ func (smm *stateMachineManager) String() string {
 }
 
 // setState updates the current state of a given state machine.
+// setState更新一个给定的state machine的current state
 func (m *stateMachine) setState(name stateID) {
 	if m.state == name {
 		return
@@ -175,7 +176,7 @@ func (m *stateMachine) trigger(event eventID, data interface{}) error {
 		return fmt.Errorf("no event handlers registered for event: %v, state: %v", event, m.state)
 	}
 	if handlerFn, ok := handlers[event]; ok {
-		// 调用handler进行处理
+		// 根据event，调用对应的handler进行处理
 		state, err := handlerFn(m, data)
 		if err != nil {
 			return err

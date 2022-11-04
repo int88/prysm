@@ -87,11 +87,13 @@ func (p *TestP2P) Connect(b *TestP2P) {
 }
 
 func connect(a, b host.Host) error {
+	// 从PeerStore中获取peer的信息
 	pinfo := b.Peerstore().PeerInfo(b.ID())
 	return a.Connect(context.Background(), pinfo)
 }
 
 // ReceiveRPC simulates an incoming RPC.
+// ReceiveRPC模拟一个incoming RPC
 func (p *TestP2P) ReceiveRPC(topic string, msg proto.Message) {
 	h := bhost.NewBlankHost(swarmt.GenSwarm(p.t))
 	if err := connect(h, p.BHost); err != nil {
@@ -133,11 +135,13 @@ func (p *TestP2P) ReceivePubSub(topic string, msg proto.Message) {
 		p.t.Fatalf("Failed to create flood sub: %v", err)
 	}
 	if err := connect(h, p.BHost); err != nil {
+		// 连接两个peers用于RPC失败
 		p.t.Fatalf("Failed to connect two peers for RPC: %v", err)
 	}
 
 	// PubSub requires some delay after connecting for the (*PubSub).processLoop method to
 	// pick up the newly connected peer.
+	// PubSub需要一些delay在连接之后，因为(*PubSub).processLoop方法需要选取一些新连接的peer
 	time.Sleep(time.Millisecond * 100)
 
 	castedMsg, ok := msg.(ssz.Marshaler)
@@ -207,6 +211,7 @@ func (p *TestP2P) PublishToTopic(ctx context.Context, topic string, data []byte,
 }
 
 // SubscribeToTopic joins (if necessary) and subscribes to PubSub topic.
+// SubscribeToTopic加入（如果需要的话）并且订阅PubSub topic
 func (p *TestP2P) SubscribeToTopic(topic string, opts ...pubsub.SubOpt) (*pubsub.Subscription, error) {
 	joinedTopic, err := p.JoinTopic(topic)
 	if err != nil {
