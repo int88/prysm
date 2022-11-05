@@ -42,6 +42,7 @@ func (s *Service) beaconBlockSubscriber(ctx context.Context, msg proto.Message) 
 
 // The input attestations are seen by the network, this deletes them from pool
 // so proposers don't include them in a block for the future.
+// 输入的attestations被network看到，将他们从pool中删除，这样proposer不会在未来的block中包含他们
 func (s *Service) deleteAttsInPool(atts []*ethpb.Attestation) error {
 	for _, att := range atts {
 		if helpers.IsAggregated(att) {

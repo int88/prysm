@@ -80,6 +80,7 @@ func (s *Service) validateVoluntaryExit(ctx context.Context, pid peer.ID, msg *p
 
 	// Broadcast the voluntary exit on a feed to notify other services in the beacon node
 	// of a received voluntary exit.
+	// 广播voluntary exit到一个feed，来通知beacon node中的其他服务，关于接收到voluntary exit
 	s.cfg.operationNotifier.OperationFeed().Send(&feed.Event{
 		Type: opfeed.ExitReceived,
 		Data: &opfeed.ExitReceivedData{

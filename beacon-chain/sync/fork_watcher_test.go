@@ -55,6 +55,7 @@ func TestService_CheckForNextEpochFork(t *testing.T) {
 			},
 		},
 		{
+			// 在下一个epoch有altair fork
 			name: "altair fork in the next epoch",
 			svcCreator: func(t *testing.T) *Service {
 				peer2peer := p2ptest.NewTestP2P(t)
@@ -99,6 +100,7 @@ func TestService_CheckForNextEpochFork(t *testing.T) {
 		},
 		{
 			name: "bellatrix fork in the next epoch",
+			// 在下一个epoch是bellatrix fork
 			svcCreator: func(t *testing.T) *Service {
 				peer2peer := p2ptest.NewTestP2P(t)
 				chainService := &mockChain.ChainService{

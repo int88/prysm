@@ -94,10 +94,12 @@ func (vs *Server) sendBlocks(stream ethpb.BeaconNodeValidator_StreamBlocksAltair
 	data, ok := blockEvent.Data.(*blockfeed.ReceivedBlockData)
 	if !ok || data == nil {
 		// Got bad data over the stream.
+		// 通过stream获取到了bad data
 		return nil
 	}
 	if data.SignedBlock == nil {
 		// One nil block shouldn't stop the stream.
+		// 一个nil block不应该停止stream
 		return nil
 	}
 	log := log.WithField("blockSlot", data.SignedBlock.Block().Slot())

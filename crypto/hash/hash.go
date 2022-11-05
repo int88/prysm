@@ -103,6 +103,7 @@ func HashKeccak256(data []byte) [32]byte {
 }
 
 // HashProto hashes a protocol buffer message using sha256.
+// HashProto使用sha256对一个protocol buffer message进行哈希
 func HashProto(msg proto.Message) (result [32]byte, err error) {
 	if msg == nil || reflect.ValueOf(msg).IsNil() {
 		return [32]byte{}, ErrNilProto

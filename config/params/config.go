@@ -14,7 +14,9 @@ import (
 // BeaconChainConfig包含常量配置，用于节点加入beacon chain
 type BeaconChainConfig struct {
 	// Constants (non-configurable)
-	GenesisSlot              types.Slot  `yaml:"GENESIS_SLOT"`                // GenesisSlot represents the first canonical slot number of the beacon chain.
+	// GenesisSlot代表了beacon chain中第一个canonical slot number
+	GenesisSlot types.Slot `yaml:"GENESIS_SLOT"` // GenesisSlot represents the first canonical slot number of the beacon chain.
+	// GenesisEpoch代表了beacon chain中第一个canonical epoch number
 	GenesisEpoch             types.Epoch `yaml:"GENESIS_EPOCH"`               // GenesisEpoch represents the first canonical epoch number of the beacon chain.
 	FarFutureEpoch           types.Epoch `yaml:"FAR_FUTURE_EPOCH"`            // FarFutureEpoch represents a epoch extremely far away in the future used as the default penalization epoch for validators. // FarFutureEpoch代表一个未来很远的epoch，作为对于validators的penalization epoch
 	FarFutureSlot            types.Slot  `yaml:"FAR_FUTURE_SLOT"`             // FarFutureSlot represents a slot extremely far away in the future.

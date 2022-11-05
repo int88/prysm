@@ -11,6 +11,8 @@ import (
 
 // syncContributionAndProofSubscriber forwards the incoming validated sync contributions and proof to the
 // contribution pool for processing.
+// syncContributionAndProofSubscriber转发收到的validated sync contributions以及proof到contribution pool
+// 用于处理
 // skipcq: SCC-U1000
 func (s *Service) syncContributionAndProofSubscriber(_ context.Context, msg proto.Message) error {
 	sContr, ok := msg.(*ethpb.SignedContributionAndProof)

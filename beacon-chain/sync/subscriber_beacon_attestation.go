@@ -33,6 +33,7 @@ func (s *Service) committeeIndexBeaconAttestationSubscriber(_ context.Context, m
 		return nil
 	}
 
+	// 保存aggregated attestation
 	return s.cfg.attPool.SaveUnaggregatedAttestation(a)
 }
 

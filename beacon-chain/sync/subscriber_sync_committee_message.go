@@ -20,5 +20,6 @@ func (s *Service) syncCommitteeMessageSubscriber(_ context.Context, msg proto.Me
 		return errors.New("nil sync committee message")
 	}
 
+	// 保存sync committee message
 	return s.cfg.syncCommsPool.SaveSyncCommitteeMessage(m)
 }

@@ -94,6 +94,8 @@ func (vs *Server) ProposeBeaconBlock(ctx context.Context, req *ethpb.GenericSign
 
 // ProposeBlock is called by a proposer during its assigned slot to create a block in an attempt
 // to get it processed by the beacon node as the canonical head.
+// ProposeBlock被一个proposer调用，在它赋予的slot，来创建一个block，试着让它在beacon node中作为canonical head
+// 被处理
 //
 // DEPRECATED: Use ProposeBeaconBlock instead.
 func (vs *Server) ProposeBlock(ctx context.Context, rBlk *ethpb.SignedBeaconBlock) (*ethpb.ProposeResponse, error) {
@@ -166,6 +168,7 @@ func (vs *Server) proposeGenericBeaconBlock(ctx context.Context, blk interfaces.
 		"blockRoot": hex.EncodeToString(root[:]),
 	}).Debug("Broadcasting block")
 
+	// 给自己的block receiver
 	if err := vs.BlockReceiver.ReceiveBlock(ctx, blk, root); err != nil {
 		// 不能处理beacon block
 		return nil, fmt.Errorf("could not process beacon block: %v", err)

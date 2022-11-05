@@ -145,6 +145,8 @@ func (vs *Server) buildHeaderBlock(ctx context.Context, b *ethpb.BeaconBlockAlta
 // This function retrieves the full payload block using the input blind block. This input must be versioned as
 // bellatrix blind block. The output block will contain the full payload. The original header block
 // will be returned the block builder is not configured.
+// 这个函数通过使用input blind block获取full payload block，这个输入必须被版本为bellatric blind block
+// output block会包含full payload，original header block会返回，如果block builder没有被配置
 func (vs *Server) unblindBuilderBlock(ctx context.Context, b interfaces.SignedBeaconBlock) (interfaces.SignedBeaconBlock, error) {
 	if err := coreBlock.BeaconBlockIsNil(b); err != nil {
 		return nil, err
@@ -191,6 +193,7 @@ func (vs *Server) unblindBuilderBlock(ctx context.Context, b interfaces.SignedBe
 		Signature: b.Signature(),
 	}
 
+	// 生成execution payload?
 	payload, err := vs.BlockBuilder.SubmitBlindedBlock(ctx, sb)
 	if err != nil {
 		return nil, err

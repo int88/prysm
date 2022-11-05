@@ -1,6 +1,7 @@
 package client
 
 // Validator client proposer functions.
+// Validator client的proposer功能
 import (
 	"context"
 	"fmt"

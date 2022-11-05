@@ -190,7 +190,9 @@ func (s *Service) validateBeaconBlockPubSub(ctx context.Context, pid peer.ID, ms
 	err = s.validateBeaconBlock(ctx, blk, blockRoot)
 	if err != nil {
 		// If the parent is optimistic, process the block as usual
+		// 如果parent是optimistic, 正常处理block
 		// This also does not penalize a peer which sends optimistic blocks
+		// 它也不会处罚一个peer，当它发送optimistic blocks的时候
 		if !errors.Is(ErrOptimisticParent, err) {
 			log.WithError(err).WithFields(getBlockFields(blk)).Debug("Could not validate beacon block")
 			return pubsub.ValidationReject, err
@@ -373,6 +375,9 @@ func captureArrivalTimeMetric(genesisTime uint64, currentSlot types.Slot) error 
 // current_time +  MAXIMUM_GOSSIP_CLOCK_DISPARITY. in short, this function
 // returns true if the corresponding block should be queued and false if
 // the block should be processed immediately.
+// isBlockQueueable检查block的slot_time是否大于current_time + MAXIMUM_GOSSIP_CLOCK_DISPARITY
+// 简单地说，这个函数返回true，如果对应的block应该排队以及返回false，如果block应该被
+// 立即处理
 func isBlockQueueable(genesisTime uint64, slot types.Slot, receivedTime time.Time) bool {
 	slotTime, err := slots.ToTime(genesisTime, slot)
 	if err != nil {

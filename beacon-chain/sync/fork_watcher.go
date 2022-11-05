@@ -20,6 +20,8 @@ func (s *Service) forkWatcher() {
 		// In the event of a node restart, we will still end up subscribing to the correct
 		// topics during/after the fork epoch. This routine is to ensure correct
 		// subscriptions for nodes running before a fork epoch.
+		// 对于一个node restart事件，我们会结束订阅正确的topics，在fork epoch中或者之后，这个routine
+		// 来确保正确的nodes的订阅，在运行一个fork epoch之后
 		case currSlot := <-slotTicker.C():
 			currEpoch := slots.ToEpoch(currSlot)
 			if err := s.registerForUpcomingFork(currEpoch); err != nil {
@@ -40,6 +42,7 @@ func (s *Service) forkWatcher() {
 
 // Checks if there is a fork in the next epoch and if there is
 // it registers the appropriate gossip and rpc topics.
+// 检查下一个epoch是否有一个fork并且如果有的话，注册合适的gossip以及rpc topics
 func (s *Service) registerForUpcomingFork(currEpoch types.Epoch) error {
 	genRoot := s.cfg.chain.GenesisValidatorsRoot()
 	isNextForkEpoch, err := forks.IsForkNextEpoch(s.cfg.chain.GenesisTime(), genRoot[:])
@@ -49,6 +52,7 @@ func (s *Service) registerForUpcomingFork(currEpoch types.Epoch) error {
 	// In preparation for the upcoming fork
 	// in the following epoch, the node
 	// will subscribe the new topics in advance.
+	// 为了准备即将到来的fork，在接下来的epoch中，node会提前订阅新的topic
 	if isNextForkEpoch {
 		nextEpoch := currEpoch + 1
 		switch nextEpoch {

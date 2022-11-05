@@ -31,12 +31,19 @@ import (
 // - The attestation is unaggregated -- that is, it has exactly one participating validator (len(get_attesting_indices(state, attestation.data, attestation.aggregation_bits)) == 1).
 // - attestation.data.slot is within the last ATTESTATION_PROPAGATION_SLOT_RANGE slots (attestation.data.slot + ATTESTATION_PROPAGATION_SLOT_RANGE >= current_slot >= attestation.data.slot).
 // - The signature of attestation is valid.
+// 校验
+// - 投票的block通过了校验
+// - attestation的committee index是正确的subnet
+// - attestation没有聚合 -- 即至于一个参与的validator
+// - attestation.data.slot在最后的ATTESTATION_PROPAGATION_SLOT_RANGE slots
+// - attestation的签名是正确的
 func (s *Service) validateCommitteeIndexBeaconAttestation(ctx context.Context, pid peer.ID, msg *pubsub.Message) (pubsub.ValidationResult, error) {
 	if pid == s.cfg.p2p.PeerID() {
 		return pubsub.ValidationAccept, nil
 	}
 	// Attestation processing requires the target block to be present in the database, so we'll skip
 	// validating or processing attestations until fully synced.
+	// Attestation的处理需要target block在数据库中存在，这样我们能跳过校验或者处理attestations，直到完全同步
 	if s.cfg.initialSync.Syncing() {
 		return pubsub.ValidationIgnore, nil
 	}
@@ -73,11 +80,13 @@ func (s *Service) validateCommitteeIndexBeaconAttestation(ctx context.Context, p
 		return pubsub.ValidationReject, err
 	}
 	// Do not process slot 0 attestations.
+	// 不要处理slot为0的attestations
 	if att.Data.Slot == 0 {
 		return pubsub.ValidationIgnore, nil
 	}
 	// Broadcast the unaggregated attestation on a feed to notify other services in the beacon node
 	// of a received unaggregated attestation.
+	// 广播unaggregated attestation
 	s.cfg.attestationNotifier.OperationFeed().Send(&feed.Event{
 		Type: operation.UnaggregatedAttReceived,
 		Data: &operation.UnAggregatedAttReceivedData{
@@ -131,6 +140,7 @@ func (s *Service) validateCommitteeIndexBeaconAttestation(ctx context.Context, p
 	}
 
 	// Reject an attestation if it references an invalid block.
+	// 拒绝一个attestation，如果它引用一个非法的block
 	if s.hasBadBlock(bytesutil.ToBytes32(att.Data.BeaconBlockRoot)) ||
 		s.hasBadBlock(bytesutil.ToBytes32(att.Data.Target.Root)) ||
 		s.hasBadBlock(bytesutil.ToBytes32(att.Data.Source.Root)) {
@@ -138,9 +148,11 @@ func (s *Service) validateCommitteeIndexBeaconAttestation(ctx context.Context, p
 	}
 
 	// Verify the block being voted and the processed state is in beaconDB and the block has passed validation if it's in the beaconDB.
+	// 校验被投的block以及processed state在beaconDB并且block已经通过了validation，如果它在beaconDB中
 	blockRoot := bytesutil.ToBytes32(att.Data.BeaconBlockRoot)
 	if !s.hasBlockAndState(ctx, blockRoot) {
 		// A node doesn't have the block, it'll request from peer while saving the pending attestation to a queue.
+		// 一个node没有这个block，它会从peer请求，同时保存pending attestation到队列中
 		s.savePendingAtt(&eth.SignedAggregateAttestationAndProof{Message: &eth.AggregateAttestationAndProof{Aggregate: att}})
 		return pubsub.ValidationIgnore, nil
 	}
@@ -248,6 +260,7 @@ func (s *Service) hasSeenCommitteeIndicesSlot(slot types.Slot, committeeID types
 }
 
 // Set committee's indices and slot as seen for incoming attestations.
+// 设置到来的attestations的committee的indices以及slot
 func (s *Service) setSeenCommitteeIndicesSlot(slot types.Slot, committeeID types.CommitteeIndex, aggregateBits []byte) {
 	s.seenUnAggregatedAttestationLock.Lock()
 	defer s.seenUnAggregatedAttestationLock.Unlock()
@@ -258,6 +271,7 @@ func (s *Service) setSeenCommitteeIndicesSlot(slot types.Slot, committeeID types
 
 // hasBlockAndState returns true if the beacon node knows about a block and associated state in the
 // database or cache.
+// hasBlockAndState返回true，如果beacon node知道一个block并且相关的state在db或者缓存中
 func (s *Service) hasBlockAndState(ctx context.Context, blockRoot [32]byte) bool {
 	hasStateSummary := s.cfg.beaconDB.HasStateSummary(ctx, blockRoot)
 	hasState := hasStateSummary || s.cfg.beaconDB.HasState(ctx, blockRoot)

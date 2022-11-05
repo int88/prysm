@@ -14,6 +14,7 @@ import (
 
 // Clients who receive a proposer slashing on this topic MUST validate the conditions within VerifyProposerSlashing before
 // forwarding it across the network.
+// 接收到一个proposer slashing的clients必须在VerifyProposerSlashing中校验，在将它跨网络转发之前
 func (s *Service) validateProposerSlashing(ctx context.Context, pid peer.ID, msg *pubsub.Message) (pubsub.ValidationResult, error) {
 	// Validation runs on publish (not just subscriptions), so we should approve any message from
 	// ourselves.
@@ -28,6 +29,7 @@ func (s *Service) validateProposerSlashing(ctx context.Context, pid peer.ID, msg
 
 	// We should not attempt to process this message if the node is running in optimistic mode.
 	// We just ignore in p2p so that the peer is not penalized.
+	// 我们不应试着处理这个message，如果Node运行在optimistic mode，我们只是在p2p中忽略，这样peer不回被处罚
 	optimistic, err := s.cfg.chain.IsOptimistic(ctx)
 	if err != nil {
 		return pubsub.ValidationReject, err

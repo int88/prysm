@@ -17,6 +17,7 @@ import (
 // 由aggregator actor使用
 type Pool interface {
 	// For Aggregated attestations
+	// 对于聚合的attestations
 	AggregateUnaggregatedAttestations(ctx context.Context) error
 	AggregateUnaggregatedAttestationsBySlotIndex(ctx context.Context, slot types.Slot, committeeIndex types.CommitteeIndex) error
 	SaveAggregatedAttestation(att *ethpb.Attestation) error
@@ -27,6 +28,7 @@ type Pool interface {
 	HasAggregatedAttestation(att *ethpb.Attestation) (bool, error)
 	AggregatedAttestationCount() int
 	// For unaggregated attestations.
+	// 对于未聚合的attestations
 	SaveUnaggregatedAttestation(att *ethpb.Attestation) error
 	SaveUnaggregatedAttestations(atts []*ethpb.Attestation) error
 	UnaggregatedAttestations() ([]*ethpb.Attestation, error)

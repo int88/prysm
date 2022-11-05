@@ -77,6 +77,7 @@ func (*Service) Stop() error {
 }
 
 // SubmitBlindedBlock submits a blinded block to the builder relay network.
+// SubmitBlindedBlock提交一个blinded block到builder relay network
 func (s *Service) SubmitBlindedBlock(ctx context.Context, b *ethpb.SignedBlindedBeaconBlockBellatrix) (*v1.ExecutionPayload, error) {
 	ctx, span := trace.StartSpan(ctx, "builder.SubmitBlindedBlock")
 	defer span.End()
@@ -89,6 +90,7 @@ func (s *Service) SubmitBlindedBlock(ctx context.Context, b *ethpb.SignedBlinded
 }
 
 // GetHeader retrieves the header for a given slot and parent hash from the builder relay network.
+// GetHeader获取一个给定slot的Header以及parent hash，从builder relay network
 func (s *Service) GetHeader(ctx context.Context, slot types.Slot, parentHash [32]byte, pubKey [48]byte) (*ethpb.SignedBuilderBid, error) {
 	ctx, span := trace.StartSpan(ctx, "builder.GetHeader")
 	defer span.End()
@@ -119,6 +121,7 @@ func (s *Service) Status() error {
 
 // RegisterValidator registers a validator with the builder relay network.
 // It also saves the registration object to the DB.
+// RegisterValidator注册一个validator到builder relay network，它同时保存registration对象到DB
 func (s *Service) RegisterValidator(ctx context.Context, reg []*ethpb.SignedValidatorRegistrationV1) error {
 	ctx, span := trace.StartSpan(ctx, "builder.RegisterValidator")
 	defer span.End()
@@ -151,6 +154,7 @@ func (s *Service) RegisterValidator(ctx context.Context, reg []*ethpb.SignedVali
 }
 
 // Configured returns true if the user has input a builder URL.
+// Configured返回true，如果用户已经输入了一个builder URL
 func (s *Service) Configured() bool {
 	return s.cfg.builderEndpoint.Url != ""
 }

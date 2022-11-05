@@ -16,11 +16,13 @@ import (
 )
 
 // IsForkNextEpoch checks if an alloted fork is in the following epoch.
+// IsForkNextEpoch检查是否一个alloted fork在后续的epoch
 func IsForkNextEpoch(genesisTime time.Time, genesisValidatorsRoot []byte) (bool, error) {
 	if genesisTime.IsZero() {
 		return false, errors.New("genesis time is not set")
 	}
 	if len(genesisValidatorsRoot) == 0 {
+		// genesis validators root没有设置
 		return false, errors.New("genesis validators root is not set")
 	}
 	currentSlot := slots.Since(genesisTime)
@@ -35,6 +37,7 @@ func IsForkNextEpoch(genesisTime time.Time, genesisValidatorsRoot []byte) (bool,
 			break
 		}
 	}
+	// 如果是fork epoch，返回true
 	return isForkEpoch, nil
 }
 

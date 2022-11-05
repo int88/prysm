@@ -11,6 +11,7 @@ import (
 )
 
 // SaveUnaggregatedAttestation saves an unaggregated attestation in cache.
+// SaveUnaggregatedAttestation保存一个unaggregated attestation到缓存中
 func (c *AttCaches) SaveUnaggregatedAttestation(att *ethpb.Attestation) error {
 	if att == nil {
 		return nil

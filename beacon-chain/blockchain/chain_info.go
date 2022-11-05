@@ -46,6 +46,7 @@ type TimeFetcher interface {
 }
 
 // GenesisFetcher retrieves the Ethereum consensus data related to its genesis.
+// GenesisFetcher获取和它的genesis相关的Ethereum consensus data
 type GenesisFetcher interface {
 	GenesisValidatorsRoot() [32]byte
 }
