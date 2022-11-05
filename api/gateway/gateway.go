@@ -1,4 +1,5 @@
 // Package gateway defines a grpc-gateway server that serves HTTP-JSON traffic and acts a proxy between HTTP and gRPC.
+// gateway包定义了一个grpc-gateway server，用于服务HTTP-JSON traffic并且作为HTTP和gRPC之间的代理
 package gateway
 
 import (
@@ -24,6 +25,7 @@ import (
 var _ runtime.Service = (*Gateway)(nil)
 
 // PbMux serves grpc-gateway requests for selected patterns using registered protobuf handlers.
+// PbMux服务grpc-gateway requests，对于选择的patterns，使用注册的protobuf handlers
 type PbMux struct {
 	Registrations []PbHandlerRegistration // Protobuf registrations to be registered in Mux.
 	Patterns      []string                // URL patterns that will be handled by Mux.
@@ -68,6 +70,7 @@ type Gateway struct {
 }
 
 // New returns a new instance of the Gateway.
+// New返回一个新的Gateway的实例
 func New(ctx context.Context, opts ...Option) (*Gateway, error) {
 	g := &Gateway{
 		ctx: ctx,
@@ -84,6 +87,7 @@ func New(ctx context.Context, opts ...Option) (*Gateway, error) {
 }
 
 // Start the gateway service.
+// 启动gateway service
 func (g *Gateway) Start() {
 	ctx, cancel := context.WithCancel(g.ctx)
 	g.cancel = cancel

@@ -64,6 +64,7 @@ func (s *Service) validateWithBatchVerifier(ctx context.Context, message string,
 	close(resChan)
 	// If verification fails we fallback to individual verification
 	// of each signature set.
+	// 如果verification失败，我们回退到individual verification，对于每个signature set
 	if resErr != nil {
 		log.WithError(resErr).Tracef("Could not perform batch verification of %s", message)
 		verified, err := set.Verify()

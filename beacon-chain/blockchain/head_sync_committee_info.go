@@ -23,13 +23,16 @@ var syncCommitteeHeadStateCache = cache.NewSyncCommitteeHeadState()
 
 // HeadSyncCommitteeFetcher is the interface that wraps the head sync committee related functions.
 // The head sync committee functions return callers sync committee indices and public keys with respect to current head state.
+// head sync committee函数返回给调用者，sync committee indices以及pubic keys，对于当前的head state
 type HeadSyncCommitteeFetcher interface {
 	HeadSyncCommitteeIndices(ctx context.Context, index types.ValidatorIndex, slot types.Slot) ([]types.CommitteeIndex, error)
 	HeadSyncCommitteePubKeys(ctx context.Context, slot types.Slot, committeeIndex types.CommitteeIndex) ([][]byte, error)
 }
 
 // HeadDomainFetcher is the interface that wraps the head sync domain related functions.
+// HeadDomainFetcher是接口，封装了head sync domain相关的函数
 // The head sync committee domain functions return callers domain data with respect to slot and head state.
+// head sync committee domain函数返回给调用者，domain data，关于slot以及head state
 type HeadDomainFetcher interface {
 	HeadSyncCommitteeDomain(ctx context.Context, slot types.Slot) ([]byte, error)
 	HeadSyncSelectionProofDomain(ctx context.Context, slot types.Slot) ([]byte, error)

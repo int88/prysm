@@ -10,6 +10,7 @@ import (
 )
 
 // PayloadToHeader converts `payload` into execution payload header format.
+// PayloadToHeader将`payload`转换为execution payload header格式
 func PayloadToHeader(payload *enginev1.ExecutionPayload) (*enginev1.ExecutionPayloadHeader, error) {
 	txRoot, err := ssz.TransactionsRoot(payload.Transactions)
 	if err != nil {

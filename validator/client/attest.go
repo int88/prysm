@@ -97,6 +97,7 @@ func (v *validator) SubmitAttestation(ctx context.Context, slot types.Slot, pubK
 
 	_, signingRoot, err := v.getDomainAndSigningRoot(ctx, indexedAtt.Data)
 	if err != nil {
+		// 从attestation中不能获取domain以及signing root
 		log.WithError(err).Error("Could not get domain and signing root from attestation")
 		if v.emitAccountMetrics {
 			ValidatorAttestFailVec.WithLabelValues(fmtKey).Inc()
@@ -107,6 +108,7 @@ func (v *validator) SubmitAttestation(ctx context.Context, slot types.Slot, pubK
 
 	sig, _, err := v.signAtt(ctx, pubKey, data, slot)
 	if err != nil {
+		// 对attestation进行sign
 		log.WithError(err).Error("Could not sign attestation")
 		if v.emitAccountMetrics {
 			ValidatorAttestFailVec.WithLabelValues(fmtKey).Inc()

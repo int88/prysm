@@ -1,4 +1,5 @@
 // Package trie defines utilities for sparse merkle tries for Ethereum consensus.
+// trie包定义了工具为Ethereum consensus解析merkel tries
 package trie
 
 import (

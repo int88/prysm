@@ -115,6 +115,7 @@ func (v *validator) ProposeBlock(ctx context.Context, slot types.Slot, pubKey [f
 		return
 	}
 
+	// 构建signed beacon block
 	blk, err := wrapper.BuildSignedBeaconBlock(wb, sig)
 	if err != nil {
 		log.WithError(err).Error("Failed to build signed beacon block")
@@ -141,6 +142,7 @@ func (v *validator) ProposeBlock(ctx context.Context, slot types.Slot, pubKey [f
 		}
 		return
 	}
+	// 提交一个beacon block
 	blkResp, err := v.validatorClient.ProposeBeaconBlock(ctx, proposal)
 	if err != nil {
 		log.WithError(err).Error("Failed to propose block")

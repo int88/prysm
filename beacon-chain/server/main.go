@@ -1,5 +1,6 @@
 // Package main allows for creation of an HTTP-JSON to gRPC
 // gateway as a binary go process.
+// main包允许创建一个HTTP-JSON到gRPC的gateway，作为一个二进制的go程序运行
 package main
 
 import (
@@ -20,6 +21,7 @@ import (
 )
 
 var (
+	// gRPC的endpoint
 	beaconRPC               = flag.String("beacon-rpc", "localhost:4000", "Beacon chain gRPC endpoint")
 	port                    = flag.Int("port", 8000, "Port to serve on")
 	host                    = flag.String("host", "127.0.0.1", "Host to serve on")
@@ -65,6 +67,7 @@ func main() {
 		opts = append(opts, gateway.WithApiMiddleware(&apimiddleware.BeaconEndpointFactory{}))
 	}
 
+	// 构建一个gateway实例
 	gw, err := gateway.New(context.Background(), opts...)
 	if err != nil {
 		log.Fatal(err)
@@ -75,12 +78,14 @@ func main() {
 	r.HandleFunc("/healthz", healthzServer(gw))
 	gw.SetRouter(r)
 
+	// 启动gateway
 	gw.Start()
 
 	select {}
 }
 
 // healthzServer returns a simple health handler which returns ok.
+// healthzServer返回一个简单的health handler，它能返回ok
 func healthzServer(gw *gateway.Gateway) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/plain")

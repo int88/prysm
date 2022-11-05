@@ -11,12 +11,14 @@ import (
 )
 
 // SyncCommitteeHeadStateCache for the latest head state requested by a sync committee participant.
+// SyncCommitteeHeadStateCache用于最新的head state，对于一个sync committee participant请求的head state
 type SyncCommitteeHeadStateCache struct {
 	cache *lru.Cache
 	lock  sync.RWMutex
 }
 
 // NewSyncCommitteeHeadState initializes a LRU cache for `SyncCommitteeHeadState` with size of 1.
+// NewSyncCommitteeHeadState初始化一个LRU cache，对于`SyncCommitteeHeadState`，大小为1
 func NewSyncCommitteeHeadState() *SyncCommitteeHeadStateCache {
 	c := lruwrpr.New(1) // only need size of 1 to avoid redundant state copies, hashing, and slot processing.
 	return &SyncCommitteeHeadStateCache{cache: c}

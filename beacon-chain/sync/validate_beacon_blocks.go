@@ -333,6 +333,7 @@ func (s *Service) hasSeenBlockIndexSlot(slot types.Slot, proposerIdx types.Valid
 }
 
 // Set block proposer index and slot as seen for incoming blocks.
+// 对于incoming blocks设置proposer的index以及slot
 func (s *Service) setSeenBlockIndexSlot(slot types.Slot, proposerIdx types.ValidatorIndex) {
 	s.seenBlockLock.Lock()
 	defer s.seenBlockLock.Unlock()

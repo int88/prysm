@@ -18,16 +18,22 @@ type ValidatorRole int8
 
 const (
 	// RoleUnknown means that the role of the validator cannot be determined.
+	// RoleUnknown意味着validator的角色不能确定
 	RoleUnknown ValidatorRole = iota
 	// RoleAttester means that the validator should submit an attestation.
+	// RoleAttester意味着validator应该提交一个attestation
 	RoleAttester
 	// RoleProposer means that the validator should propose a block.
+	// RoleProposer意味着validator应该propose一个block
 	RoleProposer
 	// RoleAggregator means that the validator should submit an aggregation and proof.
+	// RoleAggregator意味着validator应该提交一个aggregation以及proof
 	RoleAggregator
 	// RoleSyncCommittee means that the validator should submit a sync committee message.
+	// RoleSyncCommittee意味着validator应该提交一个sync committee message
 	RoleSyncCommittee
 	// RoleSyncCommitteeAggregator means the valiator should aggregate sync committee messages and submit a sync committee contribution.
+	// RoleSyncCommitteeAggregator意味着validator应该聚合sync committee messages和提交一个sync committee contribution
 	RoleSyncCommitteeAggregator
 )
 

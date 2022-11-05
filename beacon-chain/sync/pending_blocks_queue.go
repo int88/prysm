@@ -38,6 +38,7 @@ func (s *Service) processPendingBlocksQueue() {
 	locker := new(sync.Mutex)
 	async.RunEvery(s.ctx, processPendingBlocksPeriod, func() {
 		// Don't process the pending blocks if genesis time has not been set. The chain is not ready.
+		// 不要处理pending blocks，如果genesis time没有被设置，chain没有ready
 		if !s.isGenesisTimeSet() {
 			return
 		}
@@ -50,14 +51,17 @@ func (s *Service) processPendingBlocksQueue() {
 }
 
 // processes the block tree inside the queue
+// 处理队列中的block tree
 func (s *Service) processPendingBlocks(ctx context.Context) error {
 	ctx, span := trace.StartSpan(ctx, "processPendingBlocks")
 	defer span.End()
 
 	pids := s.cfg.p2p.Peers().Connected()
 	if err := s.validatePendingSlots(); err != nil {
+		// 不能校验pending slots
 		return errors.Wrap(err, "could not validate pending slots")
 	}
+	// 获取排好序的pending slots
 	ss := s.sortedPendingSlots()
 	var parentRoots [][32]byte
 
@@ -69,7 +73,9 @@ func (s *Service) processPendingBlocks(ctx context.Context) error {
 	randGen := rand.NewGenerator()
 	for _, slot := range ss {
 		// process the blocks during their respective slot.
+		// 在对应的slot处理blocks
 		// otherwise wait for the right slot to process the block.
+		// 否则等待正确的slot处理block
 		if slot > s.cfg.chain.CurrentSlot() {
 			continue
 		}
@@ -80,6 +86,7 @@ func (s *Service) processPendingBlocks(ctx context.Context) error {
 		s.pendingQueueLock.RLock()
 		bs := s.pendingBlocksInCache(slot)
 		// Skip if there's no block in the queue.
+		// 如果队列中没有block，则跳过
 		if len(bs) == 0 {
 			s.pendingQueueLock.RUnlock()
 			span.End()
@@ -88,6 +95,7 @@ func (s *Service) processPendingBlocks(ctx context.Context) error {
 		s.pendingQueueLock.RUnlock()
 
 		// Loop through the pending queue and mark the potential parent blocks as seen.
+		// 遍历pending queue并且标记已经看到的可能的parent blocks
 		for _, b := range bs {
 			if b == nil || b.IsNil() || b.Block().IsNil() {
 				span.End()
@@ -102,6 +110,7 @@ func (s *Service) processPendingBlocks(ctx context.Context) error {
 			}
 			inDB := s.cfg.beaconDB.HasBlock(ctx, blkRoot)
 			// No need to process the same block twice.
+			// 不要处理同一个block两次
 			if inDB {
 				s.pendingQueueLock.Lock()
 				if err := s.deleteBlockFromPendingQueue(slot, b, blkRoot); err != nil {
@@ -120,6 +129,7 @@ func (s *Service) processPendingBlocks(ctx context.Context) error {
 			parentIsBad := s.hasBadBlock(bytesutil.ToBytes32(b.Block().ParentRoot()))
 			blockIsBad := s.hasBadBlock(blkRoot)
 			// Check if parent is a bad block.
+			// 检查parent是不是一个bad block
 			if parentIsBad || blockIsBad {
 				// Set block as bad if its parent block is bad too.
 				if parentIsBad {
@@ -141,6 +151,7 @@ func (s *Service) processPendingBlocks(ctx context.Context) error {
 
 			// Only request for missing parent block if it's not in beaconDB, not in pending cache
 			// and has peer in the peer list.
+			// 只请求missing parent block，如果它不在beaconDB中，不在pending cache并且有peer在peer list
 			if !inPendingQueue && !parentInDb && hasPeer {
 				log.WithFields(logrus.Fields{
 					"currentSlot": b.Block().Slot(),
@@ -159,9 +170,11 @@ func (s *Service) processPendingBlocks(ctx context.Context) error {
 
 			err = s.validateBeaconBlock(ctx, b, blkRoot)
 			switch {
+			// 可以继续用parent处理，这是一个optimistic candidate
 			case errors.Is(ErrOptimisticParent, err): // Ok to continue process block with parent that is an optimistic candidate.
 			case err != nil:
 				log.Debugf("Could not validate block from slot %d: %v", b.Block().Slot(), err)
+				// 设置为bad block
 				s.setBadBlock(ctx, blkRoot)
 				tracing.AnnotateError(span, err)
 				span.End()
@@ -178,6 +191,7 @@ func (s *Service) processPendingBlocks(ctx context.Context) error {
 
 				// In the next iteration of the queue, this block will be removed from
 				// the pending queue as it has been marked as a 'bad' block.
+				// 在队列的下一次迭代，这个block会从pending queue中移除，因为它被标记为'bad' block
 				span.End()
 				continue
 			}
@@ -185,6 +199,7 @@ func (s *Service) processPendingBlocks(ctx context.Context) error {
 			s.setSeenBlockIndexSlot(b.Block().Slot(), b.Block().ProposerIndex())
 
 			// Broadcasting the block again once a node is able to process it.
+			// 再次广播block，一旦一个节点能处理它
 			if err := s.cfg.p2p.Broadcast(ctx, b.Proto()); err != nil {
 				log.WithError(err).Debug("Could not broadcast block")
 			}
@@ -199,6 +214,7 @@ func (s *Service) processPendingBlocks(ctx context.Context) error {
 			log.WithFields(logrus.Fields{
 				"slot":      slot,
 				"blockRoot": hex.EncodeToString(bytesutil.Trunc(blkRoot[:])),
+				// 成功处理了pending block并且将它从缓存中移除
 			}).Debug("Processed pending block and cleared it in cache")
 
 			span.End()
@@ -223,12 +239,14 @@ func (s *Service) sendBatchRootRequest(ctx context.Context, roots [][32]byte, ra
 	roots = s.dedupRoots(roots)
 	// Randomly choose a peer to query from our best peers. If that peer cannot return
 	// all the requested blocks, we randomly select another peer.
+	// 随机选择一个peer进行请求，从我们的best peers，如果这个peer不能返回所有请求的blocks，我们随机选择另一个peer
 	pid := bestPeers[randGen.Int()%len(bestPeers)]
 	for i := 0; i < numOfTries; i++ {
 		req := p2ptypes.BeaconBlockByRootsReq(roots)
 		if len(roots) > int(params.BeaconNetworkConfig().MaxRequestBlocks) {
 			req = roots[:params.BeaconNetworkConfig().MaxRequestBlocks]
 		}
+		// 发送recent beacon blocks request
 		if err := s.sendRecentBeaconBlocksRequest(ctx, &req, pid); err != nil {
 			tracing.AnnotateError(span, err)
 			log.Debugf("Could not send recent block request: %v", err)
@@ -246,6 +264,7 @@ func (s *Service) sendBatchRootRequest(ctx context.Context, roots [][32]byte, ra
 		}
 		// Choosing a new peer with the leftover set of
 		// roots to request.
+		// 随机选择一个新的peer，用剩余的roots进行请求
 		roots = newRoots
 		pid = bestPeers[randGen.Int()%len(bestPeers)]
 	}

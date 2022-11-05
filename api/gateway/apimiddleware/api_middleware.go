@@ -9,9 +9,13 @@ import (
 )
 
 // ApiProxyMiddleware is a proxy between an Ethereum consensus API HTTP client and grpc-gateway.
+// ApiProxyMiddleware是一个Ethereum consensus API HTTP client和grpc-gateway之间的proxy
 // The purpose of the proxy is to handle HTTP requests and gRPC responses in such a way that:
+// 这个proxy的目的是处理HTTP requests以及gRPC reponses，按照以下方式：
 //   - Ethereum consensus API requests can be handled by grpc-gateway correctly
+//	 - Ethereum consensus API请求可以正确地被grpc-gateway处理
 //   - gRPC responses can be returned as spec-compliant Ethereum consensus API responses
+//	 - gRPC responses可以作为符合spec的Ethereum consensus API reponses
 type ApiProxyMiddleware struct {
 	GatewayAddress  string
 	EndpointCreator EndpointFactory
@@ -20,6 +24,7 @@ type ApiProxyMiddleware struct {
 }
 
 // EndpointFactory is responsible for creating new instances of Endpoint values.
+// EndpointFactory负责创建Endpoint Values的新实例
 type EndpointFactory interface {
 	Create(path string) (*Endpoint, error)
 	Paths() []string
@@ -27,6 +32,7 @@ type EndpointFactory interface {
 }
 
 // Endpoint is a representation of an API HTTP endpoint that should be proxied by the middleware.
+// Endpoint代表一个API HTTP endpoint，应该被middleware代理
 type Endpoint struct {
 	Path               string          // The path of the HTTP endpoint.
 	GetResponse        interface{}     // The struct corresponding to the JSON structure used in a GET response.

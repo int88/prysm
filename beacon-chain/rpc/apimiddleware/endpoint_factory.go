@@ -14,6 +14,7 @@ func (f *BeaconEndpointFactory) IsNil() bool {
 }
 
 // Paths is a collection of all valid beacon chain API paths.
+// Paths是一系列所有合法的beacon chain API路径
 func (_ *BeaconEndpointFactory) Paths() []string {
 	return []string{
 		"/eth/v1/beacon/genesis",
@@ -72,6 +73,7 @@ func (_ *BeaconEndpointFactory) Paths() []string {
 }
 
 // Create returns a new endpoint for the provided API path.
+// Create返回一个新的endpoint，对于提供的API路径
 func (_ *BeaconEndpointFactory) Create(path string) (*apimiddleware.Endpoint, error) {
 	endpoint := apimiddleware.DefaultEndpoint()
 	switch path {

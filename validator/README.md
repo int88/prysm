@@ -1,6 +1,7 @@
 # Prysmatic Labs Validator Client Implementation
 
 This is the main project folder for a validator client implementation of Ethereum written in Go by [Prysmatic Labs](https://prysmaticlabs.com). A validator client attaches to a running beacon node in order to perform proposer/attester responsibilities for eth.
+一个validator client关联到一个运行的beacon node，为了执行eth的proposer/attester责任
 
 You can also read our main [README](https://github.com/prysmaticlabs/prysm/blob/master/README.md) and join our active chat room on Discord.
 

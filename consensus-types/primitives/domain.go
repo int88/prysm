@@ -11,6 +11,7 @@ var _ fssz.Marshaler = (*Domain)(nil)
 var _ fssz.Unmarshaler = (*Domain)(nil)
 
 // Domain represents a 32 bytes domain object in Ethereum beacon chain consensus.
+// Domain代表在Ethereum beacon chain共识中的32字节的domain对象
 type Domain []byte
 
 // HashTreeRoot --

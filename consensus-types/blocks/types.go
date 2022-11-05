@@ -25,6 +25,7 @@ var (
 )
 
 // BeaconBlockBody is the main beacon block body structure. It can represent any block type.
+// BeaconBlockBody是主要的beacon blokc body结构，它可以代表任何的block类型
 type BeaconBlockBody struct {
 	version                int
 	randaoReveal           []byte
@@ -41,6 +42,7 @@ type BeaconBlockBody struct {
 }
 
 // BeaconBlock is the main beacon block structure. It can represent any block type.
+// BeaconBlock是主要的beacon block结构，它可以代表任何的block类型
 type BeaconBlock struct {
 	version       int
 	slot          types.Slot
@@ -51,6 +53,7 @@ type BeaconBlock struct {
 }
 
 // SignedBeaconBlock is the main signed beacon block structure. It can represent any block type.
+// SignedBeaconBlock是主要的signed beacon block结构，它可以代表任何的block类型
 type SignedBeaconBlock struct {
 	version   int
 	block     *BeaconBlock

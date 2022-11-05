@@ -11,6 +11,7 @@ var _ fssz.Marshaler = (*ValidatorIndex)(nil)
 var _ fssz.Unmarshaler = (*ValidatorIndex)(nil)
 
 // ValidatorIndex in eth2.
+// eth2中的ValidatorIndex
 type ValidatorIndex uint64
 
 // Div divides validator index by x.

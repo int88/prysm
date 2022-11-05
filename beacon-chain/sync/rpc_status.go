@@ -28,6 +28,7 @@ import (
 // maintainPeerStatuses通过不频繁地从peers拉取它们的最新状态
 func (s *Service) maintainPeerStatuses() {
 	// Run twice per epoch.
+	// 每个epoch运行两次
 	interval := time.Duration(params.BeaconConfig().SlotsPerEpoch.Div(2).Mul(params.BeaconConfig().SecondsPerSlot)) * time.Second
 	async.RunEvery(s.ctx, interval, func() {
 		wg := new(sync.WaitGroup)
@@ -37,9 +38,11 @@ func (s *Service) maintainPeerStatuses() {
 				defer wg.Done()
 				// If our peer status has not been updated correctly we disconnect over here
 				// and set the connection state over here instead.
+				// 如果我们的peer status还没有被正确更新，我们断开连接并且设置connection state
 				if s.cfg.p2p.Host().Network().Connectedness(id) != network.Connected {
 					s.cfg.p2p.Peers().SetConnectionState(id, peers.PeerDisconnecting)
 					if err := s.cfg.p2p.Disconnect(id); err != nil {
+						// 断开连接失败
 						log.Debugf("Error when disconnecting with peer: %v", err)
 					}
 					s.cfg.p2p.Peers().SetConnectionState(id, peers.PeerDisconnected)
@@ -54,10 +57,12 @@ func (s *Service) maintainPeerStatuses() {
 				lastUpdated, err := s.cfg.p2p.Peers().ChainStateLastUpdated(id)
 				if err != nil {
 					// Peer has vanished; nothing to do.
+					// Peer已经消失了，啥都不用做
 					return
 				}
 				if prysmTime.Now().After(lastUpdated.Add(interval)) {
 					if err := s.reValidatePeer(s.ctx, id); err != nil {
+						// 不能再次校验peer
 						log.WithField("peer", id).WithError(err).Debug("Could not revalidate peer")
 						s.cfg.p2p.Peers().Scorers().BadResponsesScorer().Increment(id)
 					}
@@ -66,6 +71,7 @@ func (s *Service) maintainPeerStatuses() {
 		}
 		// Wait for all status checks to finish and then proceed onwards to
 		// pruning excess peers.
+		// 等待所有的状态检查完成并且之后再继续去清理多余的peers
 		wg.Wait()
 		peerIds := s.cfg.p2p.Peers().PeersToPrune()
 		peerIds = s.filterNeededPeers(peerIds)
