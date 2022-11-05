@@ -99,6 +99,7 @@ func (s *Service) hasSeenExitIndex(i types.ValidatorIndex) bool {
 }
 
 // Set exit request index `i` in seen exit request cache.
+// 设置exit request的索引`i`，在已经看到的exit request cache
 func (s *Service) setExitIndexSeen(i types.ValidatorIndex) {
 	s.seenExitLock.Lock()
 	defer s.seenExitLock.Unlock()

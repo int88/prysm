@@ -1,6 +1,8 @@
 // Package node is the main service which launches a beacon node and manages
 // the lifecycle of all its associated services at runtime, such as p2p, RPC, sync,
 // gracefully closing them if the process ends.
+// node包是main service，负责包括启动一个beacon node以及管理所有相关服务的生命周期，例如p2p, RPC
+// sync，优雅地关闭它们，如果处理结束的话
 package node
 
 import (

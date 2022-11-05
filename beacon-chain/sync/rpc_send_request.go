@@ -24,6 +24,7 @@ var ErrInvalidFetchedData = errors.New("invalid data returned from peer")
 type BeaconBlockProcessor func(block interfaces.SignedBeaconBlock) error
 
 // SendBeaconBlocksByRangeRequest sends BeaconBlocksByRange and returns fetched blocks, if any.
+// SendBeaconBlocksByRangeRequest发送BeaconBlocksByRange并且返回获取的blocks，如果有的话
 func SendBeaconBlocksByRangeRequest(
 	ctx context.Context, chain blockchain.ChainInfoFetcher, p2pProvider p2p.P2P, pid peer.ID,
 	req *pb.BeaconBlocksByRangeRequest, blockProcessor BeaconBlockProcessor,
@@ -86,6 +87,7 @@ func SendBeaconBlocksByRangeRequest(
 }
 
 // SendBeaconBlocksByRootRequest sends BeaconBlocksByRoot and returns fetched blocks, if any.
+// SendBeaconBlocksByRootRequest发送BeaconBlocksByRoot并且返回获取的blocks，如果有的话
 func SendBeaconBlocksByRootRequest(
 	ctx context.Context, chain blockchain.ChainInfoFetcher, p2pProvider p2p.P2P, pid peer.ID,
 	req *p2ptypes.BeaconBlockByRootsReq, blockProcessor BeaconBlockProcessor,

@@ -26,6 +26,7 @@ import (
 
 // validateAggregateAndProof verifies the aggregated signature and the selection proof is valid before forwarding to the
 // network and downstream services.
+// validateAggregateAndProof校验aggregated  signature以及selection proof是合法的，在转发到network以及downstream service之前
 func (s *Service) validateAggregateAndProof(ctx context.Context, pid peer.ID, msg *pubsub.Message) (pubsub.ValidationResult, error) {
 	if pid == s.cfg.p2p.PeerID() {
 		return pubsub.ValidationAccept, nil

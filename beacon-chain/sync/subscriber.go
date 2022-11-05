@@ -31,12 +31,15 @@ import (
 const pubsubMessageTimeout = 30 * time.Second
 
 // wrappedVal represents a gossip validator which also returns an error along with the result.
+// wrappedVal代表一个gossip validator，它在返回结果的同时也返回error
 type wrappedVal func(context.Context, peer.ID, *pubsub.Message) (pubsub.ValidationResult, error)
 
 // subHandler represents handler for a given subscription.
+// subHandler代表一个给定的subscription的handler
 type subHandler func(context.Context, proto.Message) error
 
 // noopValidator is a no-op that only decodes the message, but does not check its contents.
+// noopValidator是一个no-op，只对message进行解码，但是不检查它的内容
 func (s *Service) noopValidator(_ context.Context, _ peer.ID, msg *pubsub.Message) (pubsub.ValidationResult, error) {
 	m, err := s.decodePubsubMessage(msg)
 	if err != nil {
@@ -65,18 +68,21 @@ func (s *Service) registerSubscribers(epoch types.Epoch, digest [4]byte) {
 	s.subscribe(
 		p2p.ExitSubnetTopicFormat,
 		s.validateVoluntaryExit,
+		// 订阅voluntary exit
 		s.voluntaryExitSubscriber,
 		digest,
 	)
 	s.subscribe(
 		p2p.ProposerSlashingSubnetTopicFormat,
 		s.validateProposerSlashing,
+		// 构建proposer slashing
 		s.proposerSlashingSubscriber,
 		digest,
 	)
 	s.subscribe(
 		p2p.AttesterSlashingSubnetTopicFormat,
 		s.validateAttesterSlashing,
+		// 构建attester slashing
 		s.attesterSlashingSubscriber,
 		digest,
 	)
@@ -96,6 +102,7 @@ func (s *Service) registerSubscribers(epoch types.Epoch, digest [4]byte) {
 		)
 	}
 	// Altair Fork Version
+	// Altair Fork的版本
 	if epoch >= params.BeaconConfig().AltairForkEpoch {
 		s.subscribe(
 			p2p.SyncContributionAndProofSubnetTopicFormat,
@@ -122,7 +129,9 @@ func (s *Service) registerSubscribers(epoch types.Epoch, digest [4]byte) {
 }
 
 // subscribe to a given topic with a given validator and subscription handler.
+// 订阅一个给定的topic，用一个给定的validator以及subscription handler
 // The base protobuf message is used to initialize new messages for decoding.
+// base protobuf message用于初始化新的messages用于decoding
 func (s *Service) subscribe(topic string, validator wrappedVal, handle subHandler, digest [4]byte) *pubsub.Subscription {
 	genRoot := s.cfg.chain.GenesisValidatorsRoot()
 	_, e, err := forks.RetrieveForkDataFromDigest(digest, genRoot[:])
@@ -133,6 +142,7 @@ func (s *Service) subscribe(topic string, validator wrappedVal, handle subHandle
 	base := p2p.GossipTopicMappings(topic, e)
 	if base == nil {
 		// Impossible condition as it would mean topic does not exist.
+		// 不可能发生的情况，这意味着topic不存在
 		panic(fmt.Sprintf("%s is not mapped to any message in GossipTopicMappings", topic))
 	}
 	return s.subscribeWithBase(s.addDigestToTopic(topic, digest), validator, handle)

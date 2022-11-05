@@ -24,6 +24,7 @@ func (s *Service) voluntaryExitSubscriber(ctx context.Context, msg proto.Message
 	if err != nil {
 		return err
 	}
+	// 插入Voluntary Exit
 	s.cfg.exitPool.InsertVoluntaryExit(ctx, headState, ve)
 	return nil
 }
@@ -55,6 +56,7 @@ func (s *Service) proposerSlashingSubscriber(ctx context.Context, msg proto.Mess
 		return fmt.Errorf("wrong type, expected: *ethpb.ProposerSlashing got: %T", msg)
 	}
 	// Do some nil checks to prevent easy DoS'ing of this handler.
+	// 做一些nil checks来防止一些简单的DoS，对于这个handler
 	header1IsNil := pSlashing == nil || pSlashing.Header_1 == nil || pSlashing.Header_1.Header == nil
 	header2IsNil := pSlashing == nil || pSlashing.Header_2 == nil || pSlashing.Header_2.Header == nil
 	if !header1IsNil && !header2IsNil {
@@ -65,6 +67,7 @@ func (s *Service) proposerSlashingSubscriber(ctx context.Context, msg proto.Mess
 		if err := s.cfg.slashingPool.InsertProposerSlashing(ctx, headState, pSlashing); err != nil {
 			return errors.Wrap(err, "could not insert proposer slashing into pool")
 		}
+		// 设置proposer slashing index
 		s.setProposerSlashingIndexSeen(pSlashing.Header_1.Header.ProposerIndex)
 	}
 	return nil

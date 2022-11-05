@@ -302,6 +302,7 @@ func waitHighestExpectedSlot(q *blocksQueue) bool {
 }
 
 // onScheduleEvent is an event called on newly arrived epochs. Transforms state to scheduled.
+// onScheduleEvent是在新到来的epochs触发的事件，将状态变为scheduled
 func (q *blocksQueue) onScheduleEvent(ctx context.Context) eventHandlerFn {
 	return func(m *stateMachine, in interface{}) (stateID, error) {
 		if m.state != stateNew {
@@ -344,6 +345,7 @@ func (q *blocksQueue) onDataReceivedEvent(ctx context.Context) eventHandlerFn {
 				}
 			case beaconsync.ErrInvalidFetchedData:
 				// Peer returned invalid data, penalize.
+				// Peer返回了错误的数据，惩罚
 				q.blocksFetcher.p2p.Peers().Scorers().BadResponsesScorer().Increment(m.pid)
 				log.WithField("pid", response.pid).Debug("Peer is penalized for invalid blocks")
 			}

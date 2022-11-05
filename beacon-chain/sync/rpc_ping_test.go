@@ -27,6 +27,7 @@ func TestPingRPCHandler_ReceivesPing(t *testing.T) {
 	p1 := p2ptest.NewTestP2P(t)
 	p2 := p2ptest.NewTestP2P(t)
 	p1.Connect(p2)
+	// 期望peer连接成功
 	assert.Equal(t, 1, len(p1.BHost.Network().Peers()), "Expected peers to be connected")
 	p1.LocalMetadata = wrapper.WrappedMetadataV0(&pb.MetaDataV0{
 		SeqNumber: 2,
@@ -39,6 +40,7 @@ func TestPingRPCHandler_ReceivesPing(t *testing.T) {
 	})
 
 	// Set up a head state in the database with data we expect.
+	// 用我们期望的数据设置一个head state
 	d := db.SetupDB(t)
 	r := &Service{
 		cfg: &config{
@@ -52,6 +54,7 @@ func TestPingRPCHandler_ReceivesPing(t *testing.T) {
 	p1.Peers().SetMetadata(p2.BHost.ID(), p2.LocalMetadata)
 
 	// Setup streams
+	// 设置streams
 	pcl := protocol.ID(p2p.RPCPingTopicV1)
 	topic := string(pcl)
 	r.rateLimiter.limiterMap[topic] = leakybucket.NewCollector(1, 1, false)
@@ -71,6 +74,7 @@ func TestPingRPCHandler_ReceivesPing(t *testing.T) {
 	assert.NoError(t, r.pingHandler(context.Background(), &seqNumber, stream1))
 
 	if util.WaitTimeout(&wg, 1*time.Second) {
+		// 在1s内都没接收到stream
 		t.Fatal("Did not receive stream within 1 sec")
 	}
 

@@ -34,15 +34,19 @@ var (
 // validateBeaconBlockPubSub checks that the incoming block has a valid BLS signature.
 // Blocks that have already been seen are ignored. If the BLS signature is any valid signature,
 // this method rebroadcasts the message.
+// validateBeaconBlockPubSub检查incoming blocks有一个合法的BLS signature，已经被看到的Blocks会被忽略
+// 如果BLS signature是任何合法的signature，这个方法会重新广播message
 func (s *Service) validateBeaconBlockPubSub(ctx context.Context, pid peer.ID, msg *pubsub.Message) (pubsub.ValidationResult, error) {
 	receivedTime := prysmTime.Now()
 	// Validation runs on publish (not just subscriptions), so we should approve any message from
 	// ourselves.
+	// 对于任何来自自己的message都接收
 	if pid == s.cfg.p2p.PeerID() {
 		return pubsub.ValidationAccept, nil
 	}
 
 	// We should not attempt to process blocks until fully synced, but propagation is OK.
+	// 我们不应该试着处理任何的blocks，直到完全同步，但是传播是OK的
 	if s.cfg.initialSync.Syncing() {
 		return pubsub.ValidationIgnore, nil
 	}
@@ -70,6 +74,7 @@ func (s *Service) validateBeaconBlockPubSub(ctx context.Context, pid peer.ID, ms
 
 	// Broadcast the block on a feed to notify other services in the beacon node
 	// of a received block (even if it does not process correctly through a state transition).
+	// 广播block到一个feed用来通知beacon node中的其他服务，关于接收到block（即使它没有正确通过state transition）
 	s.cfg.blockNotifier.BlockFeed().Send(&feed.Event{
 		Type: blockfeed.ReceivedBlock,
 		Data: &blockfeed.ReceivedBlockData{
@@ -80,16 +85,20 @@ func (s *Service) validateBeaconBlockPubSub(ctx context.Context, pid peer.ID, ms
 	if features.Get().EnableSlasher {
 		// Feed the block header to slasher if enabled. This action
 		// is done in the background to avoid adding more load to this critical code path.
+		// 将block header投递给slasher，如果它使能的话，这在后台运行，来避免增加更多的
+		// 负载到critical code path
 		go func() {
 			blockHeader, err := interfaces.SignedBeaconBlockHeaderFromBlockInterface(blk)
 			if err != nil {
 				log.WithError(err).WithField("blockSlot", blk.Block().Slot()).Warn("Could not extract block header")
 			}
+			// 发送给slasherBlockHeadersFeed
 			s.cfg.slasherBlockHeadersFeed.Send(blockHeader)
 		}()
 	}
 
 	// Verify the block is the first block received for the proposer for the slot.
+	// 校验block是第一个收到的block，对于这个slot的proposer
 	if s.hasSeenBlockIndexSlot(blk.Block().Slot(), blk.Block().ProposerIndex()) {
 		return pubsub.ValidationIgnore, nil
 	}
@@ -103,6 +112,7 @@ func (s *Service) validateBeaconBlockPubSub(ctx context.Context, pid peer.ID, ms
 		return pubsub.ValidationIgnore, nil
 	}
 	// Check if parent is a bad block and then reject the block.
+	// 检查parent是否是一个bad block，是的话拒绝block
 	if s.hasBadBlock(bytesutil.ToBytes32(blk.Block().ParentRoot())) {
 		s.setBadBlock(ctx, blockRoot)
 		err := fmt.Errorf("received block with root %#x that has an invalid parent %#x", blockRoot, blk.Block().ParentRoot())
@@ -111,6 +121,7 @@ func (s *Service) validateBeaconBlockPubSub(ctx context.Context, pid peer.ID, ms
 	}
 
 	s.pendingQueueLock.RLock()
+	// 加入到pending blocks中
 	if s.seenPendingBlocks[blockRoot] {
 		s.pendingQueueLock.RUnlock()
 		return pubsub.ValidationIgnore, nil
@@ -146,6 +157,8 @@ func (s *Service) validateBeaconBlockPubSub(ctx context.Context, pid peer.ID, ms
 
 	// Process the block if the clock jitter is less than MAXIMUM_GOSSIP_CLOCK_DISPARITY.
 	// Otherwise queue it for processing in the right slot.
+	// 处理block，如果clock jitter小于MAXIMUM_GOSSIP_CLOCK_DISPARITY
+	// 否则将它加入到队列中，在正确的slot进行处理
 	if isBlockQueueable(genesisTime, blk.Block().Slot(), receivedTime) {
 		s.pendingQueueLock.Lock()
 		if err := s.insertBlockToPendingQueue(blk.Block().Slot(), blk, blockRoot); err != nil {
@@ -160,6 +173,7 @@ func (s *Service) validateBeaconBlockPubSub(ctx context.Context, pid peer.ID, ms
 	}
 
 	// Handle block when the parent is unknown.
+	// 处理parent未知的block
 	if !s.cfg.chain.HasBlock(ctx, bytesutil.ToBytes32(blk.Block().ParentRoot())) {
 		s.pendingQueueLock.Lock()
 		if err := s.insertBlockToPendingQueue(blk.Block().Slot(), blk, blockRoot); err != nil {
@@ -184,10 +198,12 @@ func (s *Service) validateBeaconBlockPubSub(ctx context.Context, pid peer.ID, ms
 	}
 
 	// Record attribute of valid block.
+	// 记录valid block的属性
 	span.AddAttributes(trace.Int64Attribute("slotInEpoch", int64(blk.Block().Slot()%params.BeaconConfig().SlotsPerEpoch)))
 	msg.ValidatorData = blk.Proto() // Used in downstream subscriber
 
 	// Log the arrival time of the accepted block
+	// 记录接收的block的arrival time
 	startTime, err := slots.ToTime(genesisTime, blk.Block().Slot())
 	if err != nil {
 		return pubsub.ValidationIgnore, err

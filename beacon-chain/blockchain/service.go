@@ -1,5 +1,7 @@
 // Package blockchain defines the life-cycle of the blockchain at the core of
 // Ethereum, including processing of new blocks and attestations using proof of stake.
+// blockchain包定义了Ethereum核心的blockchain的生命周期，包括对于新的blocks以及attestations的处理
+// 使用pos
 package blockchain
 
 import (

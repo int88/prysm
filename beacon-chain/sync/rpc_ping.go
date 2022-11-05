@@ -16,6 +16,7 @@ import (
 )
 
 // pingHandler reads the incoming ping rpc message from the peer.
+// pingHandler从peer读取incoming ping rpc message
 func (s *Service) pingHandler(_ context.Context, msg interface{}, stream libp2pcore.Stream) error {
 	SetRPCStreamDeadlines(stream)
 

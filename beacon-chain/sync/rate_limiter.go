@@ -27,6 +27,7 @@ type limiter struct {
 
 // Instantiates a multi-rpc protocol rate limiter, providing
 // separate collectors for each topic.
+// 实例化一个多rpc的protocol rate limiter，对每个topic提供单独的collectors
 func newRateLimiter(p2pProvider p2p.P2P) *limiter {
 	// add encoding suffix
 	addEncoding := func(topic string) string {
@@ -37,6 +38,7 @@ func newRateLimiter(p2pProvider p2p.P2P) *limiter {
 	allowedBlocksBurst := int64(flags.Get().BlockBatchLimitBurstFactor * flags.Get().BlockBatchLimit)
 
 	// Set topic map for all rpc topics.
+	// 设置topic map，为所有的rpc topics
 	topicMap := make(map[string]*leakybucket.Collector, len(p2p.RPCTopicMappings))
 	// Goodbye Message
 	topicMap[addEncoding(p2p.RPCGoodByeTopicV1)] = leakybucket.NewCollector(1, 1, false /* deleteEmptyBuckets */)
@@ -75,6 +77,7 @@ func (l *limiter) topicCollector(topic string) (*leakybucket.Collector, error) {
 }
 
 // validates a request with the accompanying cost.
+// 验证一个带有成本的请求
 func (l *limiter) validateRequest(stream network.Stream, amt uint64) error {
 	l.RLock()
 	defer l.RUnlock()

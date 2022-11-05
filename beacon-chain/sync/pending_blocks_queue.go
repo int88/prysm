@@ -361,6 +361,7 @@ func (s *Service) deleteBlockFromPendingQueue(slot types.Slot, b interfaces.Sign
 }
 
 // Insert block to the list in the pending queue using the slot as key.
+// 将block插入到pending queue的list，使用slot作为key
 // Note: this helper is not thread safe.
 func (s *Service) insertBlockToPendingQueue(_ types.Slot, b interfaces.SignedBeaconBlock, r [32]byte) error {
 	mutexasserts.AssertRWMutexLocked(&s.pendingQueueLock)

@@ -42,6 +42,7 @@ func (s *Service) beaconBlocksByRangeRPCHandler(ctx context.Context, msg interfa
 		return err
 	}
 	// Only have range requests with a step of 1 being processed.
+	// 只有有着step为1的range requests被处理
 	if m.Step > 1 {
 		m.Step = 1
 	}
@@ -92,12 +93,14 @@ func (s *Service) beaconBlocksByRangeRPCHandler(ctx context.Context, msg interfa
 			return err
 		}
 		// Reduce capacity of peer in the rate limiter first.
+		// 首先降低rate limiter中的capacity of peer
 		// Decrease allowed blocks capacity by the number of streamed blocks.
 		if startSlot <= endSlot {
 			s.rateLimiter.add(stream, int64(1+endSlot.SubSlot(startSlot).Div(m.Step)))
 		}
 		// Exit in the event we have a disjoint chain to
 		// return.
+		// 如果我们有一个disjoint chain要返回，则退出
 		if errors.Is(err, p2ptypes.ErrInvalidParent) {
 			break
 		}
@@ -214,6 +217,7 @@ func (s *Service) validateRangeRequest(r *pb.BeaconBlocksByRangeRequest) error {
 
 // filters all the provided blocks to ensure they are canonical
 // and are strictly linear.
+// 过滤所有提供的blocks来确保它们是规范的并且严格线性
 func (s *Service) filterBlocks(ctx context.Context, blks []interfaces.SignedBeaconBlock, roots [][32]byte, prevRoot *[32]byte,
 	step uint64, startSlot types.Slot) ([]interfaces.SignedBeaconBlock, error) {
 	if len(blks) != len(roots) {

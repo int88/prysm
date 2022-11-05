@@ -2,6 +2,8 @@
 // including gossip-sub validators for blocks, attestations, and other p2p
 // messages, as well as ability to process and respond to block requests
 // by peers.
+// sync包提供了所有chain-synchronization的逻辑，对于beacon node，包括gossip-sub的validator
+// 对于blocks, attestations以及其他的p2p messages，以及处理并且回应block requests的能力
 package sync
 
 import (
@@ -56,8 +58,10 @@ var (
 	// Seconds in one epoch.
 	pendingBlockExpTime = time.Duration(params.BeaconConfig().SlotsPerEpoch.Mul(params.BeaconConfig().SecondsPerSlot)) * time.Second
 	// time to allow processing early blocks.
+	// 允许处理early blocks的时间
 	earlyBlockProcessingTolerance = slots.MultiplySlotBy(2)
 	// time to allow processing early attestations.
+	// 允许处理early attestations的时间
 	earlyAttestationProcessingTolerance = params.BeaconNetworkConfig().MaximumGossipClockDisparity
 	errWrongMessage                     = errors.New("wrong pubsub message")
 	errNilMessage                       = errors.New("nil pubsub message")
@@ -87,6 +91,7 @@ type config struct {
 }
 
 // This defines the interface for interacting with block chain service
+// 定义了和block chain service交互的接口
 type blockchainService interface {
 	blockchain.BlockReceiver
 	blockchain.HeadFetcher

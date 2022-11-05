@@ -29,6 +29,7 @@ func (s *Service) beaconBlockSubscriber(ctx context.Context, msg proto.Message) 
 		return err
 	}
 
+	// 交给chain service的ReceiveBlock方法
 	if err := s.cfg.chain.ReceiveBlock(ctx, signed, root); err != nil {
 		if blockchain.IsInvalidBlock(err) {
 			interop.WriteBlockToDisk(signed, true /*failed*/)
