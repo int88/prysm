@@ -25,6 +25,8 @@ func TestIsSlashableBlock(t *testing.T) {
 		blksQueue: newBlocksQueue(),
 	}
 	err := slasherDB.SaveBlockProposals(ctx, []*slashertypes.SignedBlockHeaderWrapper{
+		// 保存block proposals
+		// 第二个参数为slot，第三个参数为proposer索引
 		createProposalWrapper(t, 2, 3, []byte{1}),
 		createProposalWrapper(t, 3, 3, []byte{1}),
 	})
@@ -35,27 +37,32 @@ func TestIsSlashableBlock(t *testing.T) {
 		shouldBeSlashable bool
 	}{
 		{
-			name:              "should not detect if same signing root",
+			name: "should not detect if same signing root",
+			// 不检测，如果是同样的signing root
 			blockToCheck:      createProposalWrapper(t, 2, 3, []byte{1}),
 			shouldBeSlashable: false,
 		},
 		{
-			name:              "should not detect if different slot",
+			name: "should not detect if different slot",
+			// 不同的slot也不检测
 			blockToCheck:      createProposalWrapper(t, 1, 3, []byte{2}),
 			shouldBeSlashable: false,
 		},
 		{
+			// 不同的validator索引，也不检测
 			name:              "should not detect if different validator index",
 			blockToCheck:      createProposalWrapper(t, 2, 4, []byte{2}),
 			shouldBeSlashable: false,
 		},
 		{
-			name:              "detects differing signing root",
+			name: "detects differing signing root",
+			// 检测到不同的不同的signing root
 			blockToCheck:      createProposalWrapper(t, 2, 3, []byte{2}),
 			shouldBeSlashable: true,
 		},
 		{
-			name:              "should detect another slot",
+			name: "should detect another slot",
+			// 应该检测到另一个slot
 			blockToCheck:      createProposalWrapper(t, 3, 3, []byte{2}),
 			shouldBeSlashable: true,
 		},
@@ -89,6 +96,7 @@ func TestIsSlashableAttestation(t *testing.T) {
 		latestEpochWrittenForValidator: map[types.ValidatorIndex]types.Epoch{},
 	}
 	prevAtts := []*slashertypes.IndexedAttestationWrapper{
+		// 第二个参数是source epoch，第三个参数是target epoch，第四个参数为索引
 		createAttestationWrapper(t, 2, 3, []uint64{0}, []byte{1}),
 		createAttestationWrapper(t, 2, 3, []uint64{1}, []byte{1}),
 	}
@@ -104,27 +112,32 @@ func TestIsSlashableAttestation(t *testing.T) {
 		amtSlashable uint64
 	}{
 		{
+			// 如果是同样的attestation data，不应检测到
 			name:         "should not detect if same attestation data",
 			attToCheck:   createAttestationWrapper(t, 2, 3, []uint64{1}, []byte{1}),
 			amtSlashable: 0,
 		},
 		{
-			name:         "should not detect if different index",
+			name: "should not detect if different index",
+			// 如果是不同的索引，不应检测到
 			attToCheck:   createAttestationWrapper(t, 0, 3, []uint64{2}, []byte{2}),
 			amtSlashable: 0,
 		},
 		{
-			name:         "should detect double if same index",
+			name: "should detect double if same index",
+			// 如果是同样的索引，应该检测到
 			attToCheck:   createAttestationWrapper(t, 0, 3, []uint64{0}, []byte{2}),
 			amtSlashable: 1,
 		},
 		{
-			name:         "should detect multiple double if multiple same indices",
+			name: "should detect multiple double if multiple same indices",
+			// 如果有多个同样的索引，应该检测到多个double
 			attToCheck:   createAttestationWrapper(t, 0, 3, []uint64{0, 1}, []byte{2}),
 			amtSlashable: 2,
 		},
 		{
-			name:         "should detect multiple surround if multiple same indices",
+			name: "should detect multiple surround if multiple same indices",
+			// 如果有多个同样的索引，应该检测到多个surround
 			attToCheck:   createAttestationWrapper(t, 1, 4, []uint64{0, 1}, []byte{2}),
 			amtSlashable: 4,
 		},

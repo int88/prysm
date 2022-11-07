@@ -15,6 +15,7 @@ import (
 
 // Takes in a list of indexed attestation wrappers and returns any
 // found attester slashings to the caller.
+// 获取一系列的indexed attestation wrappers并且返回任何找到的attester slashings到caller
 func (s *Service) checkSlashableAttestations(
 	ctx context.Context, currentEpoch types.Epoch, atts []*slashertypes.IndexedAttestationWrapper,
 ) ([]*ethpb.AttesterSlashing, error) {
@@ -22,6 +23,7 @@ func (s *Service) checkSlashableAttestations(
 
 	log.Debug("Checking for double votes")
 	start := time.Now()
+	// 检测double votes
 	doubleVoteSlashings, err := s.checkDoubleVotes(ctx, atts)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not check slashable double votes")
@@ -70,13 +72,19 @@ func (s *Service) checkSlashableAttestations(
 
 // Given a list of attestations all corresponding to a validator chunk index as well
 // as the current epoch in time, we perform slashing detection.
+// 给定一系列的attestations，所有都对应到一个validator chunk index，以及当前的epoch，我们执行slashing detecti
 // The process is as follows given a list of attestations:
+// 对于给定的attestations过程如下：
 //
 // 1. Check for attester double votes using the list of attestations.
+// 1. 使用一系列的attestations检测attester double voutes
 // 2. Group the attestations by chunk index.
+// 2. 通过chunk index对attestations进行分类
 // 3. Update the min and max spans for those grouped attestations, check if any slashings are
 //    found in the process
+// 3. 更新这些grouped attestations的min以及max spans，检查是否在进程中检测到slashings
 // 4. Update the latest written epoch for all validators involved to the current epoch.
+// 4. 更新最新写入的epoch，对于所有参与到当前epoch的validators
 //
 // This function performs a lot of critical actions and is split into smaller helpers for cleanliness.
 func (s *Service) detectAllAttesterSlashings(
@@ -141,6 +149,9 @@ func (s *Service) detectAllAttesterSlashings(
 // in each attestation's attesting indices and checking if there already exist records for such
 // attestation's target epoch. If so, we append a double vote slashing object to a list of slashings
 // we return to the caller.
+// 检查attester slashing double voutes，通过查看每个attestation的attesting indices的validator index
+// 检查是否有已经存在的记录，对于attestation的target epoch，如果是的话，我们扩展一个double vote slashing对象到
+// 一系列的slashings，我们返回给caller
 func (s *Service) checkDoubleVotes(
 	ctx context.Context, attestations []*slashertypes.IndexedAttestationWrapper,
 ) ([]*ethpb.AttesterSlashing, error) {
@@ -148,6 +159,7 @@ func (s *Service) checkDoubleVotes(
 	defer span.End()
 	// We check if there are any slashable double votes in the input list
 	// of attestations with respect to each other.
+	// 我们检查在输入列表的attestations中有没有slashable double voutes
 	slashings := make([]*ethpb.AttesterSlashing, 0)
 	existingAtts := make(map[string]*slashertypes.IndexedAttestationWrapper)
 	for _, att := range attestations {
@@ -170,6 +182,7 @@ func (s *Service) checkDoubleVotes(
 
 	// We check if there are any slashable double votes in the input list
 	// of attestations with respect to our database.
+	// 我们检查在输入的list中是否有slashable double votes，对于我们数据库中的attestations
 	moreSlashings, err := s.checkDoubleVotesOnDisk(ctx, attestations)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not check attestation double votes on disk")

@@ -13,6 +13,7 @@ import (
 )
 
 // HighestAttestations committed for an input list of validator indices.
+// 从一系列的validator indices获取最高的attestations
 func (s *Service) HighestAttestations(
 	ctx context.Context, validatorIndices []types.ValidatorIndex,
 ) ([]*ethpb.HighestAttestation, error) {
@@ -25,6 +26,7 @@ func (s *Service) HighestAttestations(
 
 // IsSlashableBlock checks if an input block header is slashable
 // with respect to historical block proposal data.
+// IsSlashableBlock检查一个input block header是否是slashable，对于历史的block proposal data
 func (s *Service) IsSlashableBlock(
 	ctx context.Context, block *ethpb.SignedBeaconBlockHeader,
 ) (*ethpb.ProposerSlashing, error) {
@@ -38,16 +40,20 @@ func (s *Service) IsSlashableBlock(
 	}
 	proposerSlashings, err := s.detectProposerSlashings(ctx, []*slashertypes.SignedBlockHeaderWrapper{signedBlockWrapper})
 	if err != nil {
+		// 检查proposal是否slashable失败
 		return nil, status.Errorf(codes.Internal, "Could not check if proposal is slashable: %v", err)
 	}
 	if len(proposerSlashings) == 0 {
 		return nil, nil
 	}
+	// 返回第一个proposerSlashings
 	return proposerSlashings[0], nil
 }
 
 // IsSlashableAttestation checks if an input indexed attestation is slashable
 // with respect to historical attestation data.
+// IsSlashableAttestation检查一个输入的indexed attestation是否是slashable，对于historical
+// attestation data
 func (s *Service) IsSlashableAttestation(
 	ctx context.Context, attestation *ethpb.IndexedAttestation,
 ) ([]*ethpb.AttesterSlashing, error) {
@@ -68,6 +74,7 @@ func (s *Service) IsSlashableAttestation(
 	if len(attesterSlashings) == 0 {
 		// If the incoming attestations are not slashable, we mark them as saved in
 		// slasher's DB storage to help us with future detection.
+		// 如果incoming attestations是非slashable，我们标记他们，将他们保存在DB中，用于后续的检测
 		if err := s.serviceCfg.Database.SaveAttestationRecordsForValidators(
 			ctx, []*slashertypes.IndexedAttestationWrapper{indexedAttWrapper},
 		); err != nil {

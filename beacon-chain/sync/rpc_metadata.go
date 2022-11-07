@@ -22,6 +22,7 @@ import (
 )
 
 // metaDataHandler reads the incoming metadata rpc request from the peer.
+// metaDataHandler从peer中读取incoming metadata rpc请求
 func (s *Service) metaDataHandler(_ context.Context, _ interface{}, stream libp2pcore.Stream) error {
 	SetRPCStreamDeadlines(stream)
 

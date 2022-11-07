@@ -11,6 +11,7 @@ import (
 )
 
 // detectProposerSlashings takes in signed block header wrappers and returns a list of proposer slashings detected.
+// detectProposerSlashings输入一个signed block header wrappers并且返回一系列检测到的proposer slashing
 func (s *Service) detectProposerSlashings(
 	ctx context.Context,
 	proposedBlocks []*slashertypes.SignedBlockHeaderWrapper,

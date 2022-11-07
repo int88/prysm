@@ -2,6 +2,8 @@
 // and proposals that it receives via two event feeds, respectively. Any found slashings
 // are then submitted to the beacon node's slashing operations pool. See the design document
 // here https://hackmd.io/@prysmaticlabs/slasher.
+// slasher包实现eth2的slashing detection，能够获取slashable attestations以及proposals，它通过两个
+// event feeds收到的，任何找到的的slashings会被提交给beacon node的slashing operations pool
 package slasher
 
 import (
@@ -150,6 +152,7 @@ func (s *Service) run() {
 }
 
 // Stop the slasher service.
+// 停止slasher服务
 func (s *Service) Stop() error {
 	s.cancel()
 	if s.attsSlotTicker != nil {
@@ -162,11 +165,13 @@ func (s *Service) Stop() error {
 		s.pruningSlotTicker.Done()
 	}
 	// Flush the latest epoch written map to disk.
+	// 将最新的epoch写入磁盘
 	start := time.Now()
 	// New context as the service context has already been canceled.
 	ctx, innerCancel := context.WithTimeout(context.Background(), shutdownTimeout)
 	defer innerCancel()
 	log.Info("Flushing last epoch written for each validator to disk, please wait")
+	// 将每个validator的last epoch写入磁盘，等待
 	if err := s.serviceCfg.Database.SaveLastEpochsWrittenForValidators(
 		ctx, s.latestEpochWrittenForValidator,
 	); err != nil {
@@ -231,6 +236,7 @@ func (s *Service) waitForSync(genesisTime time.Time) {
 		select {
 		case <-slotTicker.C():
 			// If node is still syncing, do not operate slasher.
+			// 如果node依然在同步，则不要进行slasher
 			if s.serviceCfg.SyncChecker.Syncing() {
 				continue
 			}

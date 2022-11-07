@@ -903,12 +903,14 @@ func createAttestationWrapper(t testing.TB, source, target types.Epoch, indices 
 			Root:  params.BeaconConfig().ZeroHash[:],
 		},
 	}
+	// 获取data的hash root
 	signRoot, err := data.HashTreeRoot()
 	if err != nil {
 		t.Fatal(err)
 	}
 	return &slashertypes.IndexedAttestationWrapper{
 		IndexedAttestation: &ethpb.IndexedAttestation{
+			// attesting的索引
 			AttestingIndices: indices,
 			Data:             data,
 			Signature:        params.BeaconConfig().EmptySignature[:],

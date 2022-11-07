@@ -18,6 +18,7 @@ import (
 // for batch processing in a separate routine.
 // 校验它们的完整性，在扩展它们到一个attestation queue之前，用于在另一个routine进行批量处理
 func (s *Service) receiveAttestations(ctx context.Context, indexedAttsChan chan *ethpb.IndexedAttestation) {
+	// 订阅attestations
 	sub := s.serviceCfg.IndexedAttestationsFeed.Subscribe(indexedAttsChan)
 	defer sub.Unsubscribe()
 	for {
@@ -28,6 +29,7 @@ func (s *Service) receiveAttestations(ctx context.Context, indexedAttsChan chan 
 			}
 			signingRoot, err := att.Data.HashTreeRoot()
 			if err != nil {
+				// 不能获取attestation的hash root
 				log.WithError(err).Error("Could not get hash tree root of attestation")
 				continue
 			}
@@ -49,6 +51,7 @@ func (s *Service) receiveAttestations(ctx context.Context, indexedAttsChan chan 
 // Receive beacon blocks from some source event feed,
 // 从source event feed中接收beacon blocks
 func (s *Service) receiveBlocks(ctx context.Context, beaconBlockHeadersChan chan *ethpb.SignedBeaconBlockHeader) {
+	// 订阅block header
 	sub := s.serviceCfg.BeaconBlockHeadersFeed.Subscribe(beaconBlockHeadersChan)
 	defer sub.Unsubscribe()
 	for {
@@ -66,6 +69,7 @@ func (s *Service) receiveBlocks(ctx context.Context, beaconBlockHeadersChan chan
 				SignedBeaconBlockHeader: blockHeader,
 				SigningRoot:             signingRoot,
 			}
+			// 加入队列中
 			s.blksQueue.push(wrappedProposal)
 		case err := <-sub.Err():
 			log.WithError(err).Debug("Subscriber closed with error")
@@ -91,12 +95,14 @@ func (s *Service) processQueuedAttestations(ctx context.Context, slotTicker <-ch
 			currentEpoch := slots.ToEpoch(currentSlot)
 			// We take all the attestations in the queue and filter out
 			// those which are valid now and valid in the future.
+			// 我们获取队列中的所有attestations并且过滤那些现在合法的以及未来合法的
 			validAtts, validInFuture, numDropped := s.filterAttestations(attestations, currentEpoch)
 
 			deferredAttestationsTotal.Add(float64(len(validInFuture)))
 			droppedAttestationsTotal.Add(float64(numDropped))
 
 			// We add back those attestations that are valid in the future to the queue.
+			// 我们将这些合法的attestations添加到队列中
 			s.attsQueue.extend(validInFuture)
 
 			log.WithFields(logrus.Fields{
@@ -108,6 +114,7 @@ func (s *Service) processQueuedAttestations(ctx context.Context, slotTicker <-ch
 			}).Info("Processing queued attestations for slashing detection")
 
 			// Save the attestation records to our database.
+			// 保存attestation records到数据库中
 			if err := s.serviceCfg.Database.SaveAttestationRecordsForValidators(
 				ctx, validAtts,
 			); err != nil {
@@ -186,6 +193,7 @@ func (s *Service) processQueuedBlocks(ctx context.Context, slotTicker <-chan typ
 }
 
 // Prunes slasher data on each slot tick to prevent unnecessary build-up of disk space usage.
+// 清理每个slot中的slasher data，来防止不必要的磁盘使用空间的累计
 func (s *Service) pruneSlasherData(ctx context.Context, slotTicker <-chan types.Slot) {
 	for {
 		select {

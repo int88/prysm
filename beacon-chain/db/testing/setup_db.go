@@ -29,6 +29,7 @@ func SetupDB(t testing.TB) db.Database {
 
 // SetupSlasherDB --
 func SetupSlasherDB(t testing.TB) iface.SlasherDatabase {
+	// 构建一个slasher的KVStore
 	s, err := slasherkv.NewKVStore(context.Background(), t.TempDir(), &slasherkv.Config{})
 	if err != nil {
 		t.Fatal(err)

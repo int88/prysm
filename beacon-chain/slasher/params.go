@@ -6,16 +6,22 @@ import (
 )
 
 // Parameters for slashing detection.
+// slashing detection的参数
 //
 // To properly access the element at epoch `e` for a validator index `i`, we leverage helper
 // functions from these parameter values as nice abstractions. the following parameters are
 // required for the helper functions defined in this file.
+// 为了正确访问一个validator index `i`在epoch `e`的element，我们利用helper函数，基于这些参数值作为nice
+// abstractions，后续的参数对于helper函数是必须的，定义在这个文件中
 //
 // (C) chunkSize defines how many elements are in a chunk for a validator
 // min or max span slice.
+// (C) chunkSize定义了在一个chunk中有多少个elements，对于一个validator的min或者max span slice
 // (K) validatorChunkSize defines how many validators' chunks we store in a single
 // flat byte slice on disk.
+// (K) validatorChunkSize定义了多少个validator的chunks我们存储在磁盘的单个flat byte slice中
 // (H) historyLength defines how many epochs we keep of min or max spans.
+// (H) historyLength定义了多少epochs，我们保存在min或者max spans
 type Parameters struct {
 	chunkSize          uint64
 	validatorChunkSize uint64
@@ -29,6 +35,7 @@ type Parameters struct {
 //
 // The default values for chunkSize and validatorChunkSize were
 // decided after an optimization analysis performed by the Sigma Prime team.
+// chunkSize和validatorChunkSize的默认值是由Sigma Prime team优化分析后决定的
 // See: https://hackmd.io/@sproul/min-max-slasher#1D-vs-2D for more information.
 // We decide to keep 4096 epochs worth of data in each validator's min max spans.
 func DefaultParams() *Parameters {

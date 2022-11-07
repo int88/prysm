@@ -211,6 +211,7 @@ func (s *Store) AttestationRecordForValidator(
 }
 
 // SaveAttestationRecordsForValidators saves attestation records for the specified indices.
+// SaveAttestationRecordsForValidators为特定的索引保存attestation records
 func (s *Store) SaveAttestationRecordsForValidators(
 	ctx context.Context,
 	attestations []*slashertypes.IndexedAttestationWrapper,

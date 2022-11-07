@@ -14,9 +14,12 @@ import (
 )
 
 // Group a list of attestations into batches by validator chunk index.
+// 通过validator chunk index将一系列的attestations归类
 // This way, we can detect on the batch of attestations for each validator chunk index
 // concurrently, and also allowing us to effectively use a single 2D chunk
 // for slashing detection through this logical grouping.
+// 这样我们可以并行地按照每个validator chunk index对一系列attestations进行检测
+// 并且允许我们有效地使用单个的2D chunk，对于slashing检测，通过这个logical grouping
 func (s *Service) groupByValidatorChunkIndex(
 	attestations []*slashertypes.IndexedAttestationWrapper,
 ) map[uint64][]*slashertypes.IndexedAttestationWrapper {
@@ -25,9 +28,11 @@ func (s *Service) groupByValidatorChunkIndex(
 		validatorChunkIndices := make(map[uint64]bool)
 		for _, validatorIdx := range att.IndexedAttestation.AttestingIndices {
 			validatorChunkIndex := s.params.validatorChunkIndex(types.ValidatorIndex(validatorIdx))
+			// 设置validator chunk indices
 			validatorChunkIndices[validatorChunkIndex] = true
 		}
 		for validatorChunkIndex := range validatorChunkIndices {
+			// 扩展grouped attestations
 			groupedAttestations[validatorChunkIndex] = append(
 				groupedAttestations[validatorChunkIndex],
 				att,

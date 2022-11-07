@@ -1,5 +1,6 @@
 // Package slasherkv defines a bolt-db, key-value store implementation
 // of the slasher database interface for Prysm.
+// slasherkv定义了一个基于bolt-db的，键值存储，用于实现Prysm的slasher database接口
 package slasherkv
 
 import (
