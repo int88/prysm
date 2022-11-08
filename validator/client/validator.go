@@ -1,5 +1,6 @@
 // Package client represents a gRPC polling-based implementation
 // of an Ethereum validator client.
+// client包表示一个gRPC，基于轮询的Ethereum validator client
 package client
 
 import (
@@ -297,6 +298,7 @@ func (v *validator) WaitForChainStart(ctx context.Context) error {
 }
 
 // WaitForSync checks whether the beacon node has sync to the latest head.
+// WaitForSync检查beacon node是否同步到了最新的head
 func (v *validator) WaitForSync(ctx context.Context) error {
 	ctx, span := trace.StartSpan(ctx, "validator.WaitForSync")
 	defer span.End()
@@ -312,12 +314,14 @@ func (v *validator) WaitForSync(ctx context.Context) error {
 	for {
 		select {
 		// Poll every half slot.
+		// 每半个slot同步一次
 		case <-time.After(slots.DivideSlotBy(2 /* twice per slot */)):
 			s, err := v.node.GetSyncStatus(ctx, &emptypb.Empty{})
 			if err != nil {
 				return errors.Wrap(iface.ErrConnectionIssue, errors.Wrap(err, "could not get sync status").Error())
 			}
 			if !s.Syncing {
+				// 同步完成了
 				return nil
 			}
 			log.Info("Waiting for beacon node to sync to latest chain head")
@@ -566,12 +570,16 @@ func retrieveLatestRecord(recs []*kv.AttestationRecord) *kv.AttestationRecord {
 // UpdateDuties checks the slot number to determine if the validator's
 // list of upcoming assignments needs to be updated. For example, at the
 // beginning of a new epoch.
+// UpdateDuties检查slot number来确定是否validator的list of upcoming assignments
+// 需要被更新，例如，在一个新的epoch的开始
 func (v *validator) UpdateDuties(ctx context.Context, slot types.Slot) error {
 	if slot%params.BeaconConfig().SlotsPerEpoch != 0 && v.duties != nil {
 		// Do nothing if not epoch start AND assignments already exist.
+		// 什么都不做，如果不是在epoch start并且assignments已经存在了
 		return nil
 	}
 	// Set deadline to end of epoch.
+	// 设置epoch的deadline
 	ss, err := slots.EpochStart(slots.ToEpoch(slot) + 1)
 	if err != nil {
 		return err
@@ -587,6 +595,7 @@ func (v *validator) UpdateDuties(ctx context.Context, slot types.Slot) error {
 	}
 
 	// Filter out the slashable public keys from the duties request.
+	// 从duties request中过滤slashable public keys
 	filteredKeys := make([][fieldparams.BLSPubkeyLength]byte, 0, len(validatingKeys))
 	v.slashableKeysLock.RLock()
 	for _, pubKey := range validatingKeys {
@@ -607,8 +616,10 @@ func (v *validator) UpdateDuties(ctx context.Context, slot types.Slot) error {
 	}
 
 	// If duties is nil it means we have had no prior duties and just started up.
+	// 如果duties为nil，这意味着我们没有prior duties并且刚刚启动
 	resp, err := v.validatorClient.GetDuties(ctx, req)
 	if err != nil {
+		// 清理assignments，这样我们知道重试request
 		v.duties = nil // Clear assignments so we know to retry the request.
 		log.Error(err)
 		return err
@@ -618,6 +629,7 @@ func (v *validator) UpdateDuties(ctx context.Context, slot types.Slot) error {
 	v.logDuties(slot, v.duties.CurrentEpochDuties)
 
 	// Non-blocking call for beacon node to start subscriptions for aggregators.
+	// 非阻塞的调用，beacon node用于启动对于aggregators的订阅
 	go func() {
 		if err := v.subscribeToSubnets(context.Background(), resp); err != nil {
 			log.WithError(err).Error("Failed to subscribe to subnets")
@@ -629,6 +641,8 @@ func (v *validator) UpdateDuties(ctx context.Context, slot types.Slot) error {
 
 // subscribeToSubnets iterates through each validator duty, signs each slot, and asks beacon node
 // to eagerly subscribe to subnets so that the aggregator has attestations to aggregate.
+// subscribeToSubnets遍历每个validator duty，对每个slot签名，并且询问beacon node来热切地订阅subnets
+// 这样aggregator有attestations来聚合
 func (v *validator) subscribeToSubnets(ctx context.Context, res *ethpb.DutiesResponse) error {
 	subscribeSlots := make([]types.Slot, 0, len(res.CurrentEpochDuties)+len(res.NextEpochDuties))
 	subscribeCommitteeIndices := make([]types.CommitteeIndex, 0, len(res.CurrentEpochDuties)+len(res.NextEpochDuties))
@@ -648,6 +662,7 @@ func (v *validator) subscribeToSubnets(ctx context.Context, res *ethpb.DutiesRes
 
 			aggregator, err := v.isAggregator(ctx, duty.Committee, attesterSlot, pk)
 			if err != nil {
+				// 不能检测，如果一个validator是一个aggregator
 				return errors.Wrap(err, "could not check if a validator is an aggregator")
 			}
 			if aggregator {
@@ -696,6 +711,8 @@ func (v *validator) subscribeToSubnets(ctx context.Context, res *ethpb.DutiesRes
 // RolesAt slot returns the validator roles at the given slot. Returns nil if the
 // validator is known to not have a roles at the slot. Returns UNKNOWN if the
 // validator assignments are unknown. Otherwise returns a valid ValidatorRole map.
+// RolesAt返回validator roles，在给定的slot，返回Nil，如果validator已知在给定的slot没有role
+// 返回UNKNOWN，如果validator assignments是未知的，否则返回一个合法的ValidatorRole map
 func (v *validator) RolesAt(ctx context.Context, slot types.Slot) (map[[fieldparams.BLSPubkeyLength]byte][]iface.ValidatorRole, error) {
 	rolesAt := make(map[[fieldparams.BLSPubkeyLength]byte][]iface.ValidatorRole)
 	for validator, duty := range v.duties.Duties {
@@ -707,12 +724,14 @@ func (v *validator) RolesAt(ctx context.Context, slot types.Slot) (map[[fieldpar
 		if len(duty.ProposerSlots) > 0 {
 			for _, proposerSlot := range duty.ProposerSlots {
 				if proposerSlot != 0 && proposerSlot == slot {
+					// 有一个proposer的role
 					roles = append(roles, iface.RoleProposer)
 					break
 				}
 			}
 		}
 		if duty.AttesterSlot == slot {
+			// 扩展attester roles
 			roles = append(roles, iface.RoleAttester)
 
 			aggregator, err := v.isAggregator(ctx, duty.Committee, slot, bytesutil.ToBytes48(duty.PublicKey))
@@ -728,6 +747,8 @@ func (v *validator) RolesAt(ctx context.Context, slot types.Slot) (map[[fieldpar
 		// Being assigned to a sync committee for a given slot means that the validator produces and
 		// broadcasts signatures for `slot - 1` for inclusion in `slot`. At the last slot of the epoch,
 		// the validator checks whether it's in the sync committee of following epoch.
+		// 对一个sync committee被赋值，对于一个给定的slot意味着validator产生并且广播signatures，对于`slot - 1`
+		// 对于包含在`slot`。在epoch的最后一个slot，validator检查是否在sync committee中，对于下一个epoch
 		inSyncCommittee := false
 		if slots.IsEpochEnd(slot) {
 			if v.duties.NextEpochDuties[validator].IsSyncCommittee {
@@ -826,6 +847,9 @@ func (v *validator) isSyncCommitteeAggregator(ctx context.Context, slot types.Sl
 // the fork version changes which can happen once per epoch. Although changing for the fork version
 // is very rare, a validator should check these data every epoch to be sure the validator is
 // participating on the correct fork version.
+// UpdateDomainDataCaches通过对所有可能的domain data进行调用，这可能发生改变，当fork version改变时，这可以
+// 每个epoch发生一次，经管改变fork version是非常少的，一个validatorr可以检查这些数据，每个epoch来确保validator
+// 参与到了正确的fork version
 func (v *validator) UpdateDomainDataCaches(ctx context.Context, slot types.Slot) {
 	for _, d := range [][]byte{
 		params.BeaconConfig().DomainRandao[:],
@@ -1091,6 +1115,7 @@ func validatorSubscribeKey(slot types.Slot, committeeID types.CommitteeIndex) [6
 }
 
 // This tracks all validators' voting status.
+// 追踪所有validators的voting状态
 type voteStats struct {
 	startEpoch          types.Epoch
 	totalAttestedCount  uint64
@@ -1102,6 +1127,7 @@ type voteStats struct {
 }
 
 // This tracks all validators' submissions for sync committees.
+// 追踪所有validator的submissions用于sync committees
 type syncCommitteeStats struct {
 	totalMessagesSubmitted uint64
 }

@@ -23,6 +23,7 @@ type attSubmitted struct {
 }
 
 // LogAttestationsSubmitted logs info about submitted attestations.
+// LogAttestationsSubmitted记录关于submitted attestations的日志
 func (v *validator) LogAttestationsSubmitted() {
 	v.attLogsLock.Lock()
 	defer v.attLogsLock.Unlock()
@@ -45,9 +46,11 @@ func (v *validator) LogAttestationsSubmitted() {
 }
 
 // LogSyncCommitteeMessagesSubmitted logs info about submitted sync committee messages.
+// LogSyncCommitteeMessagesSubmitted记录关于提交的sync committee messages
 func (v *validator) LogSyncCommitteeMessagesSubmitted() {
 	log.WithField("messages", v.syncCommitteeStats.totalMessagesSubmitted).Debug("Submitted sync committee messages successfully to beacon node")
 	// Reset the amount.
+	// 重置amount
 	atomic.StoreUint64(&v.syncCommitteeStats.totalMessagesSubmitted, 0)
 }
 

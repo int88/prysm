@@ -251,18 +251,24 @@ func performRoles(slotCtx context.Context, allRoles map[[48]byte][]iface.Validat
 	for pubKey, roles := range allRoles {
 		wg.Add(len(roles))
 		for _, role := range roles {
+			// 遍历各个roles
 			go func(role iface.ValidatorRole, pubKey [fieldparams.BLSPubkeyLength]byte) {
 				defer wg.Done()
 				switch role {
 				case iface.RoleAttester:
+					// 执行attester的任务
 					v.SubmitAttestation(slotCtx, slot, pubKey)
 				case iface.RoleProposer:
+					// 提交block
 					v.ProposeBlock(slotCtx, slot, pubKey)
 				case iface.RoleAggregator:
+					// 提交aggregated以及proof
 					v.SubmitAggregateAndProof(slotCtx, slot, pubKey)
 				case iface.RoleSyncCommittee:
+					// 提交sync committee message
 					v.SubmitSyncCommitteeMessage(slotCtx, slot, pubKey)
 				case iface.RoleSyncCommitteeAggregator:
+					// 提交signed contribution以及proof
 					v.SubmitSignedContributionAndProof(slotCtx, slot, pubKey)
 				case iface.RoleUnknown:
 					log.WithField("pubKey", fmt.Sprintf("%#x", bytesutil.Trunc(pubKey[:]))).Trace("No active roles, doing nothing")
@@ -290,9 +296,11 @@ func performRoles(slotCtx context.Context, allRoles map[[48]byte][]iface.Validat
 		v.LogAttestationsSubmitted()
 		v.LogSyncCommitteeMessagesSubmitted()
 		if err := v.LogValidatorGainsAndLosses(slotCtx, slot); err != nil {
+			// 不能报告validator的rewards/penalties
 			log.WithError(err).Error("Could not report validator's rewards/penalties")
 		}
 		if err := v.LogNextDutyTimeLeft(slot); err != nil {
+			// 不能报告下一次的count down
 			log.WithError(err).Error("Could not report next count down")
 		}
 	}()

@@ -24,6 +24,9 @@ import (
 // via gRPC. Beacon node will verify the slot signature and determine if the validator is also
 // an aggregator. If yes, then beacon node will broadcast aggregated signature and
 // proof on the validator's behalf.
+// SubmitAggregateAndProof通过gRPC将validator的signed slot signature提交给beacon node
+// Beacon node会校验slot signature并且决定是否validator是一个aggregator，如果是的话，beacon node
+// 会广播aggregated signature以及proof，代表validator
 func (v *validator) SubmitAggregateAndProof(ctx context.Context, slot types.Slot, pubKey [fieldparams.BLSPubkeyLength]byte) {
 	ctx, span := trace.StartSpan(ctx, "validator.SubmitAggregateAndProof")
 	defer span.End()
@@ -33,6 +36,7 @@ func (v *validator) SubmitAggregateAndProof(ctx context.Context, slot types.Slot
 
 	duty, err := v.duty(pubKey)
 	if err != nil {
+		// 不能获取validator assignment
 		log.Errorf("Could not fetch validator assignment: %v", err)
 		if v.emitAccountMetrics {
 			ValidatorAggFailVec.WithLabelValues(fmtKey).Inc()
@@ -41,6 +45,7 @@ func (v *validator) SubmitAggregateAndProof(ctx context.Context, slot types.Slot
 	}
 
 	// Avoid sending beacon node duplicated aggregation requests.
+	// 避免发送给beacon node重复的aggregation requests
 	k := validatorSubscribeKey(slot, duty.CommitteeIndex)
 	v.aggregatedSlotCommitteeIDCacheLock.Lock()
 	if v.aggregatedSlotCommitteeIDCache.Contains(k) {
@@ -61,6 +66,7 @@ func (v *validator) SubmitAggregateAndProof(ctx context.Context, slot types.Slot
 
 	// As specified in spec, an aggregator should wait until two thirds of the way through slot
 	// to broadcast the best aggregate to the global aggregate channel.
+	// 如在spec中声明的，一个aggregator应该等待，直到三分之二，广播best aggregate到全局的aggregate channel
 	// https://github.com/ethereum/consensus-specs/blob/v0.9.3/specs/validator/0_beacon-chain-validator.md#broadcast-aggregate
 	v.waitToSlotTwoThirds(ctx, slot)
 
@@ -103,6 +109,7 @@ func (v *validator) SubmitAggregateAndProof(ctx context.Context, slot types.Slot
 		return
 	}
 
+	// 将aggregator indices添加到logs
 	if err := v.addIndicesToLog(duty); err != nil {
 		log.Errorf("Could not add aggregator indices to logs: %v", err)
 		if v.emitAccountMetrics {

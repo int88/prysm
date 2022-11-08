@@ -62,6 +62,7 @@ func (v *validator) SubmitAttestation(ctx context.Context, slot types.Slot, pubK
 	log := log.WithField("pubKey", fmt.Sprintf("%#x", bytesutil.Trunc(pubKey[:]))).WithField("slot", slot)
 	duty, err := v.duty(pubKey)
 	if err != nil {
+		// 不能获取validator assignment
 		log.WithError(err).Error("Could not fetch validator assignment")
 		if v.emitAccountMetrics {
 			ValidatorAttestFailVec.WithLabelValues(fmtKey).Inc()
@@ -154,6 +155,7 @@ func (v *validator) SubmitAttestation(ctx context.Context, slot types.Slot, pubK
 		tracing.AnnotateError(span, err)
 		return
 	}
+	// 提交attestation到beacon node
 	attResp, err := v.validatorClient.ProposeAttestation(ctx, attestation)
 	if err != nil {
 		// 不能提交attestation到beacon node
@@ -242,6 +244,8 @@ func (v *validator) getDomainAndSigningRoot(ctx context.Context, data *ethpb.Att
 
 // For logging, this saves the last submitted attester index to its attestation data. The purpose of this
 // is to enhance attesting logs to be readable when multiple validator keys ran in a single client.
+// 对于logging，它保存最后提交的attester index到它的attestation data，这么做的目的是为了加强attesting logs，让它变得可读
+// 当多个validator key运行在single client
 func (v *validator) saveAttesterIndexToData(data *ethpb.AttestationData, index types.ValidatorIndex) error {
 	v.attLogsLock.Lock()
 	defer v.attLogsLock.Unlock()

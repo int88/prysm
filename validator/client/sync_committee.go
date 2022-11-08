@@ -97,6 +97,7 @@ func (v *validator) SubmitSyncCommitteeMessage(ctx context.Context, slot types.S
 }
 
 // SubmitSignedContributionAndProof submits the signed sync committee contribution and proof to the beacon chain.
+// SubmitSignedContributionAndProof提交签名的sync committee contribution以及proof到beacon chain
 func (v *validator) SubmitSignedContributionAndProof(ctx context.Context, slot types.Slot, pubKey [fieldparams.BLSPubkeyLength]byte) {
 	ctx, span := trace.StartSpan(ctx, "validator.SubmitSignedContributionAndProof")
 	defer span.End()
@@ -127,6 +128,7 @@ func (v *validator) SubmitSignedContributionAndProof(ctx context.Context, slot t
 		return
 	}
 
+	// 等待三分之二
 	v.waitToSlotTwoThirds(ctx, slot)
 
 	for i, comIdx := range indexRes.Indices {
