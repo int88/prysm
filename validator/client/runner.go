@@ -93,9 +93,11 @@ func run(ctx context.Context, v iface.Validator) {
 				log.WithError(err).Error("Could not properly handle reloaded keys")
 			}
 			if !anyActive {
+				// 没有找到active keys，等待activation
 				log.Info("No active keys found. Waiting for activation...")
 				err := v.WaitForActivation(ctx, accountsChangedChan)
 				if err != nil {
+					// 等不到validator activation
 					log.Fatalf("Could not wait for validator activation: %v", err)
 				}
 			}
@@ -150,6 +152,7 @@ func run(ctx context.Context, v iface.Validator) {
 
 			allRoles, err := v.RolesAt(ctx, slot)
 			if err != nil {
+				// 不能获取validator roles
 				log.WithError(err).Error("Could not get validator roles")
 				span.End()
 				continue

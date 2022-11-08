@@ -29,6 +29,7 @@ type KeysFetcher interface {
 }
 
 // PublicKeysFetcher for validating public keys.
+// PublicKeysFetcher用于获取validating public keys
 type PublicKeysFetcher interface {
 	FetchValidatingPublicKeys(ctx context.Context) ([][fieldparams.BLSPubkeyLength]byte, error)
 }

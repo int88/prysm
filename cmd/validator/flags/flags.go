@@ -28,6 +28,7 @@ var (
 			"the data cardinality.",
 	}
 	// BeaconRPCProviderFlag defines a beacon node RPC endpoint.
+	// BeaconRPCProviderFlag定义了一个beacon node RPC endpoint
 	BeaconRPCProviderFlag = &cli.StringFlag{
 		Name:  "beacon-rpc-provider",
 		Usage: "Beacon node RPC provider endpoint",

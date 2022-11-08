@@ -71,9 +71,12 @@ func (f *Feed) init() {
 
 // Subscribe adds a channel to the feed. Future sends will be delivered on the channel
 // until the subscription is canceled. All channels added must have the same element type.
+// Subscribe添加一个channel到feed，未来的sends都会在channel中被传输，直到subscription被取消，所有添加的
+// channels必须有同样的元素类型
 //
 // The channel should have ample buffer space to avoid blocking other subscribers.
 // Slow subscribers are not dropped.
+// channel应该有足够的缓存空间，来避免阻塞其他的subscribers，Slow subscribers不应该被丢弃
 func (f *Feed) Subscribe(channel interface{}) Subscription {
 	f.once.Do(f.init)
 
@@ -90,6 +93,7 @@ func (f *Feed) Subscribe(channel interface{}) Subscription {
 		panic(feedTypeError{op: "Subscribe", got: chantyp, want: reflect.ChanOf(reflect.SendDir, f.etype)})
 	}
 	// Add the select case to the inbox.
+	// 添加select case到inbox，后续的Send会添加它到f.sendCases
 	// The next Send will add it to f.sendCases.
 	cas := reflect.SelectCase{Dir: reflect.SelectSend, Chan: chanval}
 	f.inbox = append(f.inbox, cas)

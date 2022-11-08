@@ -23,6 +23,7 @@ type ProposerOptionPayload struct {
 }
 
 // ProposerSettings is a Prysm internal representation of the fee recipient config on the validator client.
+// ProposerSettings是一个prysm的内部表示，对于validator client的fee recipient config
 // ProposerSettingsPayload maps to ProposerSettings on import through the CLI.
 type ProposerSettings struct {
 	ProposeConfig map[[fieldparams.BLSPubkeyLength]byte]*ProposerOption

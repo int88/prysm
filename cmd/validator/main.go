@@ -34,6 +34,7 @@ import (
 
 func startNode(ctx *cli.Context) error {
 	// verify if ToS accepted
+	// 校验是否接受ToS
 	if err := tos.VerifyTosAcceptedOrPrompt(ctx); err != nil {
 		return err
 	}

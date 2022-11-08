@@ -267,6 +267,7 @@ func (c *ValidatorClient) initializeFromCLI(cliCtx *cli.Context) error {
 		return err
 	}
 	if cliCtx.Bool(flags.EnableRPCFlag.Name) {
+		// 是否启动validator的rpc
 		if err := c.registerRPCService(cliCtx); err != nil {
 			return err
 		}

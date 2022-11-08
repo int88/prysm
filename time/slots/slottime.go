@@ -108,6 +108,7 @@ func EpochEnd(epoch types.Epoch) (types.Slot, error) {
 
 // IsEpochStart returns true if the given slot number is an epoch starting slot
 // number.
+// IsEpochStart返回true，如果给定的slot number是一个epoch的starting slot number
 func IsEpochStart(slot types.Slot) bool {
 	return slot%params.BeaconConfig().SlotsPerEpoch == 0
 }

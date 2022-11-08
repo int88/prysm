@@ -42,9 +42,12 @@ const waitQuotient = 10
 // The Unsubscribe method cancels the sending of events. You must call Unsubscribe in all
 // cases to ensure that resources related to the subscription are released. It can be
 // called any number of times.
+// Unsubscribe取消对于events的发送，必须调用Unsubscribe在所有的情况下，来确保相关的资源都被释放
+// 它可以被调用任意多次
 type Subscription interface {
 	Err() <-chan error // returns the error channel
-	Unsubscribe()      // cancels sending of events, closing the error channel
+	// 取消事件的发送，关闭error channel
+	Unsubscribe() // cancels sending of events, closing the error channel
 }
 
 // NewSubscription runs a producer function as a subscription in a new goroutine. The

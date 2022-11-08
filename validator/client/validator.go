@@ -846,6 +846,7 @@ func (v *validator) UpdateDomainDataCaches(ctx context.Context, slot types.Slot)
 func (v *validator) AllValidatorsAreExited(ctx context.Context) (bool, error) {
 	validatingKeys, err := v.keyManager.FetchValidatingPublicKeys(ctx)
 	if err != nil {
+		// 不能获取validating keys
 		return false, errors.Wrap(err, "could not fetch validating keys")
 	}
 	if len(validatingKeys) == 0 {
@@ -865,6 +866,7 @@ func (v *validator) AllValidatorsAreExited(ctx context.Context) (bool, error) {
 		return false, err
 	}
 	if len(response.Statuses) != len(request.PublicKeys) {
+		// status responses的数目和requested keys的数目不相等
 		return false, errors.New("number of status responses did not match number of requested keys")
 	}
 	for _, status := range response.Statuses {
@@ -967,9 +969,13 @@ func (v *validator) PushProposerSettings(ctx context.Context, km keymanager.IKey
 	if v.ProposerSettings == nil {
 		e := params.BeaconConfig().BellatrixForkEpoch
 		if e != math.MaxUint64 && slots.ToEpoch(slots.CurrentSlot(v.genesisTime)) < e {
+			// 在Ethereum merge之后，你需要指定Ethereum地址，它会收到transaction fee rewards，基于proposing blocks
+			// 已知这是fee recipient configuration
 			log.Warn("After the Ethereum merge, you will need to specify the Ethereum addresses which will receive transaction fee rewards from proposing blocks. " +
 				"This is known as a fee recipient configuration. You can read more about this feature in our documentation portal here (https://docs.prylabs.network/docs/execution-node/fee-recipient)")
 		} else {
+			// 为了从proposing blocks接收transaction fees，你必须指定一个配置，已知为fee recipient config
+			// 如果它不提供，transaction fees会被烧毁
 			log.Warn("In order to receive transaction fees from proposing blocks, " +
 				"you must now specify a configuration known as a fee recipient config. " +
 				"If it not provided, transaction fees will be burnt. Please see our documentation for more information on this requirement (https://docs.prylabs.network/docs/execution-node/fee-recipient).")
