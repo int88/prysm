@@ -12,6 +12,7 @@ const (
 )
 
 // ReceivedBlockData is the data sent with ReceivedBlock events.
+// ReceivedBlockData是发送ReceivedBlock events的数据
 type ReceivedBlockData struct {
 	SignedBlock  interfaces.SignedBeaconBlock
 	IsOptimistic bool

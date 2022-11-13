@@ -47,6 +47,7 @@ func UnShuffledIndex(index types.ValidatorIndex, indexCount uint64, seed [32]byt
 
 // ComputeShuffledIndex returns the shuffled validator index corresponding to seed and index count.
 // Spec pseudocode definition:
+// ComputeShuffledIndex返回shuffled validtor index，根据seed以及index count
 //   def compute_shuffled_index(index: uint64, index_count: uint64, seed: Bytes32) -> uint64:
 //    """
 //    Return the shuffled index corresponding to ``seed`` (and ``index_count``).

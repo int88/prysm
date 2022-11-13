@@ -13,6 +13,7 @@ import (
 )
 
 // ProposeExit proposes an exit for a validator.
+// ProposeExit为一个validtor提交一个exit
 func (vs *Server) ProposeExit(ctx context.Context, req *ethpb.SignedVoluntaryExit) (*ethpb.ProposeExitResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "nil request")
@@ -22,13 +23,16 @@ func (vs *Server) ProposeExit(ctx context.Context, req *ethpb.SignedVoluntaryExi
 		return nil, status.Errorf(codes.Internal, "Could not get head state: %v", err)
 	}
 	if req.Exit == nil {
+		// voluntary exit不存在
 		return nil, status.Error(codes.InvalidArgument, "voluntary exit does not exist")
 	}
 	if req.Signature == nil || len(req.Signature) != fieldparams.BLSSignatureLength {
+		// 非法的signature
 		return nil, status.Error(codes.InvalidArgument, "invalid signature provided")
 	}
 
 	// Confirm the validator is eligible to exit with the parameters provided.
+	// 确认validator对于退出是合格的，用提供的参数
 	val, err := s.ValidatorAtIndexReadOnly(req.Exit.ValidatorIndex)
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, "validator index exceeds validator set length")
@@ -54,5 +58,5 @@ func (vs *Server) ProposeExit(ctx context.Context, req *ethpb.SignedVoluntaryExi
 
 	return &ethpb.ProposeExitResponse{
 		ExitRoot: r[:],
-	}, vs.P2P.Broadcast(ctx, req)
+	}, vs.P2P.Broadcast(ctx, req) // 广播P2P
 }

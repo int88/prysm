@@ -217,6 +217,8 @@ func EmptyGenesisState() (state.BeaconState, error) {
 // IsValidGenesisState gets called whenever there's a deposit event,
 // it checks whether there's enough effective balance to trigger and
 // if the minimum genesis time arrived already.
+// IsValidGenesisState在每次有一个deposit event的时候被调用，它检查是否有足够的
+// effective balance触发以及是否最小的genesis time已经到达
 //
 // Spec pseudocode definition:
 //  def is_valid_genesis_state(state: BeaconState) -> bool:

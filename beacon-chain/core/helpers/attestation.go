@@ -67,6 +67,7 @@ func IsAggregator(committeeCount uint64, slotSig []byte) (bool, error) {
 }
 
 // AggregateSignature returns the aggregated signature of the input attestations.
+// AggregateSignature返回输入的attestations的aggregated signature
 //
 // Spec pseudocode definition:
 //   def get_aggregate_signature(attestations: Sequence[Attestation]) -> BLSSignature:
@@ -93,12 +94,15 @@ func IsAggregated(attestation *ethpb.Attestation) bool {
 // ComputeSubnetForAttestation returns the subnet for which the provided attestation will be broadcasted to.
 // This differs from the spec definition by instead passing in the active validators indices in the attestation's
 // given epoch.
+// ComputeSubnetForAttestation返回提供的attestations会被广播的subnet
 //
 // Spec pseudocode definition:
 // def compute_subnet_for_attestation(committees_per_slot: uint64, slot: Slot, committee_index: CommitteeIndex) -> uint64:
 //    """
 //    Compute the correct subnet for an attestation for Phase 0.
 //    Note, this mimics expected future behavior where attestations will be mapped to their shard subnet.
+//    计算对于一个attestations正确的subnet，在Phase 0
+//    注意，这个是模仿未来的行为，当attestations会被映射到它们的shard subnet
 //    """
 //    slots_since_epoch_start = uint64(slot % SLOTS_PER_EPOCH)
 //    committees_since_epoch_start = committees_per_slot * slots_since_epoch_start
@@ -110,6 +114,8 @@ func ComputeSubnetForAttestation(activeValCount uint64, att *ethpb.Attestation) 
 
 // ComputeSubnetFromCommitteeAndSlot is a flattened version of ComputeSubnetForAttestation where we only pass in
 // the relevant fields from the attestation as function arguments.
+// ComputeSubnetFromCommitteeAndSlot是ComputeSubnetForAttestation的一个扁平化版本，我们只传递attestation中的
+// 相关数据作为函数参数
 //
 // Spec pseudocode definition:
 // def compute_subnet_for_attestation(committees_per_slot: uint64, slot: Slot, committee_index: CommitteeIndex) -> uint64:
@@ -132,6 +138,8 @@ func ComputeSubnetFromCommitteeAndSlot(activeValCount uint64, comIdx types.Commi
 // ValidateAttestationTime Validates that the incoming attestation is in the desired time range.
 // An attestation is valid only if received within the last ATTESTATION_PROPAGATION_SLOT_RANGE
 // slots.
+// ValidateAttestationTime确认incoming attestation只会在期望的time range中，一个attestation是合法的
+// 只有它在最近的ATTESTATION_PROPAGATION_SLOT_RANGE个slots被接收到的时候
 //
 // Example:
 //   ATTESTATION_PROPAGATION_SLOT_RANGE = 5

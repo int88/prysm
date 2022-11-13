@@ -29,11 +29,13 @@ func (vs *Server) getBellatrixBeaconBlock(ctx context.Context, req *ethpb.BlockR
 	builderReady, b, err := vs.getAndBuildHeaderBlock(ctx, altairBlk)
 	if err != nil {
 		// In the event of an error, the node should fall back to default execution engine for building block.
+		// 当出现错误的时候，node应该返回到默认的execution engine来构建block
 		log.WithError(err).Error("Default back to local execution client")
 	} else if builderReady {
 		return b, nil
 	}
 
+	// 对于bellatrix beacon block，需要获取execution payload
 	payload, err := vs.getExecutionPayload(ctx, req.Slot, altairBlk.ProposerIndex)
 	if err != nil {
 		return nil, err
@@ -58,6 +60,7 @@ func (vs *Server) getBellatrixBeaconBlock(ctx context.Context, req *ethpb.BlockR
 		},
 	}
 	// Compute state root with the newly constructed block.
+	// 用新构建的block计算state root
 	wsb, err := wrapper.WrappedSignedBeaconBlock(
 		&ethpb.SignedBeaconBlockBellatrix{Block: blk, Signature: make([]byte, 96)},
 	)

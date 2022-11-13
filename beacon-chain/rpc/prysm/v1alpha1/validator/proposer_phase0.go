@@ -37,10 +37,12 @@ func (vs *Server) getPhase0BeaconBlock(ctx context.Context, req *ethpb.BlockRequ
 	defer span.End()
 	blkData, err := vs.buildPhase0BlockData(ctx, req)
 	if err != nil {
+		// 不能构建block data
 		return nil, fmt.Errorf("could not build block data: %v", err)
 	}
 
 	// Use zero hash as stub for state root to compute later.
+	// 使用zero hash作为stub用于后面state root的计算
 	stateRoot := params.BeaconConfig().ZeroHash[:]
 
 	blk := &ethpb.BeaconBlock{
@@ -61,6 +63,7 @@ func (vs *Server) getPhase0BeaconBlock(ctx context.Context, req *ethpb.BlockRequ
 	}
 
 	// Compute state root with the newly constructed block.
+	// 用新构建的block，计算state root
 	wsb, err := wrapper.WrappedSignedBeaconBlock(&ethpb.SignedBeaconBlock{Block: blk, Signature: make([]byte, 96)})
 	if err != nil {
 		return nil, err
@@ -97,6 +100,7 @@ func (vs *Server) buildPhase0BlockData(ctx context.Context, req *ethpb.BlockRequ
 		return nil, fmt.Errorf("could not retrieve head root: %v", err)
 	}
 
+	// 不能获取head state
 	head, err := vs.HeadFetcher.HeadState(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("could not get head state %v", err)

@@ -10,6 +10,8 @@ import (
 
 // IsSlashableBlock returns a proposer slashing if an input
 // signed beacon block header is found to be slashable.
+// IsSlashableBlock返回一个proposer slashing，如果一个输入的beacon block header
+// 被找到是slashable
 func (s *Server) IsSlashableBlock(
 	ctx context.Context, req *ethpb.SignedBeaconBlockHeader,
 ) (*ethpb.ProposerSlashingResponse, error) {

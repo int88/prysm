@@ -1,6 +1,8 @@
 // Package transition implements the whole state transition
 // function which consists of per slot, per-epoch transitions.
 // It also bootstraps the genesis beacon state for slot 0.
+// transition包实现了完整的state transition功能，包括每个slot，每个epoch
+// 的transition，同时为slot 0启动了genesis beacon state
 package transition
 
 import (
@@ -80,6 +82,8 @@ func ExecuteStateTransition(
 
 // ProcessSlot happens every slot and focuses on the slot counter and block roots record updates.
 // It happens regardless if there's an incoming block or not.
+// ProcessSlot每个slot发生一次并且专注在slot counter以及block roots record的更新，不管有没有incoming
+// block都会发生
 // Spec pseudocode definition:
 //
 //  def process_slot(state: BeaconState) -> None:
@@ -110,6 +114,7 @@ func ProcessSlot(ctx context.Context, state state.BeaconState) (state.BeaconStat
 
 	zeroHash := params.BeaconConfig().ZeroHash
 	// Cache latest block header state root.
+	// 缓存最新的block head state root
 	header := state.LatestBlockHeader()
 	if header.StateRoot == nil || bytes.Equal(header.StateRoot, zeroHash[:]) {
 		header.StateRoot = prevStateRoot[:]
@@ -123,6 +128,7 @@ func ProcessSlot(ctx context.Context, state state.BeaconState) (state.BeaconStat
 		return nil, errors.Wrap(err, "could not determine prev block root")
 	}
 	// Cache the block root.
+	// 缓存block root
 	if err := state.UpdateBlockRootAtIndex(
 		uint64(state.Slot()%params.BeaconConfig().SlotsPerHistoricalRoot),
 		prevBlockRoot,
@@ -171,6 +177,8 @@ func ProcessSlotsUsingNextSlotCache(
 
 // ProcessSlotsIfPossible executes ProcessSlots on the input state when target slot is above the state's slot.
 // Otherwise, it returns the input state unchanged.
+// ProcessSlotsIfPossible执行ProcessSlots对于input state，当target slot在state的slot之上的话
+// 否则，它不改变地返回input state
 func ProcessSlotsIfPossible(ctx context.Context, state state.BeaconState, targetSlot types.Slot) (state.BeaconState, error) {
 	if targetSlot > state.Slot() {
 		return ProcessSlots(ctx, state, targetSlot)

@@ -25,12 +25,14 @@ func (vs *Server) packAttestations(ctx context.Context, latestState state.Beacon
 	ctx, span := trace.StartSpan(ctx, "ProposerServer.packAttestations")
 	defer span.End()
 
+	// 获取aggregated attestations
 	atts := vs.AttPool.AggregatedAttestations()
 	atts, err := vs.validateAndDeleteAttsInPool(ctx, latestState, atts)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not filter attestations")
 	}
 
+	// 获取unaggregated attestations
 	uAtts, err := vs.AttPool.UnaggregatedAttestations()
 	if err != nil {
 		return nil, errors.Wrap(err, "could not get unaggregated attestations")
@@ -43,6 +45,8 @@ func (vs *Server) packAttestations(ctx context.Context, latestState state.Beacon
 
 	// Remove duplicates from both aggregated/unaggregated attestations. This
 	// prevents inefficient aggregates being created.
+	// 同时从aggregated/unaggregated attestations中移除重复，他能防止创建inefficient
+	// aggragates
 	atts, err = proposerAtts(atts).dedup()
 	if err != nil {
 		return nil, err
@@ -243,6 +247,7 @@ func (a proposerAtts) dedup() (proposerAtts, error) {
 }
 
 // This filters the input attestations to return a list of valid attestations to be packaged inside a beacon block.
+// 过滤输入的attestations来返回一系列合法的attestations，来打包到一个beacon block中
 func (vs *Server) validateAndDeleteAttsInPool(ctx context.Context, st state.BeaconState, atts []*ethpb.Attestation) ([]*ethpb.Attestation, error) {
 	ctx, span := trace.StartSpan(ctx, "ProposerServer.validateAndDeleteAttsInPool")
 	defer span.End()

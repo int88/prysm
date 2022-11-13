@@ -1,6 +1,8 @@
 // Package validator defines a gRPC validator service implementation, providing
 // critical endpoints for validator clients to submit blocks/attestations to the
 // beacon node, receive assignments, and more.
+// validator定义了一个gRPC validator service实现，提供了重要的endpoints用于validator
+// clients提交blocks/attestations到beacon node，接收assignment以及其他
 package validator
 
 import (

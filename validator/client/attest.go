@@ -82,7 +82,7 @@ func (v *validator) SubmitAttestation(ctx context.Context, slot types.Slot, pubK
 	}
 	data, err := v.validatorClient.GetAttestationData(ctx, req)
 	if err != nil {
-		// 不能获取attestation数据
+		// 不能从beacon node获取attestation数据
 		log.WithError(err).Error("Could not request attestation to sign at slot")
 		if v.emitAccountMetrics {
 			ValidatorAttestFailVec.WithLabelValues(fmtKey).Inc()

@@ -1,6 +1,7 @@
 // Package debug defines a gRPC server implementation of a debugging service
 // which allows for helpful endpoints to debug a beacon node at runtime, this server is
 // gated behind the feature flag --enable-debug-rpc-endpoints.
+// debug包定义了一个gRPC server实现，对于一个debugging servcie，允许有用的endpoints用于在运行时调试一个beacon node
 package debug
 
 import (

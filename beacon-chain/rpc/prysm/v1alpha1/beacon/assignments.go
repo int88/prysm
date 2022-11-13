@@ -19,7 +19,9 @@ import (
 const errEpoch = "Cannot retrieve information about an epoch in the future, current epoch %d, requesting %d"
 
 // ListValidatorAssignments retrieves the validator assignments for a given epoch,
+// ListValidatorAssignments获取一个给定的epoch的validator assignments
 // optional validator indices or public keys may be included to filter validator assignments.
+// 可选地包含一个validator indices或者public keys，对于filter validator的赋值
 func (bs *Server) ListValidatorAssignments(
 	ctx context.Context, req *ethpb.ListValidatorAssignmentsRequest,
 ) (*ethpb.ValidatorAssignments, error) {

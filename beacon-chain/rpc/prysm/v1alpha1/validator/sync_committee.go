@@ -91,6 +91,8 @@ func (vs *Server) GetSyncSubcommitteeIndex(
 
 // GetSyncCommitteeContribution is called by a sync committee aggregator
 // to retrieve sync committee contribution object.
+// GetSyncCommitteeContribution由一个sync committee aggregator调用来获取
+// sync committee contribution对象
 func (vs *Server) GetSyncCommitteeContribution(
 	ctx context.Context, req *ethpb.SyncCommitteeContributionRequest,
 ) (*ethpb.SyncCommitteeContribution, error) {
@@ -102,6 +104,7 @@ func (vs *Server) GetSyncCommitteeContribution(
 
 	msgs, err := vs.SyncCommitteePool.SyncCommitteeMessages(req.Slot)
 	if err != nil {
+		// 不能获取sync subcommittee messages
 		return nil, status.Errorf(codes.Internal, "Could not get sync subcommittee messages: %v", err)
 	}
 	headRoot, err := vs.HeadFetcher.HeadRoot(ctx)

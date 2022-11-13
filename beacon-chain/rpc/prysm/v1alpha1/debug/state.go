@@ -12,6 +12,8 @@ import (
 
 // GetBeaconState retrieves an ssz-encoded beacon state
 // from the beacon node by either a slot or block root.
+// GetBeaconState获取一个ssz-encoded的beacon state，从beacon node
+// 通过一个slot或者block root
 func (ds *Server) GetBeaconState(
 	ctx context.Context,
 	req *pbrpc.BeaconStateRequest,

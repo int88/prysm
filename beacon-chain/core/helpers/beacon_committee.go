@@ -1,5 +1,6 @@
 // Package helpers contains helper functions outlined in the Ethereum Beacon Chain spec, such as
 // computing committees, randao, rewards/penalties, and more.
+// helpers包包含了helper功能，在Ethereum Beacon Chain定义之外的，例如computing committees, randao, rewards/penalties
 package helpers
 
 import (
@@ -104,6 +105,8 @@ func BeaconCommitteeFromState(ctx context.Context, state state.ReadOnlyBeaconSta
 // BeaconCommittee returns the beacon committee of a given slot and committee index. The
 // validator indices and seed are provided as an argument rather than an imported implementation
 // from the spec definition. Having them as an argument allows for cheaper computation run time.
+// BeaconCommittee返回一个给定slot以及committee index的beacon committee，validator indices以及seed作为一个
+// 参数被提供而不是一个imported implementation，将它们作为参数允许在运行时做cheaper compution
 //
 // Spec pseudocode definition:
 //   def get_beacon_committee(state: BeaconState, slot: Slot, index: CommitteeIndex) -> Sequence[ValidatorIndex]:

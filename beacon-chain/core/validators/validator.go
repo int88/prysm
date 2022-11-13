@@ -20,11 +20,14 @@ import (
 
 // InitiateValidatorExit takes in validator index and updates
 // validator with correct voluntary exit parameters.
+// InitiateValidatorExit将一个validator index作为输入并且用正确的voluntary exit参数
+// 更新validator
 //
 // Spec pseudocode definition:
 //  def initiate_validator_exit(state: BeaconState, index: ValidatorIndex) -> None:
 //    """
 //    Initiate the exit of the validator with index ``index``.
+//    初始化validator的exit，用index ``index``
 //    """
 //    # Return if validator already initiated exit
 //    validator = state.validators[index]
@@ -32,6 +35,7 @@ import (
 //        return
 //
 //    # Compute exit queue epoch
+//    # 计算exit queue epoch
 //    exit_epochs = [v.exit_epoch for v in state.validators if v.exit_epoch != FAR_FUTURE_EPOCH]
 //    exit_queue_epoch = max(exit_epochs + [compute_activation_exit_epoch(get_current_epoch(state))])
 //    exit_queue_churn = len([v for v in state.validators if v.exit_epoch == exit_queue_epoch])
@@ -39,6 +43,7 @@ import (
 //        exit_queue_epoch += Epoch(1)
 //
 //    # Set validator exit epoch and withdrawable epoch
+//	  # 设置validator的exit epoch以及withdrawable epoch
 //    validator.exit_epoch = exit_queue_epoch
 //    validator.withdrawable_epoch = Epoch(validator.exit_epoch + MIN_VALIDATOR_WITHDRAWABILITY_DELAY)
 func InitiateValidatorExit(ctx context.Context, s state.BeaconState, idx types.ValidatorIndex) (state.BeaconState, error) {
@@ -119,6 +124,7 @@ func InitiateValidatorExit(ctx context.Context, s state.BeaconState, idx types.V
 //                    whistleblower_index: ValidatorIndex=None) -> None:
 //    """
 //    Slash the validator with index ``slashed_index``.
+//    惩罚索引为``slashed_index``的validator
 //    """
 //    epoch = get_current_epoch(state)
 //    initiate_validator_exit(state, slashed_index)
@@ -129,6 +135,7 @@ func InitiateValidatorExit(ctx context.Context, s state.BeaconState, idx types.V
 //    decrease_balance(state, slashed_index, validator.effective_balance // MIN_SLASHING_PENALTY_QUOTIENT)
 //
 //    # Apply proposer and whistleblower rewards
+//	  # 应用proposer以及告密者的rewards
 //    proposer_index = get_beacon_proposer_index(state)
 //    if whistleblower_index is None:
 //        whistleblower_index = proposer_index

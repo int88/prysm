@@ -1,6 +1,8 @@
 // Package node defines a gRPC node service implementation, providing
 // useful endpoints for checking a node's sync status, peer info,
 // genesis data, and version information.
+// node包定义了一个gRPC的node服务实现，提供了有用的endpoints用于检查一个node的sync status
+// peer info, genesis data以及版本信息
 package node
 
 import (
@@ -224,6 +226,7 @@ func (ns *Server) ListPeers(ctx context.Context, _ *empty.Empty) (*ethpb.Peers, 
 }
 
 // GetETH1ConnectionStatus gets data about the ETH1 endpoints.
+// GetETH1ConnectionStatus获取ETH1 endpoints的数据
 func (ns *Server) GetETH1ConnectionStatus(_ context.Context, _ *empty.Empty) (*ethpb.ETH1ConnectionStatus, error) {
 	var errStrs []string
 	var currErrString string
@@ -249,6 +252,7 @@ func (ns *Server) GetETH1ConnectionStatus(_ context.Context, _ *empty.Empty) (*e
 }
 
 // StreamBeaconLogs from the beacon node via a gRPC server-side stream.
+// StreamBeaconLogs通过一个gRPC server端的stream获取stream beacon logs
 func (ns *Server) StreamBeaconLogs(_ *empty.Empty, stream ethpb.Health_StreamBeaconLogsServer) error {
 	ch := make(chan []byte, ns.StreamLogsBufferSize)
 	sub := ns.LogsStreamer.LogsFeed().Subscribe(ch)

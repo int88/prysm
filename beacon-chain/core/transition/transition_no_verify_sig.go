@@ -91,6 +91,8 @@ func ExecuteStateTransitionNoVerifyAnySig(
 // This does not validate any BLS signatures in a block, it is used for calculating the
 // state root of the state for the block proposer to use.
 // This does not modify state.
+// CalculateStateRoot定义了一个state transition函数的过程，它不校验block中任何的BLS signatures
+// 它用于计算state root，为了让block proposer使用，它不修改state
 //
 // WARNING: This method does not validate any BLS signatures (i.e. calling `state_transition()` with `validate_result=False`).
 // This is used for proposer to compute state root before proposing a new block, and this does not modify state.

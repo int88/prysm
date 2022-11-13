@@ -1,5 +1,6 @@
 // Package feed defines event feed types for inter-service communication
 // during a beacon node's runtime.
+// feed包定义了event feed types，用于服务间的通信，在一个beacon node的运行时
 package feed
 
 // How to add a new event to the feed:

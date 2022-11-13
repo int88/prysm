@@ -126,6 +126,8 @@ func VerifyAttestationNoVerifySignature(
 
 // ProcessAttestationNoVerifySignature processes the attestation without verifying the attestation signature. This
 // method is used to validate attestations whose signatures have already been verified.
+// ProcessAttestationNoVerifySignature处理attestations而不校验attestation signature，这个方法用于校验
+// signatures已经校验过的attestations
 func ProcessAttestationNoVerifySignature(
 	ctx context.Context,
 	beaconState state.BeaconState,

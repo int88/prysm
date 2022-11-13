@@ -73,6 +73,8 @@ func checkValidatorSlashable(activationEpoch, withdrawableEpoch types.Epoch, sla
 
 // ActiveValidatorIndices filters out active validators based on validator status
 // and returns their indices in a list.
+// ActiveValidatorIndices基于validator status过滤active validators并且返回它们的indices
+// 在一个list中
 //
 // WARNING: This method allocates a new copy of the validator index set and is
 // considered to be very memory expensive. Avoid using this unless you really
@@ -186,6 +188,8 @@ func ActiveValidatorCount(ctx context.Context, s state.ReadOnlyBeaconState, epoc
 
 // ActivationExitEpoch takes in epoch number and returns when
 // the validator is eligible for activation and exit.
+// ActivationExitEpoch输入一个epoch number并且返回，当validator对于
+// activation以及exit是合法的
 //
 // Spec pseudocode definition:
 //  def compute_activation_exit_epoch(epoch: Epoch) -> Epoch:
@@ -275,6 +279,7 @@ func BeaconProposerIndex(ctx context.Context, state state.ReadOnlyBeaconState) (
 }
 
 // ComputeProposerIndex returns the index sampled by effective balance, which is used to calculate proposer.
+// ComputeProposerIndex返回通过effective balance采样的index，它用于计算proposer
 //
 // Spec pseudocode definition:
 //  def compute_proposer_index(state: BeaconState, indices: Sequence[ValidatorIndex], seed: Bytes32) -> ValidatorIndex:

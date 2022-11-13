@@ -38,6 +38,7 @@ func Seed(state state.ReadOnlyBeaconState, epoch types.Epoch, domain [bls.Domain
 
 // RandaoMix returns the randao mix (xor'ed seed)
 // of a given slot. It is used to shuffle validators.
+// RandaoMix返回randao mix，对于给定的slot，它用于shuffle validators
 //
 // Spec pseudocode definition:
 //   def get_randao_mix(state: BeaconState, epoch: Epoch) -> Bytes32:

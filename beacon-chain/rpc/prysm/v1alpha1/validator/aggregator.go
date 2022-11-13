@@ -19,6 +19,8 @@ import (
 // SubmitAggregateSelectionProof is called by a validator when its assigned to be an aggregator.
 // The aggregator submits the selection proof to obtain the aggregated attestation
 // object to sign over.
+// SubmitAggregateSelectionProof被一个validator调用，当它被赋予aggregator的角色，aggregator提交selection proof
+// 来获取aggregated attestation进行签名
 func (vs *Server) SubmitAggregateSelectionProof(ctx context.Context, req *ethpb.AggregateSelectionRequest) (*ethpb.AggregateSelectionResponse, error) {
 	ctx, span := trace.StartSpan(ctx, "AggregatorServer.SubmitAggregateSelectionProof")
 	defer span.End()
@@ -58,6 +60,7 @@ func (vs *Server) SubmitAggregateSelectionProof(ctx context.Context, req *ethpb.
 	}
 
 	// Check if the validator is an aggregator
+	// 检查validator是否是一个aggregator
 	isAggregator, err := helpers.IsAggregator(uint64(len(committee)), req.SlotSignature)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "Could not get aggregator status: %v", err)
@@ -67,11 +70,13 @@ func (vs *Server) SubmitAggregateSelectionProof(ctx context.Context, req *ethpb.
 	}
 
 	if err := vs.AttPool.AggregateUnaggregatedAttestationsBySlotIndex(ctx, req.Slot, req.CommitteeIndex); err != nil {
+		// 不能聚合unaggregated attestations
 		return nil, status.Errorf(codes.Internal, "Could not aggregate unaggregated attestations")
 	}
 	aggregatedAtts := vs.AttPool.AggregatedAttestationsBySlotIndex(ctx, req.Slot, req.CommitteeIndex)
 
 	// Filter out the best aggregated attestation (ie. the one with the most aggregated bits).
+	// 过滤出最好的aggregated attestation
 	if len(aggregatedAtts) == 0 {
 		aggregatedAtts = vs.AttPool.UnaggregatedAttestationsBySlotIndex(ctx, req.Slot, req.CommitteeIndex)
 		if len(aggregatedAtts) == 0 {
@@ -136,6 +141,7 @@ func (vs *Server) SubmitSignedAggregateSelectionProof(
 	}
 
 	if err := vs.P2P.Broadcast(ctx, req.SignedAggregateAndProof); err != nil {
+		// 不能广播aggregated attestation
 		return nil, status.Errorf(codes.Internal, "Could not broadcast signed aggregated attestation: %v", err)
 	}
 

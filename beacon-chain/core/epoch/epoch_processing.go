@@ -390,22 +390,26 @@ func ProcessParticipationRecordUpdates(state state.BeaconState) (state.BeaconSta
 }
 
 // ProcessFinalUpdates processes the final updates during epoch processing.
+// ProcessFinalUpdates处理epoch processing过程中的fianl updates
 func ProcessFinalUpdates(state state.BeaconState) (state.BeaconState, error) {
 	var err error
 
 	// Reset ETH1 data votes.
+	// 重置ETH1的data votes
 	state, err = ProcessEth1DataReset(state)
 	if err != nil {
 		return nil, err
 	}
 
 	// Update effective balances with hysteresis.
+	// 使用迟滞更新effective balances
 	state, err = ProcessEffectiveBalanceUpdates(state)
 	if err != nil {
 		return nil, err
 	}
 
 	// Set total slashed balances.
+	// 设置完全的slashed balances
 	state, err = ProcessSlashingsReset(state)
 	if err != nil {
 		return nil, err
@@ -424,6 +428,7 @@ func ProcessFinalUpdates(state state.BeaconState) (state.BeaconState, error) {
 	}
 
 	// Rotate current and previous epoch attestations.
+	// 轮转当前的以及之前的epoch attestations
 	state, err = ProcessParticipationRecordUpdates(state)
 	if err != nil {
 		return nil, err

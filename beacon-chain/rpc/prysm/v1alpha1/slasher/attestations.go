@@ -11,6 +11,8 @@ import (
 
 // IsSlashableAttestation returns an attester slashing if an input
 // attestation is found to be slashable.
+// IsSlashableAttestation返回一个attester slashing，如果一个input attestation
+// 被找到是slashable的
 func (s *Server) IsSlashableAttestation(
 	ctx context.Context, req *ethpb.IndexedAttestation,
 ) (*ethpb.AttesterSlashingResponse, error) {

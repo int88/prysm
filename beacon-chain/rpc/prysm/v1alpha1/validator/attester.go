@@ -25,6 +25,7 @@ import (
 
 // GetAttestationData requests that the beacon node produce an attestation data object,
 // which the validator acting as an attester will then sign.
+// GetAttestationData请求beacon node生成一个attestation对象，当validator作为一个attester的时候可以签名
 func (vs *Server) GetAttestationData(ctx context.Context, req *ethpb.AttestationDataRequest) (*ethpb.AttestationData, error) {
 	ctx, span := trace.StartSpan(ctx, "AttesterServer.RequestAttestation")
 	defer span.End()
@@ -34,10 +35,12 @@ func (vs *Server) GetAttestationData(ctx context.Context, req *ethpb.Attestation
 	)
 
 	if vs.SyncChecker.Syncing() {
+		// 正在同步到latest head，没有准备好进行respond
 		return nil, status.Errorf(codes.Unavailable, "Syncing to latest head, not ready to respond")
 	}
 
 	// An optimistic validator MUST NOT participate in attestation. (i.e., sign across the DOMAIN_BEACON_ATTESTER, DOMAIN_SELECTION_PROOF or DOMAIN_AGGREGATE_AND_PROOF domains).
+	// 一个optimistic validator必须不能参与到attestation
 	if err := vs.optimisticStatus(ctx); err != nil {
 		return nil, err
 	}
@@ -49,6 +52,7 @@ func (vs *Server) GetAttestationData(ctx context.Context, req *ethpb.Attestation
 
 	res, err := vs.AttestationCache.Get(ctx, req)
 	if err != nil {
+		// 不能从attestation cache获取data
 		return nil, status.Errorf(codes.Internal, "Could not retrieve data from attestation cache: %v", err)
 	}
 	if res != nil {
@@ -63,11 +67,13 @@ func (vs *Server) GetAttestationData(ctx context.Context, req *ethpb.Attestation
 				return nil, status.Errorf(codes.Internal, "Could not retrieve data from attestation cache: %v", err)
 			}
 			if res == nil {
+				// 一个request正在进行中并且解析为nil
 				return nil, status.Error(codes.DataLoss, "A request was in progress and resolved to nil")
 			}
 			res.CommitteeIndex = req.CommitteeIndex
 			return res, nil
 		}
+		// 不能将attestation标记为in-progress
 		return nil, status.Errorf(codes.Internal, "Could not mark attestation as in-progress: %v", err)
 	}
 	defer func() {
@@ -86,6 +92,7 @@ func (vs *Server) GetAttestationData(ctx context.Context, req *ethpb.Attestation
 	}
 
 	// In the case that we receive an attestation request after a newer state/block has been processed.
+	// 万一我们接受到一个attestation request，在一个更新的state/block被处理之后
 	if headState.Slot() > req.Slot {
 		headRoot, err = helpers.BlockRootAtSlot(headState, req.Slot)
 		if err != nil {
@@ -137,6 +144,7 @@ func (vs *Server) GetAttestationData(ctx context.Context, req *ethpb.Attestation
 	}
 
 	if err := vs.AttestationCache.Put(ctx, req, res); err != nil {
+		// 不能存储attestation data到缓存中
 		return nil, status.Errorf(codes.Internal, "Could not store attestation data in cache: %v", err)
 	}
 	return res, nil
@@ -144,6 +152,8 @@ func (vs *Server) GetAttestationData(ctx context.Context, req *ethpb.Attestation
 
 // ProposeAttestation is a function called by an attester to vote
 // on a block via an attestation object as defined in the Ethereum Serenity specification.
+// ProposeAttestation是一个由attester调用的函数来对一个block进行投票，通过一个attestation对象
+// 如在Ethereum Serenity specification中定义的
 func (vs *Server) ProposeAttestation(ctx context.Context, att *ethpb.Attestation) (*ethpb.AttestResponse, error) {
 	ctx, span := trace.StartSpan(ctx, "AttesterServer.ProposeAttestation")
 	defer span.End()
@@ -159,6 +169,7 @@ func (vs *Server) ProposeAttestation(ctx context.Context, att *ethpb.Attestation
 
 	// Broadcast the unaggregated attestation on a feed to notify other services in the beacon node
 	// of a received unaggregated attestation.
+	// 广播unaggregated attestation到一个feed来通知beacon node中的其他services，关于接收到一个unaggregated attestation
 	vs.OperationNotifier.OperationFeed().Send(&feed.Event{
 		Type: operation.UnaggregatedAttReceived,
 		Data: &operation.UnAggregatedAttReceivedData{
@@ -167,6 +178,7 @@ func (vs *Server) ProposeAttestation(ctx context.Context, att *ethpb.Attestation
 	})
 
 	// Determine subnet to broadcast attestation to
+	// 决定用于广播attestation的subnet
 	wantedEpoch := slots.ToEpoch(att.Data.Slot)
 	vals, err := vs.HeadFetcher.HeadValidatorsIndices(ctx, wantedEpoch)
 	if err != nil {
@@ -175,6 +187,7 @@ func (vs *Server) ProposeAttestation(ctx context.Context, att *ethpb.Attestation
 	subnet := helpers.ComputeSubnetFromCommitteeAndSlot(uint64(len(vals)), att.Data.CommitteeIndex, att.Data.Slot)
 
 	// Broadcast the new attestation to the network.
+	// 广播新的attestation到network
 	if err := vs.P2P.BroadcastAttestation(ctx, subnet, att); err != nil {
 		return nil, status.Errorf(codes.Internal, "Could not broadcast attestation: %v", err)
 	}

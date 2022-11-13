@@ -12,6 +12,8 @@ import (
 
 // BlockRootAtSlot returns the block root stored in the BeaconState for a recent slot.
 // It returns an error if the requested block root is not within the slot range.
+// BlockRootAtSlot返回存储在BeaconState中的block root，对于一个recent slot
+// 它返回error，如果请求的block root不在slot range
 //
 // Spec pseudocode definition:
 //  def get_block_root_at_slot(state: BeaconState, slot: Slot) -> Root:
@@ -32,6 +34,8 @@ func BlockRootAtSlot(state state.ReadOnlyBeaconState, slot types.Slot) ([]byte, 
 
 // StateRootAtSlot returns the cached state root at that particular slot. If no state
 // root has been cached it will return a zero-hash.
+// StateRootAtSlot返回在特定的slot缓存的state root，如果没有缓存state root
+// 则返回一个zero-hash
 func StateRootAtSlot(state state.ReadOnlyBeaconState, slot types.Slot) ([]byte, error) {
 	if slot >= state.Slot() || state.Slot() > slot+params.BeaconConfig().SlotsPerHistoricalRoot {
 		return []byte{}, errors.Errorf("slot %d out of bounds", slot)
@@ -40,6 +44,7 @@ func StateRootAtSlot(state state.ReadOnlyBeaconState, slot types.Slot) ([]byte, 
 }
 
 // BlockRoot returns the block root stored in the BeaconState for epoch start slot.
+// BlockRoot返回存储在BeaconState的block root，对于每个epoch的start slot
 //
 // Spec pseudocode definition:
 //  def get_block_root(state: BeaconState, epoch: Epoch) -> Root:

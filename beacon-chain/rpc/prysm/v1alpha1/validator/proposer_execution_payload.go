@@ -31,6 +31,7 @@ var (
 		Help: "The number of payload id get requests that aren't present in the cache.",
 	})
 	// payloadIDCacheHit tracks the number of payload ID requests that are present in the cache.
+	// payloadIDCacheHit追踪payload ID requests出现在cache中的次数
 	payloadIDCacheHit = promauto.NewCounter(prometheus.CounterOpts{
 		Name: "payload_id_cache_hit",
 		Help: "The number of payload id get requests that are present in the cache.",
@@ -39,6 +40,8 @@ var (
 
 // This returns the execution payload of a given slot. The function has full awareness of pre and post merge.
 // The payload is computed given the respected time of merge.
+// 这个函数返回一个给定slot的execution payload，这个函数能完全意识到pre以及post merge
+// payload基于merge的相对时间进行计算
 func (vs *Server) getExecutionPayload(ctx context.Context, slot types.Slot, vIdx types.ValidatorIndex) (*enginev1.ExecutionPayload, error) {
 	proposerID, payloadId, ok := vs.ProposerSlotIndexCache.GetProposerPayloadIDs(slot)
 	if ok && proposerID == vIdx && payloadId != [8]byte{} { // Payload ID is cache hit. Return the cached payload ID.
@@ -66,6 +69,7 @@ func (vs *Server) getExecutionPayload(ctx context.Context, slot types.Slot, vIdx
 	}
 
 	if mergeComplete {
+		// 获取最新的execution payload header
 		header, err := st.LatestExecutionPayloadHeader()
 		if err != nil {
 			return nil, err
@@ -146,11 +150,13 @@ func (vs *Server) getExecutionPayload(ctx context.Context, slot types.Slot, vIdx
 	}
 	payloadID, _, err := vs.ExecutionEngineCaller.ForkchoiceUpdated(ctx, f, p)
 	if err != nil {
+		// 不能准备payload
 		return nil, errors.Wrap(err, "could not prepare payload")
 	}
 	if payloadID == nil {
 		return nil, errors.New("nil payload id")
 	}
+	// 获取payload
 	payload, err := vs.ExecutionEngineCaller.GetPayload(ctx, *payloadID)
 	if err != nil {
 		return nil, err

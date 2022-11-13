@@ -29,13 +29,17 @@ var nonExistentIndex = types.ValidatorIndex(^uint64(0))
 var errParticipation = status.Errorf(codes.Internal, "Failed to obtain epoch participation")
 
 // ValidatorStatus returns the validator status of the current epoch.
+// ValidatorStatus返回当前epoch的validator的状态
 // The status response can be one of the following:
 //  DEPOSITED - validator's deposit has been recognized by Ethereum 1, not yet recognized by Ethereum.
 //  PENDING - validator is in Ethereum's activation queue.
+//  PENDING - validator在Ethereum的activation queue中
 //  ACTIVE - validator is active.
 //  EXITING - validator has initiated an an exit request, or has dropped below the ejection balance and is being kicked out.
+//  EXITING - validator已经初始化了一个exit request，或者已经在ejection balance之下并且正在退出
 //  EXITED - validator is no longer validating.
 //  SLASHING - validator has been kicked out due to meeting a slashing condition.
+//  SLASHING - validator已经出局了，因为遇到了一个slashing condition
 //  UNKNOWN_STATUS - validator does not have a known status in the network.
 func (vs *Server) ValidatorStatus(
 	ctx context.Context,
