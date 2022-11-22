@@ -766,6 +766,7 @@ var _ grpc.ClientConnInterface
 const _ = grpc.SupportPackageIsVersion6
 
 // SlasherClient is the client API for Slasher service.
+// SlasherClient是对于Slasher service的API
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type SlasherClient interface {

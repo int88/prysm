@@ -100,6 +100,7 @@ func NewValidatorClient(cliCtx *cli.Context) (*ValidatorClient, error) {
 	// Warn if user's platform is not supported
 	prereqs.WarnIfPlatformNotSupported(cliCtx.Context)
 
+	// 构建service registry
 	registry := runtime.NewServiceRegistry()
 	ctx, cancel := context.WithCancel(cliCtx.Context)
 	validatorClient := &ValidatorClient{
@@ -111,6 +112,7 @@ func NewValidatorClient(cliCtx *cli.Context) (*ValidatorClient, error) {
 		stop:              make(chan struct{}),
 	}
 
+	// 配置validator
 	if err := features.ConfigureValidator(cliCtx); err != nil {
 		return nil, err
 	}
@@ -120,6 +122,7 @@ func NewValidatorClient(cliCtx *cli.Context) (*ValidatorClient, error) {
 
 	if cliCtx.IsSet(cmd.ChainConfigFileFlag.Name) {
 		chainConfigFileName := cliCtx.String(cmd.ChainConfigFileFlag.Name)
+		// 加载chain config文件
 		if err := params.LoadChainConfigFile(chainConfigFileName, nil); err != nil {
 			return nil, err
 		}
@@ -140,6 +143,7 @@ func NewValidatorClient(cliCtx *cli.Context) (*ValidatorClient, error) {
 		return validatorClient, nil
 	}
 
+	// 从CLI中初始化
 	if err := validatorClient.initializeFromCLI(cliCtx); err != nil {
 		return nil, err
 	}
@@ -255,6 +259,7 @@ func (c *ValidatorClient) initializeFromCLI(cliCtx *cli.Context) error {
 	}
 	c.db = valDB
 	if err := valDB.RunUpMigrations(cliCtx.Context); err != nil {
+		// 不能运行database migration
 		return errors.Wrap(err, "could not run database migration")
 	}
 
@@ -418,6 +423,7 @@ func (c *ValidatorClient) registerValidatorService(cliCtx *cli.Context) error {
 		return err
 	}
 
+	// 构建validator service
 	v, err := client.NewValidatorService(c.cliCtx.Context, &client.Config{
 		Endpoint:                   endpoint,
 		DataDir:                    dataDir,

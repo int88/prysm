@@ -79,6 +79,7 @@ func (v *validator) SubmitAggregateAndProof(ctx context.Context, slot types.Slot
 	if err != nil {
 		s, ok := status.FromError(err)
 		if ok && s.Code() == codes.NotFound {
+			// 没有attestations用于聚合
 			log.WithField("slot", slot).WithError(err).Warn("No attestations to aggregate")
 		} else {
 			log.WithField("slot", slot).WithError(err).Error("Could not submit slot signature to beacon node")
@@ -124,6 +125,7 @@ func (v *validator) SubmitAggregateAndProof(ctx context.Context, slot types.Slot
 }
 
 // Signs input slot with domain selection proof. This is used to create the signature for aggregator selection.
+// 它用于为aggregator selection创建签名
 func (v *validator) signSlotWithSelectionProof(ctx context.Context, pubKey [fieldparams.BLSPubkeyLength]byte, slot types.Slot) (signature []byte, err error) {
 	domain, err := v.domainData(ctx, slots.ToEpoch(slot), params.BeaconConfig().DomainSelectionProof[:])
 	if err != nil {
@@ -153,6 +155,8 @@ func (v *validator) signSlotWithSelectionProof(ctx context.Context, pubKey [fiel
 // waitToSlotTwoThirds waits until two third through the current slot period
 // such that any attestations from this slot have time to reach the beacon node
 // before creating the aggregated attestation.
+// waitToSlotTwoThirds等待直到当前slot的三分之二，任何这个slot的attestations有时间能
+// 到达beacon node，在创建aggregated attestation之前
 func (v *validator) waitToSlotTwoThirds(ctx context.Context, slot types.Slot) {
 	ctx, span := trace.StartSpan(ctx, "validator.waitToSlotTwoThirds")
 	defer span.End()
@@ -180,6 +184,7 @@ func (v *validator) waitToSlotTwoThirds(ctx context.Context, slot types.Slot) {
 
 // This returns the signature of validator signing over aggregate and
 // proof object.
+// 返回validator的signature，签名aggregate以及proof object
 func (v *validator) aggregateAndProofSig(ctx context.Context, pubKey [fieldparams.BLSPubkeyLength]byte, agg *ethpb.AggregateAttestationAndProof, slot types.Slot) ([]byte, error) {
 	d, err := v.domainData(ctx, slots.ToEpoch(agg.Aggregate.Data.Slot), params.BeaconConfig().DomainAggregateAndProof[:])
 	if err != nil {

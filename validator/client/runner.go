@@ -83,6 +83,7 @@ func run(ctx context.Context, v iface.Validator) {
 			return // Exit if context is canceled.
 		case blocksError := <-connectionErrorChannel:
 			if blocksError != nil {
+				// block stream中断
 				log.WithError(blocksError).Warn("block stream interrupted")
 				go v.ReceiveBlocks(ctx, connectionErrorChannel)
 				continue
@@ -105,6 +106,7 @@ func run(ctx context.Context, v iface.Validator) {
 			// 收到下一个slot
 			span.AddAttributes(trace.Int64Attribute("slot", int64(slot))) // lint:ignore uintcast -- This conversion is OK for tracing.
 			reloadRemoteKeys(ctx, km)
+			// 是否所有validator都已经退出了
 			allExited, err := v.AllValidatorsAreExited(ctx)
 			if err != nil {
 				// 如果validator都退出了，不能进行check
@@ -228,6 +230,7 @@ func waitForActivation(ctx context.Context, v iface.Validator) (types.Slot, erro
 
 		headSlot, err = v.CanonicalHeadSlot(ctx)
 		if isConnectionError(err) {
+			// 获取当前的canonical head slot
 			log.Warnf("Could not get current canonical head slot: %v", err)
 			continue
 		}

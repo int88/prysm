@@ -143,6 +143,7 @@ func NewValidatorService(ctx context.Context, cfg *Config) (*ValidatorService, e
 
 	s.ctx = grpcutil.AppendHeaders(ctx, s.grpcHeaders)
 
+	// 连接到endpoint
 	conn, err := grpc.DialContext(ctx, s.endpoint, dialOpts...)
 	if err != nil {
 		return s, err

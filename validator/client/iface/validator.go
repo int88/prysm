@@ -45,9 +45,11 @@ type Validator interface {
 	WaitForSync(ctx context.Context) error
 	WaitForActivation(ctx context.Context, accountsChangedChan chan [][fieldparams.BLSPubkeyLength]byte) error
 	CanonicalHeadSlot(ctx context.Context) (types.Slot, error)
+	// 等待下一个slot
 	NextSlot() <-chan types.Slot
 	SlotDeadline(slot types.Slot) time.Time
 	LogValidatorGainsAndLosses(ctx context.Context, slot types.Slot) error
+	// 更新Duties
 	UpdateDuties(ctx context.Context, slot types.Slot) error
 	RolesAt(ctx context.Context, slot types.Slot) (map[[fieldparams.BLSPubkeyLength]byte][]ValidatorRole, error) // validator pubKey -> roles
 	SubmitAttestation(ctx context.Context, slot types.Slot, pubKey [fieldparams.BLSPubkeyLength]byte)

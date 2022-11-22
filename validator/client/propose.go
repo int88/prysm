@@ -44,6 +44,7 @@ const signExitErr = "could not sign voluntary exit proposal"
 // 由state root computation处理，并且最后由validator签发，在送回beacon node进行广播之前
 func (v *validator) ProposeBlock(ctx context.Context, slot types.Slot, pubKey [fieldparams.BLSPubkeyLength]byte) {
 	if slot == 0 {
+		// 对于genesis block，跳过proposal
 		log.Debug("Assigned to genesis slot, skipping proposal")
 		return
 	}

@@ -61,6 +61,7 @@ func TestAttestToBlockHead_SubmitAttestation_EmptyCommittee(t *testing.T) {
 			ValidatorIndex: 0,
 		}}}
 	validator.SubmitAttestation(context.Background(), 0, pubKey)
+	// 空的committee
 	require.LogsContain(t, hook, "Empty committee")
 }
 
@@ -125,6 +126,7 @@ func TestAttestToBlockHead_AttestsCorrectly(t *testing.T) {
 		gomock.Any(), // ctx
 		gomock.AssignableToTypeOf(&ethpb.AttestationDataRequest{}),
 	).Return(&ethpb.AttestationData{
+		// 返回Attestation Data
 		BeaconBlockRoot: beaconBlockRoot[:],
 		Target:          &ethpb.Checkpoint{Root: targetRoot[:]},
 		Source:          &ethpb.Checkpoint{Root: sourceRoot[:], Epoch: 3},
@@ -148,6 +150,7 @@ func TestAttestToBlockHead_AttestsCorrectly(t *testing.T) {
 
 	aggregationBitfield := bitfield.NewBitlist(uint64(len(committee)))
 	aggregationBitfield.SetBitAt(4, true)
+	// 生成的attestation与期望的相等
 	expectedAttestation := &ethpb.Attestation{
 		Data: &ethpb.AttestationData{
 			BeaconBlockRoot: beaconBlockRoot[:],
@@ -209,6 +212,7 @@ func TestAttestToBlockHead_BlocksDoubleAtt(t *testing.T) {
 		gomock.Any(), // ctx
 		gomock.AssignableToTypeOf(&ethpb.AttestationDataRequest{}),
 	).Return(&ethpb.AttestationData{
+		// 选另一个beacon block root
 		BeaconBlockRoot: beaconBlockRoot2[:],
 		Target:          &ethpb.Checkpoint{Root: targetRoot[:], Epoch: 4},
 		Source:          &ethpb.Checkpoint{Root: sourceRoot[:], Epoch: 3},
@@ -225,6 +229,7 @@ func TestAttestToBlockHead_BlocksDoubleAtt(t *testing.T) {
 
 	validator.SubmitAttestation(context.Background(), 30, pubKey)
 	validator.SubmitAttestation(context.Background(), 30, pubKey)
+	// attestation slashing protection失败
 	require.LogsContain(t, hook, "Failed attestation slashing protection")
 }
 

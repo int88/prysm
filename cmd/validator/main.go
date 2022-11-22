@@ -44,6 +44,7 @@ func startNode(ctx *cli.Context) error {
 	if err != nil {
 		return err
 	}
+	// 启动validator client
 	validatorClient.Start()
 	return nil
 }
@@ -122,6 +123,7 @@ func init() {
 func main() {
 	app := cli.App{}
 	app.Name = "validator"
+	// 启动一个Ethereum validator client，可以和beacon chain进行交互，开始proposer以及attester services，p2p连接等等
 	app.Usage = `launches an Ethereum validator client that interacts with a beacon chain, starts proposer and attester services, p2p connections, and more`
 	app.Version = version.Version()
 	app.Action = startNode

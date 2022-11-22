@@ -243,6 +243,7 @@ func (v *validator) WaitForChainStart(ctx context.Context) error {
 	if err != nil {
 		return errors.Wrap(
 			iface.ErrConnectionIssue,
+			// 不能建立beacon chain ChainStart streaming client
 			errors.Wrap(err, "could not setup beacon chain ChainStart streaming client").Error(),
 		)
 	}
@@ -261,6 +262,7 @@ func (v *validator) WaitForChainStart(ctx context.Context) error {
 			)
 		}
 		v.genesisTime = chainStartRes.GenesisTime
+		// 从数据库中获取validator root
 		curGenValRoot, err := v.db.GenesisValidatorsRoot(ctx)
 		if err != nil {
 			// 不能获取当前的genesis validators root
@@ -303,6 +305,7 @@ func (v *validator) WaitForSync(ctx context.Context) error {
 	ctx, span := trace.StartSpan(ctx, "validator.WaitForSync")
 	defer span.End()
 
+	// 获取sync status
 	s, err := v.node.GetSyncStatus(ctx, &emptypb.Empty{})
 	if err != nil {
 		return errors.Wrap(iface.ErrConnectionIssue, errors.Wrap(err, "could not get sync status").Error())
@@ -324,6 +327,7 @@ func (v *validator) WaitForSync(ctx context.Context) error {
 				// 同步完成了
 				return nil
 			}
+			// 等待beacon node同步到最新的chain head
 			log.Info("Waiting for beacon node to sync to latest chain head")
 		case <-ctx.Done():
 			return errors.New("context has been canceled, exiting goroutine")
@@ -352,6 +356,7 @@ func (v *validator) ReceiveBlocks(ctx context.Context, connectionErrorChannel ch
 		res, err := stream.Recv()
 		if err != nil {
 			log.WithError(err).Error("Could not receive blocks from beacon node, " + iface.ErrConnectionIssue.Error())
+			// 不能从beacon node接收到blocks
 			connectionErrorChannel <- errors.Wrap(iface.ErrConnectionIssue, err.Error())
 			return
 		}
@@ -442,6 +447,7 @@ func logActiveValidatorStatus(statuses []*validatorStatus) {
 		if s.status.Status != ethpb.ValidatorStatus_ACTIVE {
 			continue
 		}
+		// 对log进行记录
 		log.WithFields(logrus.Fields{
 			"publicKey": fmt.Sprintf("%#x", bytesutil.Trunc(s.publicKey)),
 			"index":     s.index,
@@ -545,6 +551,7 @@ func buildDuplicateError(response []*ethpb.DoppelGangerResponse_ValidatorRespons
 }
 
 // Ensures that the latest attestation history is retrieved.
+// 确保最新的attestation history被获取
 func retrieveLatestRecord(recs []*kv.AttestationRecord) *kv.AttestationRecord {
 	if len(recs) == 0 {
 		return nil
@@ -722,6 +729,7 @@ func (v *validator) RolesAt(ctx context.Context, slot types.Slot) (map[[fieldpar
 			continue
 		}
 		if len(duty.ProposerSlots) > 0 {
+			// 遍历proposer slots
 			for _, proposerSlot := range duty.ProposerSlots {
 				if proposerSlot != 0 && proposerSlot == slot {
 					// 有一个proposer的role
@@ -736,6 +744,7 @@ func (v *validator) RolesAt(ctx context.Context, slot types.Slot) (map[[fieldpar
 
 			aggregator, err := v.isAggregator(ctx, duty.Committee, slot, bytesutil.ToBytes48(duty.PublicKey))
 			if err != nil {
+				// 判断validator是不是一个aggregator
 				return nil, errors.Wrap(err, "could not check if a validator is an aggregator")
 			}
 			if aggregator {
@@ -767,11 +776,13 @@ func (v *validator) RolesAt(ctx context.Context, slot types.Slot) (map[[fieldpar
 				return nil, errors.Wrap(err, "could not check if a validator is a sync committee aggregator")
 			}
 			if aggregator {
+				// 是一个sync committee aggregator validator
 				roles = append(roles, iface.RoleSyncCommitteeAggregator)
 			}
 		}
 
 		if len(roles) == 0 {
+			// 没有roles，则返回unknown
 			roles = append(roles, iface.RoleUnknown)
 		}
 
@@ -941,7 +952,9 @@ func (v *validator) logDuties(slot types.Slot, duties []*ethpb.DutiesResponse_Du
 		}
 
 		// Only interested in validators who are attesting/proposing.
+		// 只对正在attesting/proposing的validators感兴趣
 		// Note that SLASHING validators will have duties but their results are ignored by the network so we don't bother with them.
+		// 注意SLASHING validators会有duties，但是他们的results会被网络忽略，因此我们不要管它
 		if duty.Status != ethpb.ValidatorStatus_ACTIVE && duty.Status != ethpb.ValidatorStatus_EXITING {
 			continue
 		}
@@ -990,6 +1003,7 @@ func (v *validator) logDuties(slot types.Slot, duties []*ethpb.DutiesResponse_Du
 // PushProposerSettings调用prepareBeaconProposer RPC，来设置fee recipient并且注册validator API，如果使用一个custom builder
 func (v *validator) PushProposerSettings(ctx context.Context, km keymanager.IKeymanager) error {
 	// only used after Bellatrix
+	// 只在Bellatrix之后使用
 	if v.ProposerSettings == nil {
 		e := params.BeaconConfig().BellatrixForkEpoch
 		if e != math.MaxUint64 && slots.ToEpoch(slots.CurrentSlot(v.genesisTime)) < e {
@@ -1110,6 +1124,7 @@ func (v *validator) cacheValidatorPubkeyHexToValidatorIndex(ctx context.Context,
 
 // This constructs a validator subscribed key, it's used to track
 // which subnet has already been pending requested.
+// 构造一个validator的subscribed key，它用于追踪哪个subnet已经被pending requested
 func validatorSubscribeKey(slot types.Slot, committeeID types.CommitteeIndex) [64]byte {
 	return bytesutil.ToBytes64(append(bytesutil.Bytes32(uint64(slot)), bytesutil.Bytes32(uint64(committeeID))...))
 }

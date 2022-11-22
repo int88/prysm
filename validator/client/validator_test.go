@@ -180,6 +180,7 @@ func TestWaitForChainStart_SetsGenesisInfo(t *testing.T) {
 	assert.NotNil(t, v.ticker, "Expected ticker to be set, received nil")
 
 	// Make sure theres no errors running if its the same data.
+	// 确保如果数据相同的话，则没有errors
 	client.EXPECT().WaitForChainStart(
 		gomock.Any(),
 		&emptypb.Empty{},
@@ -231,6 +232,7 @@ func TestWaitForChainStart_SetsGenesisInfo_IncorrectSecondTry(t *testing.T) {
 	genesisValidatorsRoot = bytesutil.ToBytes32([]byte("badvalidators"))
 
 	// Make sure theres no errors running if its the same data.
+	// 确保没有errors运行，如果它们是同样的数据
 	client.EXPECT().WaitForChainStart(
 		gomock.Any(),
 		&emptypb.Empty{},
@@ -298,6 +300,7 @@ func TestWaitForChainStart_StreamSetupFails(t *testing.T) {
 		&emptypb.Empty{},
 	).Return(clientStream, errors.New("failed stream"))
 	err = v.WaitForChainStart(context.Background())
+	// 不能设置beacon chain的ChainStart streaming client
 	want := "could not setup beacon chain ChainStart streaming client"
 	assert.ErrorContains(t, want, err)
 }
@@ -351,6 +354,7 @@ func TestCanonicalHeadSlot_OK(t *testing.T) {
 		gomock.Any(),
 		gomock.Any(),
 	).Return(&ethpb.ChainHead{HeadSlot: 0}, nil)
+	// 获取head slot
 	headSlot, err := v.CanonicalHeadSlot(context.Background())
 	require.NoError(t, err)
 	assert.Equal(t, types.Slot(0), headSlot, "Mismatch slots")
@@ -530,6 +534,8 @@ func TestWaitSync_Syncing(t *testing.T) {
 }
 
 func TestUpdateDuties_DoesNothingWhenNotEpochStart_AlreadyExistingAssignments(t *testing.T) {
+	// 什么都不做，当不是Epoch Start的时候
+	// 已经有Assignments存在的时候
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	client := mock2.NewMockBeaconNodeValidatorClient(ctrl)
@@ -643,6 +649,7 @@ func TestUpdateDuties_OK(t *testing.T) {
 
 	util.WaitTimeout(&wg, 3*time.Second)
 
+	// 确保validator的duties已经更新了
 	assert.Equal(t, params.BeaconConfig().SlotsPerEpoch+1, v.duties.Duties[0].ProposerSlots[0], "Unexpected validator assignments")
 	assert.Equal(t, params.BeaconConfig().SlotsPerEpoch, v.duties.Duties[0].AttesterSlot, "Unexpected validator assignments")
 	assert.Equal(t, resp.Duties[0].CommitteeIndex, v.duties.Duties[0].CommitteeIndex, "Unexpected validator assignments")
@@ -699,6 +706,7 @@ func TestUpdateDuties_OK_FilterBlacklistedPublicKeys(t *testing.T) {
 	util.WaitTimeout(&wg, 3*time.Second)
 
 	for range blacklistedPublicKeys {
+		// 不包含slashable public key
 		assert.LogsContain(t, hook, "Not including slashable public key")
 	}
 }
@@ -716,6 +724,7 @@ func TestRolesAt_OK(t *testing.T) {
 				IsSyncCommittee: true,
 			},
 		},
+		// 下一个epoch的duties
 		NextEpochDuties: []*ethpb.DutiesResponse_Duty{
 			{
 				CommitteeIndex:  1,
@@ -747,6 +756,7 @@ func TestRolesAt_OK(t *testing.T) {
 	assert.Equal(t, iface.RoleSyncCommittee, roleMap[bytesutil.ToBytes48(validatorKey.PublicKey().Marshal())][2])
 
 	// Test sync committee role at epoch boundary.
+	// 在epoch boundary测试sync committee role
 	v.duties = &ethpb.DutiesResponse{
 		Duties: []*ethpb.DutiesResponse_Duty{
 			{
@@ -776,6 +786,7 @@ func TestRolesAt_OK(t *testing.T) {
 
 	roleMap, err = v.RolesAt(context.Background(), params.BeaconConfig().SlotsPerEpoch-1)
 	require.NoError(t, err)
+	// 确认角色为RoleSyncCommittee
 	assert.Equal(t, iface.RoleSyncCommittee, roleMap[bytesutil.ToBytes48(validatorKey.PublicKey().Marshal())][0])
 }
 
@@ -933,6 +944,7 @@ func TestAllValidatorsAreExited_AllExited(t *testing.T) {
 	defer ctrl.Finish()
 	client := mock2.NewMockBeaconNodeValidatorClient(ctrl)
 
+	// 所有的validator都退出了
 	statuses := []*ethpb.ValidatorStatusResponse{
 		{Status: ethpb.ValidatorStatus_EXITED},
 		{Status: ethpb.ValidatorStatus_EXITED},
@@ -986,6 +998,7 @@ func TestAllValidatorsAreExited_PartialResult(t *testing.T) {
 
 	v := validator{keyManager: genMockKeymanager(2), validatorClient: client}
 	exited, err := v.AllValidatorsAreExited(context.Background())
+	// 请求的keys和返回的responses的状态不一样
 	require.ErrorContains(t, "number of status responses did not match number of requested keys", err)
 	assert.Equal(t, false, exited)
 }
@@ -1069,6 +1082,7 @@ func TestService_ReceiveBlocks_NilBlock(t *testing.T) {
 	})
 	connectionErrorChannel := make(chan error)
 	v.ReceiveBlocks(ctx, connectionErrorChannel)
+	// highest合法的slot
 	require.Equal(t, types.Slot(0), v.highestValidSlot)
 }
 
@@ -1100,6 +1114,7 @@ func TestService_ReceiveBlocks_SetHighest(t *testing.T) {
 	})
 	connectionErrorChannel := make(chan error)
 	v.ReceiveBlocks(ctx, connectionErrorChannel)
+	// 最高的valid slot匹配
 	require.Equal(t, slot, v.highestValidSlot)
 }
 
@@ -1321,6 +1336,7 @@ func TestValidatorAttestationsAreOrdered(t *testing.T) {
 	att := createAttestation(10, 14)
 	rt, err := att.Data.HashTreeRoot()
 	assert.NoError(t, err)
+	// 为public key保存attestation
 	assert.NoError(t, db.SaveAttestationForPubKey(context.Background(), k, rt, att))
 
 	att = createAttestation(6, 8)
@@ -1340,6 +1356,7 @@ func TestValidatorAttestationsAreOrdered(t *testing.T) {
 
 	histories, err := db.AttestationHistoryForPubKey(context.Background(), k)
 	assert.NoError(t, err)
+	// 获取最新的record
 	r := retrieveLatestRecord(histories)
 	assert.Equal(t, r.Target, types.Epoch(14))
 }

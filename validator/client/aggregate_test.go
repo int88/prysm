@@ -28,8 +28,10 @@ func TestSubmitAggregateAndProof_GetDutiesRequestFailure(t *testing.T) {
 
 	pubKey := [fieldparams.BLSPubkeyLength]byte{}
 	copy(pubKey[:], validatorKey.PublicKey().Marshal())
+	// 提交aggregate以及proof
 	validator.SubmitAggregateAndProof(context.Background(), 0, pubKey)
 
+	// 不能获取validator assignment
 	require.LogsContain(t, hook, "Could not fetch validator assignment")
 }
 

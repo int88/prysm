@@ -258,6 +258,7 @@ func TestProposeBlock_ProposeBlockFailed(t *testing.T) {
 			).Return(nil /*response*/, errors.New("uh oh"))
 
 			validator.ProposeBlock(context.Background(), 1, pubKey)
+			// propose block失败
 			require.LogsContain(t, hook, "Failed to propose block")
 		})
 	}
@@ -459,6 +460,7 @@ func TestProposeBlock_AllowsPastProposals(t *testing.T) {
 			copy(pubKey[:], validatorKey.PublicKey().Marshal())
 
 			// Save a dummy proposal history at slot 0.
+			// 在slot 0保存一个dummy proposal history
 			err := validator.db.SaveProposalHistoryForSlot(context.Background(), pubKey, 0, []byte{})
 			require.NoError(t, err)
 
@@ -538,6 +540,7 @@ func testProposeBlock(t *testing.T, graffiti []byte) {
 			block: &ethpb.GenericBeaconBlock{
 				Block: &ethpb.GenericBeaconBlock_Altair{
 					Altair: func() *ethpb.BeaconBlockAltair {
+						// 分配一个altair beacon block
 						blk := util.NewBeaconBlockAltair()
 						blk.Block.Body.Graffiti = graffiti
 						return blk.Block
@@ -551,6 +554,7 @@ func testProposeBlock(t *testing.T, graffiti []byte) {
 				Block: &ethpb.GenericBeaconBlock_Bellatrix{
 					Bellatrix: func() *ethpb.BeaconBlockBellatrix {
 						blk := util.NewBeaconBlockBellatrix()
+						// 分配一个bellatrix beacon block
 						blk.Block.Body.Graffiti = graffiti
 						return blk.Block
 					}(),
@@ -594,12 +598,14 @@ func testProposeBlock(t *testing.T, graffiti []byte) {
 				gomock.Any(), // ctx
 				gomock.AssignableToTypeOf(&ethpb.GenericSignedBeaconBlock{}),
 			).DoAndReturn(func(ctx context.Context, block *ethpb.GenericSignedBeaconBlock, opts ...grpc.CallOption) (*ethpb.ProposeResponse, error) {
+				// 获取被发送的block
 				sentBlock, err = wrapper.UnwrapGenericSignedBeaconBlock(block)
 				assert.NoError(t, err, "Unexpected error unwrapping block")
 				return &ethpb.ProposeResponse{BlockRoot: make([]byte, 32)}, nil
 			})
 
 			validator.ProposeBlock(context.Background(), 1, pubKey)
+			// 确保graffiti相等
 			assert.Equal(t, string(validator.graffiti), string(sentBlock.Block().Body().Graffiti()))
 		})
 	}
@@ -623,6 +629,7 @@ func TestProposeExit_ValidatorIndexFailed(t *testing.T) {
 	)
 	assert.NotNil(t, err)
 	assert.ErrorContains(t, "uh oh", err)
+	// 获取validator index失败
 	assert.ErrorContains(t, "gRPC call to get validator index failed", err)
 }
 
@@ -740,6 +747,7 @@ func TestProposeBlock_ProposeExitFailed(t *testing.T) {
 
 	m.validatorClient.EXPECT().
 		ProposeExit(gomock.Any(), gomock.AssignableToTypeOf(&ethpb.SignedVoluntaryExit{})).
+		// propose exit失败
 		Return(nil, errors.New("uh oh"))
 
 	err := ProposeExit(

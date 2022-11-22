@@ -31,6 +31,7 @@ type ProposerSettings struct {
 }
 
 // ProposerOption is a Prysm internal representation of the ProposerOptionPayload on the validator client in bytes format instead of hex.
+// ProposerOption是一个Prysm的内部表示，对于validator client的ProposerOptionPayload
 type ProposerOption struct {
 	FeeRecipient common.Address
 	GasLimit     uint64

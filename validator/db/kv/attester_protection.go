@@ -93,6 +93,8 @@ var (
 
 // AttestationHistoryForPubKey retrieves a list of attestation records for data
 // we have stored in the database for the given validator public key.
+// AttestationHistoryForPubKey获取一系列的attestation records，对于我们已经存储在database中的
+// 数据，对于给定的validator public key
 func (s *Store) AttestationHistoryForPubKey(ctx context.Context, pubKey [fieldparams.BLSPubkeyLength]byte) ([]*AttestationRecord, error) {
 	records := make([]*AttestationRecord, 0)
 	_, span := trace.StartSpan(ctx, "Validator.AttestationHistoryForPubKey")
@@ -299,6 +301,8 @@ func (s *Store) SaveAttestationsForPubKey(
 
 // SaveAttestationForPubKey saves an attestation for a validator public
 // key for local validator slashing protection.
+// SaveAttestationForPubKey为一个validator public key保存attestation，用于本地的
+// validator slashing保护
 func (s *Store) SaveAttestationForPubKey(
 	ctx context.Context, pubKey [fieldparams.BLSPubkeyLength]byte, signingRoot [32]byte, att *ethpb.IndexedAttestation,
 ) error {
@@ -315,6 +319,7 @@ func (s *Store) SaveAttestationForPubKey(
 	// during the process of saving the attestation record, the sender
 	// will give us that error. We use a buffered channel
 	// to prevent blocking the sender from notifying us of the result.
+	// 订阅通知，当排队保存到DB中的attestation record确实被存储了
 	responseChan := make(chan saveAttestationsResponse, 1)
 	defer close(responseChan)
 	sub := s.batchAttestationsFlushedFeed.Subscribe(responseChan)

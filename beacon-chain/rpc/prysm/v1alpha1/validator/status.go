@@ -233,6 +233,7 @@ func (vs *Server) activationStatus(
 		if ctx.Err() != nil {
 			return false, nil, ctx.Err()
 		}
+		// public key对应的validator存在
 		vStatus, idx := vs.validatorStatus(ctx, headState, pubKey)
 		if vStatus == nil {
 			continue

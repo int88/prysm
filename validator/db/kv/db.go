@@ -59,6 +59,7 @@ type Config struct {
 
 // Store defines an implementation of the Prysm Database interface
 // using BoltDB as the underlying persistent kv-store for Ethereum consensus nodes.
+// Store定义了Prysm Database的接口实现，使用BoltDB作为底层的持久化键值存储，使用Ethereum consensus nodes
 type Store struct {
 	db                                 *bolt.DB
 	databasePath                       string

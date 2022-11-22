@@ -1,4 +1,5 @@
 // Package iface defines an interface for the validator database.
+// iface包定义了validator database的一个接口
 package iface
 
 import (
@@ -16,6 +17,7 @@ import (
 var _ = ValidatorDB(&kv.Store{})
 
 // ValidatorDB defines the necessary methods for a Prysm validator DB.
+// ValidatorDB定义了一个Prysm validator DB必要的方法
 type ValidatorDB interface {
 	io.Closer
 	backup.BackupExporter
@@ -26,6 +28,7 @@ type ValidatorDB interface {
 	UpdatePublicKeysBuckets(publicKeys [][fieldparams.BLSPubkeyLength]byte) error
 
 	// Genesis information related methods.
+	// Genesis信息相关的方法
 	GenesisValidatorsRoot(ctx context.Context) ([]byte, error)
 	SaveGenesisValidatorsRoot(ctx context.Context, genValRoot []byte) error
 

@@ -27,6 +27,7 @@ import (
 // If the channel parameter is nil, WaitForActivation creates and manages its own channel.
 func (v *validator) WaitForActivation(ctx context.Context, accountsChangedChan chan [][fieldparams.BLSPubkeyLength]byte) error {
 	// Monitor the key manager for updates.
+	// 监控key manager的更新
 	if accountsChangedChan == nil {
 		accountsChangedChan = make(chan [][fieldparams.BLSPubkeyLength]byte, 1)
 		km, err := v.Keymanager()
