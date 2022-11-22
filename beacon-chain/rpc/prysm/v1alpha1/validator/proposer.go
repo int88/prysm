@@ -41,6 +41,7 @@ func (vs *Server) GetBeaconBlock(ctx context.Context, req *ethpb.BlockRequest) (
 	defer span.End()
 	span.AddAttributes(trace.Int64Attribute("slot", int64(req.Slot)))
 	if slots.ToEpoch(req.Slot) < params.BeaconConfig().AltairForkEpoch {
+		// 小于AltairForkEpoch，则获取phase0 beacon block
 		blk, err := vs.getPhase0BeaconBlock(ctx, req)
 		if err != nil {
 			return nil, status.Errorf(codes.Internal, "Could not fetch phase0 beacon block: %v", err)

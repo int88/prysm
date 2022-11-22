@@ -13,6 +13,8 @@ import (
 // ProcessEth1DataInBlock is an operation performed on each
 // beacon block to ensure the ETH1 data votes are processed
 // into the beacon state.
+// ProcessEth1DataInBlock是在每个beacon block上执行的操作，来确保ETH1 data votes
+// 在beacon state上处理
 //
 // Official spec definition:
 //   def process_eth1_data(state: BeaconState, body: BeaconBlockBody) -> None:

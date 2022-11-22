@@ -101,6 +101,7 @@ func (vs *Server) MultipleValidatorStatus(
 }
 
 // CheckDoppelGanger checks if the provided keys are currently active in the network.
+// CheckDoppelGanger检查提供的keys当前在network中处于active
 func (vs *Server) CheckDoppelGanger(ctx context.Context, req *ethpb.DoppelGangerRequest) (*ethpb.DoppelGangerResponse, error) {
 	if vs.SyncChecker.Syncing() {
 		return nil, status.Errorf(codes.Unavailable, "Syncing to latest head, not ready to respond")

@@ -55,10 +55,11 @@ type BeaconChainConfig struct {
 	MinAttestationInclusionDelay types.Slot `yaml:"MIN_ATTESTATION_INCLUSION_DELAY" spec:"true"` // MinAttestationInclusionDelay defines how many slots validator has to wait to include attestation for beacon block.
 	SecondsPerSlot               uint64     `yaml:"SECONDS_PER_SLOT" spec:"true"`                // SecondsPerSlot is how many seconds are in a single slot. // SecondsPerSlot决定了单个slot里有多少秒
 	// SlotsPerEpoch是一个epoch里slots的数目
-	SlotsPerEpoch                    types.Slot  `yaml:"SLOTS_PER_EPOCH" spec:"true"` // SlotsPerEpoch is the number of slots in an epoch.
-	SqrRootSlotsPerEpoch             types.Slot  // SqrRootSlotsPerEpoch is a hard coded value where we take the square root of `SlotsPerEpoch` and round down.
-	MinSeedLookahead                 types.Epoch `yaml:"MIN_SEED_LOOKAHEAD" spec:"true"`                  // MinSeedLookahead is the duration of randao look ahead seed.
-	MaxSeedLookahead                 types.Epoch `yaml:"MAX_SEED_LOOKAHEAD" spec:"true"`                  // MaxSeedLookahead is the duration a validator has to wait for entry and exit in epoch.
+	SlotsPerEpoch        types.Slot  `yaml:"SLOTS_PER_EPOCH" spec:"true"` // SlotsPerEpoch is the number of slots in an epoch.
+	SqrRootSlotsPerEpoch types.Slot  // SqrRootSlotsPerEpoch is a hard coded value where we take the square root of `SlotsPerEpoch` and round down.
+	MinSeedLookahead     types.Epoch `yaml:"MIN_SEED_LOOKAHEAD" spec:"true"` // MinSeedLookahead is the duration of randao look ahead seed.
+	MaxSeedLookahead     types.Epoch `yaml:"MAX_SEED_LOOKAHEAD" spec:"true"` // MaxSeedLookahead is the duration a validator has to wait for entry and exit in epoch.
+	// 定义了deposit receipts更新的频率，在每个epoch的基础上
 	EpochsPerEth1VotingPeriod        types.Epoch `yaml:"EPOCHS_PER_ETH1_VOTING_PERIOD" spec:"true"`       // EpochsPerEth1VotingPeriod defines how often the merkle root of deposit receipts get updated in beacon node on per epoch basis.
 	SlotsPerHistoricalRoot           types.Slot  `yaml:"SLOTS_PER_HISTORICAL_ROOT" spec:"true"`           // SlotsPerHistoricalRoot defines how often the historical root is saved.
 	MinValidatorWithdrawabilityDelay types.Epoch `yaml:"MIN_VALIDATOR_WITHDRAWABILITY_DELAY" spec:"true"` // MinValidatorWithdrawabilityDelay is the shortest amount of time a validator has to wait to withdraw.
@@ -100,6 +101,7 @@ type BeaconChainConfig struct {
 	ProportionalSlashingMultiplier uint64 `yaml:"PROPORTIONAL_SLASHING_MULTIPLIER" spec:"true"` // ProportionalSlashingMultiplier is used as a multiplier on slashed penalties.
 
 	// Max operations per block constants.
+	// 定义了每个block constants的最大的操作数
 	MaxProposerSlashings uint64 `yaml:"MAX_PROPOSER_SLASHINGS" spec:"true"` // MaxProposerSlashings defines the maximum number of slashings of proposers possible in a block.
 	MaxAttesterSlashings uint64 `yaml:"MAX_ATTESTER_SLASHINGS" spec:"true"` // MaxAttesterSlashings defines the maximum number of casper FFG slashings possible in a block.
 	MaxAttestations      uint64 `yaml:"MAX_ATTESTATIONS" spec:"true"`       // MaxAttestations defines the maximum allowed attestations in a beacon block.

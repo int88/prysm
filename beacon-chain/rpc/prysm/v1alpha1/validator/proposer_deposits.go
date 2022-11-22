@@ -24,6 +24,7 @@ func (vs *Server) packDepositsAndAttestations(ctx context.Context, head state.Be
 
 	eg.Go(func() error {
 		// Pack ETH1 deposits which have not been included in the beacon chain.
+		// 打包那些还没有包含在beacon chain中的ETH1 deposits
 		localDeposits, err := vs.deposits(egctx, head, eth1Data)
 		if err != nil {
 			return status.Errorf(codes.Internal, "Could not get ETH1 deposits: %v", err)
@@ -40,6 +41,7 @@ func (vs *Server) packDepositsAndAttestations(ctx context.Context, head state.Be
 
 	eg.Go(func() error {
 		// Pack aggregated attestations which have not been included in the beacon chain.
+		// 打包还未包含在beacon chain中的aggregated attestations
 		localAtts, err := vs.packAttestations(egctx, head)
 		if err != nil {
 			return status.Errorf(codes.Internal, "Could not get attestations to pack into block: %v", err)
@@ -110,12 +112,14 @@ func (vs *Server) deposits(
 
 	// Deposits need to be received in order of merkle index root, so this has to make sure
 	// deposits are sorted from lowest to highest.
+	// 必须确保deposits从低到高排序
 	var pendingDeps []*ethpb.DepositContainer
 	for _, dep := range allPendingContainers {
 		if uint64(dep.Index) >= beaconState.Eth1DepositIndex() && uint64(dep.Index) < canonicalEth1Data.DepositCount {
 			pendingDeps = append(pendingDeps, dep)
 		}
 		// Don't try to pack more than the max allowed in a block
+		// 不要打包超过一个block内最大允许的数目
 		if uint64(len(pendingDeps)) == params.BeaconConfig().MaxDeposits {
 			break
 		}

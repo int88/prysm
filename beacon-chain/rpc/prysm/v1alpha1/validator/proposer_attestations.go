@@ -116,6 +116,7 @@ func (a proposerAtts) filter(ctx context.Context, st state.BeaconState) (propose
 }
 
 // sortByProfitability orders attestations by highest slot and by highest aggregation bit count.
+// sortByProfitability通过最高的slot以及最高的aggregation bit count对attestations进行排序
 func (a proposerAtts) sortByProfitability() (proposerAtts, error) {
 	if len(a) < 2 {
 		return a, nil

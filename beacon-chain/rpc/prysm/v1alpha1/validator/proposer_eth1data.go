@@ -91,6 +91,7 @@ func (vs *Server) slotStartTime(slot types.Slot) uint64 {
 }
 
 // canonicalEth1Data determines the canonical eth1data and eth1 block height to use for determining deposits.
+// canonicalEth1Data决定canonical eth1data以及eth1 block height用于决定deposits
 func (vs *Server) canonicalEth1Data(
 	ctx context.Context,
 	beaconState state.BeaconState,

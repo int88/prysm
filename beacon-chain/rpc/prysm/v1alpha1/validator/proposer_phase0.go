@@ -68,11 +68,13 @@ func (vs *Server) getPhase0BeaconBlock(ctx context.Context, req *ethpb.BlockRequ
 	if err != nil {
 		return nil, err
 	}
+	// 计算state root
 	stateRoot, err = vs.computeStateRoot(ctx, wsb)
 	if err != nil {
 		interop.WriteBlockToDisk(wsb, true /*failed*/)
 		return nil, errors.Wrap(err, "could not compute state root")
 	}
+	// 设置state root
 	blk.StateRoot = stateRoot
 	return blk, nil
 }

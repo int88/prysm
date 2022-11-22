@@ -162,6 +162,7 @@ func (vs *Server) getExecutionPayload(ctx context.Context, slot types.Slot, vIdx
 		return nil, err
 	}
 	// Warn if the fee recipient is not the value we expect.
+	// 警告，如果fee recipient不是我们预期的值
 	if payload != nil && !bytes.Equal(payload.FeeRecipient, feeRecipient[:]) {
 		logrus.WithFields(logrus.Fields{
 			"wantedFeeRecipient": fmt.Sprintf("%#x", feeRecipient),

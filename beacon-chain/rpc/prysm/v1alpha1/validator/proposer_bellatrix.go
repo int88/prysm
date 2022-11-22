@@ -105,6 +105,7 @@ func (vs *Server) getPayloadHeader(ctx context.Context, slot types.Slot, idx typ
 }
 
 // This function constructs the builder block given the input altair block and the header. It returns a generic beacon block for signing
+// 这个函数构造builder block，给定输入的altair block以及header，它返回一个generic beacon block用于signing
 func (vs *Server) buildHeaderBlock(ctx context.Context, b *ethpb.BeaconBlockAltair, h *enginev1.ExecutionPayloadHeader) (*ethpb.GenericBeaconBlock, error) {
 	if b == nil || b.Body == nil {
 		return nil, errors.New("nil block")
@@ -258,12 +259,16 @@ func (vs *Server) readyForBuilder(ctx context.Context) (bool, error) {
 
 // Get and builder header block. Returns a boolean status, built block and error.
 // If the status is false that means builder the header block is disallowed.
+// 获取以及构建header block，返回一个boolean status, built block以及错误 ，如果status是false
+// 这意味着构建header block是不允许的
 func (vs *Server) getAndBuildHeaderBlock(ctx context.Context, b *ethpb.BeaconBlockAltair) (bool, *ethpb.GenericBeaconBlock, error) {
 	// No op. Builder is not defined. User did not specify a user URL. We should use local EE.
+	// No op，Builder没有定义，用户没有指定一个user URL，我们应该使用local EE
 	if vs.BlockBuilder == nil || !vs.BlockBuilder.Configured() {
 		return false, nil, nil
 	}
 	// Does the protocol allow for builder at this current moment. Builder is only allowed post merge after finalization.
+	// Builder只在finalization之后，以及Merge之后才被允许
 	ready, err := vs.readyForBuilder(ctx)
 	if err != nil {
 		return false, nil, errors.Wrap(err, "could not determine if builder is ready")

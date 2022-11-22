@@ -91,6 +91,7 @@ func TestProposer_GetBlock_OK(t *testing.T) {
 			i, /* validator index */
 		)
 		require.NoError(t, err)
+		// 插入proposer slashings
 		proposerSlashings[i] = proposerSlashing
 		err = proposerServer.SlashingsPool.InsertProposerSlashing(context.Background(), beaconState, proposerSlashing)
 		require.NoError(t, err)
@@ -111,6 +112,7 @@ func TestProposer_GetBlock_OK(t *testing.T) {
 	block, err := proposerServer.GetBlock(ctx, req)
 	require.NoError(t, err)
 
+	// 获取block，内容正确
 	assert.Equal(t, req.Slot, block.Slot, "Expected block to have slot of 1")
 	assert.DeepEqual(t, parentRoot[:], block.ParentRoot, "Expected block to have correct parent root")
 	assert.DeepEqual(t, randaoReveal, block.Body.RandaoReveal, "Expected block to have correct randao reveal")
@@ -147,6 +149,7 @@ func TestProposer_GetBlock_AddsUnaggregatedAtts(t *testing.T) {
 
 	// Generate a bunch of random attestations at slot. These would be considered double votes, but
 	// we don't care for the purpose of this test.
+	// 生成一系列随机的attestations，可能有double votes，但是我们在这个测试中不在乎
 	var atts []*ethpb.Attestation
 	au := util.AttestationUtil{}
 	for i := uint64(0); len(atts) < int(params.BeaconConfig().MaxAttestations); i++ {
@@ -188,6 +191,7 @@ func TestProposer_GetBlock_AddsUnaggregatedAtts(t *testing.T) {
 	assert.DeepEqual(t, parentRoot[:], block.ParentRoot, "Expected block to have correct parent root")
 	assert.DeepEqual(t, randaoReveal, block.Body.RandaoReveal, "Expected block to have correct randao reveal")
 	assert.DeepEqual(t, req.Graffiti, block.Body.Graffiti, "Expected block to have correct graffiti")
+	// 期望attrs被聚合到一个
 	assert.Equal(t, params.BeaconConfig().MaxAttestations, uint64(len(block.Body.Attestations)), "Expected block atts to be aggregated down to 1")
 	hasUnaggregatedAtt := false
 	for _, a := range block.Body.Attestations {
@@ -362,6 +366,7 @@ func TestProposer_PendingDeposits_Eth1DataVoteOK(t *testing.T) {
 	}
 
 	// It should also return the recent deposits after their follow window.
+	// 应该返回最近的deposits，在它们的follow window之后
 	p.LatestBlockNumber = big.NewInt(0).Add(p.LatestBlockNumber, big.NewInt(10000))
 	_, eth1Height, err := bs.canonicalEth1Data(ctx, beaconState, &ethpb.Eth1Data{})
 	require.NoError(t, err)

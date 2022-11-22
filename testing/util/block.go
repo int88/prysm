@@ -204,11 +204,13 @@ func GenerateFullBlock(
 }
 
 // GenerateProposerSlashingForValidator for a specific validator index.
+// GenerateProposerSlashingForValidator对于一个特定的validator索引
 func GenerateProposerSlashingForValidator(
 	bState state.BeaconState,
 	priv bls.SecretKey,
 	idx types.ValidatorIndex,
 ) (*ethpb.ProposerSlashing, error) {
+	// 构建两个beacon header
 	header1 := HydrateSignedBeaconHeader(&ethpb.SignedBeaconBlockHeader{
 		Header: &ethpb.BeaconBlockHeader{
 			ProposerIndex: idx,

@@ -178,6 +178,7 @@ type WriteOnlyStateRoots interface {
 }
 
 // WriteOnlyEth1Data defines a struct which only has write access to eth1 data methods.
+// WriteOnlyEth1Data定义了一个结构，对于eth1 data的方法只有写权限
 type WriteOnlyEth1Data interface {
 	SetEth1Data(val *ethpb.Eth1Data) error
 	SetEth1DataVotes(val []*ethpb.Eth1Data) error
