@@ -96,6 +96,7 @@ func (v *validator) SubmitAggregateAndProof(ctx context.Context, slot types.Slot
 		log.Errorf("Could not sign aggregate and proof: %v", err)
 		return
 	}
+	// 提交signed aggregate以及proof到beacon node
 	_, err = v.validatorClient.SubmitSignedAggregateSelectionProof(ctx, &ethpb.SignedAggregateSubmitRequest{
 		SignedAggregateAndProof: &ethpb.SignedAggregateAttestationAndProof{
 			Message:   res.AggregateAndProof,
@@ -103,6 +104,7 @@ func (v *validator) SubmitAggregateAndProof(ctx context.Context, slot types.Slot
 		},
 	})
 	if err != nil {
+		// 不能提交signed aggregate以及proof到beacon node
 		log.Errorf("Could not submit signed aggregate and proof to beacon node: %v", err)
 		if v.emitAccountMetrics {
 			ValidatorAggFailVec.WithLabelValues(fmtKey).Inc()

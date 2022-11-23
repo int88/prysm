@@ -109,6 +109,7 @@ func (v *validator) SubmitSignedContributionAndProof(ctx context.Context, slot t
 		return
 	}
 
+	// 获取sync sbucommittee index
 	indexRes, err := v.validatorClient.GetSyncSubcommitteeIndex(ctx, &ethpb.SyncSubcommitteeIndexRequest{
 		PublicKey: pubKey[:],
 		Slot:      slot,

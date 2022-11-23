@@ -55,6 +55,7 @@ func (v *validator) slashableProposalCheck(
 	// then also check the signing root is different.
 	if lowestProposalExists && signingRootIsDifferent && lowestSignedProposalSlot >= blk.Slot() {
 		return fmt.Errorf(
+			// 不能对slot小于db中最小的signed slot的block进行签名
 			"could not sign block with slot <= lowest signed slot in db, lowest signed slot: %d >= block slot: %d",
 			lowestSignedProposalSlot,
 			blk.Slot(),

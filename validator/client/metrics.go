@@ -218,6 +218,9 @@ var (
 // responsibilities throughout the beacon chain's lifecycle. It logs absolute accrued rewards
 // and penalties over time, percentage gain/loss, and gives the end user a better idea
 // of how the validator performs with respect to the rest.
+// LogValidatorGainsAndLosses记录和validator client的责任相关的重要数据，在整个beacon chain的生命周期
+// 它记录绝对的accrued rewards以及penalties，gain/loss的百分比，并且给end user直观的感受，对于validator
+// 和剩余validator相比的情况
 func (v *validator) LogValidatorGainsAndLosses(ctx context.Context, slot types.Slot) error {
 	if !slots.IsEpochEnd(slot) || slot <= params.BeaconConfig().SlotsPerEpoch {
 		// Do nothing unless we are at the end of the epoch, and not in the first epoch.

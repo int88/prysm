@@ -166,6 +166,7 @@ type ReadOnlyAttestations interface {
 }
 
 // WriteOnlyBlockRoots defines a struct which only has write access to block roots methods.
+// WriteOnlyBlockRoots定义了一个结构，对于block roots方法只有写权限
 type WriteOnlyBlockRoots interface {
 	SetBlockRoots(val [][]byte) error
 	UpdateBlockRootAtIndex(idx uint64, blockRoot [32]byte) error

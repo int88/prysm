@@ -70,6 +70,7 @@ func SlotCommitteeCount(activeValidatorCount uint64) uint64 {
 //   def get_beacon_committee(state: BeaconState, slot: Slot, index: CommitteeIndex) -> Sequence[ValidatorIndex]:
 //    """
 //    Return the beacon committee at ``slot`` for ``index``.
+//	  返回beacon committee在``slot``，对于``index``
 //    """
 //    epoch = compute_epoch_at_slot(slot)
 //    committees_per_slot = get_committee_count_per_slot(state, epoch)
@@ -86,6 +87,7 @@ func BeaconCommitteeFromState(ctx context.Context, state state.ReadOnlyBeaconSta
 		return nil, errors.Wrap(err, "could not get seed")
 	}
 
+	// 获取committee
 	committee, err := committeeCache.Committee(ctx, slot, seed, committeeIndex)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not interface with committee cache")
@@ -94,6 +96,7 @@ func BeaconCommitteeFromState(ctx context.Context, state state.ReadOnlyBeaconSta
 		return committee, nil
 	}
 
+	// 不能获取active indices
 	activeIndices, err := ActiveValidatorIndices(ctx, state, epoch)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not get active indices")
@@ -391,6 +394,7 @@ func ClearCache() {
 
 // computeCommittee returns the requested shuffled committee out of the total committees using
 // validator indices and seed.
+// computeCommittee返回请求的shuffled committee，从total committees，使用validator indices以及seed
 //
 // Spec pseudocode definition:
 //  def compute_committee(indices: Sequence[ValidatorIndex],

@@ -26,6 +26,7 @@ func (s *Service) getAttPreState(ctx context.Context, c *ethpb.Checkpoint) (stat
 	lock := async.NewMultilock(string(c.Root) + epochKey)
 	lock.Lock()
 	defer lock.Unlock()
+	// 获取缓存的checkpoint state
 	cachedState, err := s.checkpointStateCache.StateByCheckpoint(c)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not get cached checkpoint state")
@@ -34,6 +35,7 @@ func (s *Service) getAttPreState(ctx context.Context, c *ethpb.Checkpoint) (stat
 		return cachedState, nil
 	}
 
+	// 获取epoch的prestate
 	baseState, err := s.cfg.StateGen.StateByRoot(ctx, bytesutil.ToBytes32(c.Root))
 	if err != nil {
 		return nil, errors.Wrapf(err, "could not get pre state for epoch %d", c.Epoch)
@@ -45,6 +47,7 @@ func (s *Service) getAttPreState(ctx context.Context, c *ethpb.Checkpoint) (stat
 	}
 	baseState, err = transition.ProcessSlotsIfPossible(ctx, baseState, epochStartSlot)
 	if err != nil {
+		// 不能处理slots，直到epoch
 		return nil, errors.Wrapf(err, "could not process slots up to epoch %d", c.Epoch)
 	}
 
@@ -52,6 +55,7 @@ func (s *Service) getAttPreState(ctx context.Context, c *ethpb.Checkpoint) (stat
 	// of attestation prestate is by far the most accessed state fetching pattern in
 	// the beacon node. An extra state instance cached isn't an issue in the bigger
 	// picture.
+	// 这这里跨caches共享同样的state是最好的
 	if err := s.checkpointStateCache.AddCheckpointState(c, baseState); err != nil {
 		return nil, errors.Wrap(err, "could not save checkpoint state to cache")
 	}
@@ -76,6 +80,7 @@ func verifyAttTargetEpoch(_ context.Context, genesisTime, nowTime uint64, c *eth
 }
 
 // verifyBeaconBlock verifies beacon head block is known and not from the future.
+// verifyBeaconBlock校验beacon head block是已知的，不是来自未来
 func (s *Service) verifyBeaconBlock(ctx context.Context, data *ethpb.AttestationData) error {
 	r := bytesutil.ToBytes32(data.BeaconBlockRoot)
 	b, err := s.getBlock(ctx, r)

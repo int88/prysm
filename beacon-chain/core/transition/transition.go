@@ -258,6 +258,7 @@ func ProcessSlots(ctx context.Context, state state.BeaconState, slot types.Slot)
 			}
 			return nil, ctx.Err()
 		}
+		// 处理slot
 		state, err = ProcessSlot(ctx, state)
 		if err != nil {
 			tracing.AnnotateError(span, err)
@@ -281,6 +282,7 @@ func ProcessSlots(ctx context.Context, state state.BeaconState, slot types.Slot)
 				return nil, errors.New("beacon state should have a version")
 			}
 		}
+		// 对state slot进行自增
 		if err := state.SetSlot(state.Slot() + 1); err != nil {
 			tracing.AnnotateError(span, err)
 			return nil, errors.Wrap(err, "failed to increment state slot")

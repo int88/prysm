@@ -111,6 +111,7 @@ func WithP2PBroadcaster(p p2p.Broadcaster) Option {
 }
 
 // WithStateNotifier to notify an event feed of state processing.
+// WithStateNotifier来通知一个event feed，对于state processing
 func WithStateNotifier(n statefeed.Notifier) Option {
 	return func(s *Service) error {
 		s.cfg.StateNotifier = n

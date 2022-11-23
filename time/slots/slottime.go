@@ -14,6 +14,7 @@ import (
 
 // MaxSlotBuffer specifies the max buffer given to slots from
 // incoming objects. (24 mins with mainnet spec)
+// MaxSlotBuffer指定了给slots的最大buffer，从incoming objects
 const MaxSlotBuffer = uint64(1 << 7)
 
 // StartTime returns the start time in terms of its unix epoch
@@ -178,6 +179,7 @@ func CurrentSlot(genesisTimeSec uint64) types.Slot {
 // ValidateClock validates a provided slot against the local
 // clock to ensure slots that are unreasonable are returned with
 // an error.
+// ValidateClock将一个给定的slot和local clock进行校验来确保不合理的slots会返回error
 func ValidateClock(slot types.Slot, genesisTimeSec uint64) error {
 	maxPossibleSlot := CurrentSlot(genesisTimeSec).Add(MaxSlotBuffer)
 	// Defensive check to ensure that we only process slots up to a hard limit

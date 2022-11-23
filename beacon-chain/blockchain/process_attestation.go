@@ -27,17 +27,20 @@ import (
 //	  运行``on_attestation``在接收到一个新的``attestation``的时候，要么从block或者直接从wire
 //
 //    An ``attestation`` that is asserted as invalid may be valid at a later time,
+//	  一个``attestation``被判定为非法，可能在后期被认为是合法的，考虑调度它到后期处理
 //    consider scheduling it for later processing in such case.
 //    """
 //    validate_on_attestation(store, attestation)
 //    store_target_checkpoint_state(store, attestation.data.target)
 //
 //    # Get state at the `target` to fully validate attestation
+//	  # 获取`target`的state来完整校验attestation
 //    target_state = store.checkpoint_states[attestation.data.target]
 //    indexed_attestation = get_indexed_attestation(target_state, attestation)
 //    assert is_valid_indexed_attestation(target_state, indexed_attestation)
 //
 //    # Update latest messages for attesting indices
+//	  # 更新latest messages，对于attesting indices
 //    update_latest_messages(store, indexed_attestation.attesting_indices, attestation)
 func (s *Service) OnAttestation(ctx context.Context, a *ethpb.Attestation) error {
 	ctx, span := trace.StartSpan(ctx, "blockChain.onAttestation")
@@ -86,6 +89,7 @@ func (s *Service) OnAttestation(ctx context.Context, a *ethpb.Attestation) error
 	}
 
 	// Use the target state to verify attesting indices are valid.
+	// 使用target state来校验attesting indices是合法的
 	committee, err := helpers.BeaconCommitteeFromState(ctx, baseState, a.Data.Slot, a.Data.CommitteeIndex)
 	if err != nil {
 		return err

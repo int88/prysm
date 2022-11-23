@@ -52,6 +52,7 @@ func HigherEqualThanAltairVersionAndEpoch(s state.BeaconState, e types.Epoch) bo
 }
 
 // CanUpgradeToAltair returns true if the input `slot` can upgrade to Altair.
+// CanUpgradeToAltair返回true，如果输入的`slot`可以升级到Altair
 // Spec code:
 // If state.slot % SLOTS_PER_EPOCH == 0 and compute_epoch_at_slot(state.slot) == ALTAIR_FORK_EPOCH
 func CanUpgradeToAltair(slot types.Slot) bool {

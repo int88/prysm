@@ -130,8 +130,10 @@ func setupBeaconChain(t *testing.T, beaconDB db.Database) *Service {
 		WithDatabase(beaconDB),
 		WithDepositCache(depositCache),
 		WithChainStartFetcher(web3Service),
+		// 包含一个attestation pool
 		WithAttestationPool(attestations.NewPool()),
 		WithP2PBroadcaster(&mockBroadcaster{}),
+		// 构建一个state notifier
 		WithStateNotifier(&mockBeaconNode{}),
 		WithForkChoiceStore(protoarray.New()),
 		WithAttestationService(attService),
