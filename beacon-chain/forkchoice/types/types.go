@@ -18,6 +18,8 @@ type ProposerBoostRootArgs struct {
 // Checkpoint is an array version of ethpb.Checkpoint. It is used internally in
 // forkchoice, while the slice version is used in the interface to legagy code
 // in other packages
+// Checkpoint是ethpb.Checkpoint的arrary版本，它在forkchoice内部使用，同时slice version在interface使用
+// 对于其他包的legacy code
 type Checkpoint struct {
 	Epoch types.Epoch
 	Root  [fieldparams.RootLength]byte

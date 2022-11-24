@@ -49,6 +49,7 @@ func prepareForkchoiceState(
 		Epoch: finalizedEpoch,
 	}
 
+	// 构建beacon state
 	base := &ethpb.BeaconStateBellatrix{
 		Slot:                         slot,
 		RandaoMixes:                  make([][]byte, params.BeaconConfig().EpochsPerHistoricalVector),
@@ -65,6 +66,7 @@ func prepareForkchoiceState(
 func TestForkChoice_UpdateBalancesPositiveChange(t *testing.T) {
 	f := setup(0, 0)
 	ctx := context.Background()
+	// 第三个参数是block root，第二个参数是slot，第四个参数是parent block root
 	st, blkRoot, err := prepareForkchoiceState(ctx, 1, indexToHash(1), params.BeaconConfig().ZeroHash, params.BeaconConfig().ZeroHash, 0, 0)
 	require.NoError(t, err)
 	require.NoError(t, f.InsertNode(ctx, st, blkRoot))

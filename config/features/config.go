@@ -60,7 +60,8 @@ type Flags struct {
 	// EnableSlashingProtectionPruning for the validator client.
 	EnableSlashingProtectionPruning bool
 
-	EnableNativeState   bool // EnableNativeState defines whether the beacon state will be represented as a pure Go struct or a Go struct that wraps a proto struct.
+	EnableNativeState bool // EnableNativeState defines whether the beacon state will be represented as a pure Go struct or a Go struct that wraps a proto struct.
+	// 禁止boundary checks
 	PullTips            bool // Experimental disable of boundary checks
 	EnableVectorizedHTR bool // EnableVectorizedHTR specifies whether the beacon state will use the optimized sha256 routines.
 	// EnableForkChoiceDoublyLinkedTree指定是否fork choice store会使用一个doubly linked tree

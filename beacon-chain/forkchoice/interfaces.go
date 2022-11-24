@@ -13,12 +13,17 @@ import (
 // ForkChoicer represents the full fork choice interface composed of all the sub-interfaces.
 // ForkChoicer代表了由所有sub-interface组合而成的完整的fork choice接口
 type ForkChoicer interface {
-	HeadRetriever        // to compute head.
-	BlockProcessor       // to track new block for fork choice.
+	// 计算head
+	HeadRetriever // to compute head.
+	// 为fork choice追踪新的block
+	BlockProcessor // to track new block for fork choice.
+	// 为fork choice追踪新的attestation
 	AttestationProcessor // to track new attestation for fork choice.
-	Getter               // to retrieve fork choice information.
-	Setter               // to set fork choice information.
-	ProposerBooster      // ability to boost timely-proposed block roots.
+	// 获取fork choice的信息
+	Getter // to retrieve fork choice information.
+	// 设置fork choice的信息
+	Setter          // to set fork choice information.
+	ProposerBooster // ability to boost timely-proposed block roots.
 }
 
 // HeadRetriever retrieves head root and optimistic info of the current chain.

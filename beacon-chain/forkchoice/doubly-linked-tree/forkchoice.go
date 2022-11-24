@@ -32,10 +32,12 @@ func New() *ForkChoice {
 		prevJustifiedCheckpoint:       &forkchoicetypes.Checkpoint{},
 		finalizedCheckpoint:           &forkchoicetypes.Checkpoint{},
 		proposerBoostRoot:             [32]byte{},
-		nodeByRoot:                    make(map[[fieldparams.RootLength]byte]*Node),
-		nodeByPayload:                 make(map[[fieldparams.RootLength]byte]*Node),
-		slashedIndices:                make(map[types.ValidatorIndex]bool),
-		pruneThreshold:                defaultPruneThreshold,
+		// 从Root映射到Node
+		nodeByRoot: make(map[[fieldparams.RootLength]byte]*Node),
+		// 从payload映射到Node
+		nodeByPayload:  make(map[[fieldparams.RootLength]byte]*Node),
+		slashedIndices: make(map[types.ValidatorIndex]bool),
+		pruneThreshold: defaultPruneThreshold,
 	}
 
 	b := make([]uint64, 0)
@@ -215,6 +217,7 @@ func (f *ForkChoice) updateCheckpoints(ctx context.Context, jc, fc *ethpb.Checkp
 		f.store.checkpointsLock.Unlock()
 		return nil
 	}
+	// 更新finalized checkpoint和justified checkpoint
 	f.store.finalizedCheckpoint = &forkchoicetypes.Checkpoint{Epoch: fc.Epoch,
 		Root: bytesutil.ToBytes32(fc.Root)}
 	f.store.justifiedCheckpoint = &forkchoicetypes.Checkpoint{Epoch: jc.Epoch,
