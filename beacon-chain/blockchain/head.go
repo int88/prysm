@@ -67,6 +67,7 @@ func (s *Service) saveHead(ctx context.Context, newHeadRoot [32]byte, headBlock 
 	defer span.End()
 
 	// Do nothing if head hasn't changed.
+	// 如果head没有改变，则什么都不做
 	var oldHeadRoot [32]byte
 	s.headLock.RLock()
 	if s.head == nil {
@@ -87,6 +88,7 @@ func (s *Service) saveHead(ctx context.Context, newHeadRoot [32]byte, headBlock 
 
 	// If the head state is not available, just return nil.
 	// There's nothing to cache
+	// 如果head state不可用，返回nil，没有东西缓存
 	if !s.cfg.BeaconDB.HasStateSummary(ctx, newHeadRoot) {
 		return nil
 	}
@@ -130,9 +132,11 @@ func (s *Service) saveHead(ctx context.Context, newHeadRoot [32]byte, headBlock 
 	}
 
 	// Cache the new head info.
+	// 缓存新的head info
 	s.setHead(newHeadRoot, headBlock, headState)
 
 	// Save the new head root to DB.
+	// 保存新的head root到DB
 	if err := s.cfg.BeaconDB.SaveHeadBlockRoot(ctx, newHeadRoot); err != nil {
 		return errors.Wrap(err, "could not save head root in DB")
 	}

@@ -57,6 +57,7 @@ func ExecuteStateTransitionNoVerifyAnySig(
 	defer span.End()
 	var err error
 
+	// 将block以及state写入
 	interop.WriteBlockToDisk(signed, false /* Has the block failed */)
 	interop.WriteStateToDisk(st)
 
@@ -80,6 +81,7 @@ func ExecuteStateTransitionNoVerifyAnySig(
 		return nil, nil, err
 	}
 	if !bytes.Equal(postStateRoot[:], signed.Block().StateRoot()) {
+		// 校验state root失败
 		return nil, nil, fmt.Errorf("could not validate state root, wanted: %#x, received: %#x",
 			postStateRoot[:], signed.Block().StateRoot())
 	}
@@ -177,6 +179,7 @@ func ProcessBlockNoVerifyAnySig(
 	}
 
 	blk := signed.Block()
+	// 处理block用于state root
 	st, err := ProcessBlockForStateRoot(ctx, st, signed)
 	if err != nil {
 		return nil, nil, err
@@ -185,15 +188,18 @@ func ProcessBlockNoVerifyAnySig(
 	bSet, err := b.BlockSignatureBatch(st, blk.ProposerIndex(), signed.Signature(), blk.HashTreeRoot)
 	if err != nil {
 		tracing.AnnotateError(span, err)
+		// 获取block signature set
 		return nil, nil, errors.Wrap(err, "could not retrieve block signature set")
 	}
 	rSet, err := b.RandaoSignatureBatch(ctx, st, signed.Block().Body().RandaoReveal())
 	if err != nil {
 		tracing.AnnotateError(span, err)
+		// 获取randao signature set
 		return nil, nil, errors.Wrap(err, "could not retrieve randao signature set")
 	}
 	aSet, err := b.AttestationSignatureBatch(ctx, st, signed.Block().Body().Attestations())
 	if err != nil {
+		// 获取attestation signature set
 		return nil, nil, errors.Wrap(err, "could not retrieve attestation signature set")
 	}
 
@@ -261,15 +267,21 @@ func ProcessOperationsNoVerifyAttsSigs(
 
 // ProcessBlockForStateRoot processes the state for state root computation. It skips proposer signature
 // and randao signature verifications.
+// ProcessBlockForStateRoot处理state，用于state root computation，它跳过proposer的signature以及randao signature的校验
 //
 // Spec pseudocode definition:
 // def process_block(state: BeaconState, block: BeaconBlock) -> None:
+//    处理block header
 //    process_block_header(state, block)
 //    if is_execution_enabled(state, block.body):
+//        处理execution payload
 //        process_execution_payload(state, block.body.execution_payload, EXECUTION_ENGINE)  # [New in Bellatrix]
 //    process_randao(state, block.body)
+//    处理eth1 data
 //    process_eth1_data(state, block.body)
+//    处理operations
 //    process_operations(state, block.body)
+//    处理sync aggregate
 //    process_sync_aggregate(state, block.body.sync_aggregate)
 func ProcessBlockForStateRoot(
 	ctx context.Context,
@@ -382,18 +394,22 @@ func phase0Operations(
 	ctx context.Context,
 	st state.BeaconState,
 	signedBeaconBlock interfaces.SignedBeaconBlock) (state.BeaconState, error) {
+	// 处理proposer slashings
 	st, err := b.ProcessProposerSlashings(ctx, st, signedBeaconBlock.Block().Body().ProposerSlashings(), v.SlashValidator)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not process block proposer slashings")
 	}
+	// 处理block attester slashings
 	st, err = b.ProcessAttesterSlashings(ctx, st, signedBeaconBlock.Block().Body().AttesterSlashings(), v.SlashValidator)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not process block attester slashings")
 	}
+	// 处理block attestations
 	st, err = b.ProcessAttestationsNoVerifySignature(ctx, st, signedBeaconBlock)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not process block attestations")
 	}
+	// 处理processes deposits
 	if _, err := b.ProcessDeposits(ctx, st, signedBeaconBlock.Block().Body().Deposits()); err != nil {
 		return nil, errors.Wrap(err, "could not process deposits")
 	}

@@ -22,6 +22,7 @@ type slashValidatorFunc func(ctx context.Context, st state.BeaconState, vid type
 // ProcessProposerSlashings is one of the operations performed
 // on each processed beacon block to slash proposers based on
 // slashing conditions if any slashable events occurred.
+// ProcessProposerSlashings
 //
 // Spec pseudocode definition:
 //   def process_proposer_slashing(state: BeaconState, proposer_slashing: ProposerSlashing) -> None:

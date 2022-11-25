@@ -82,8 +82,11 @@ func (s *Service) OnAttestation(ctx context.Context, a *ethpb.Attestation) error
 
 	// Note that LMG GHOST and FFG consistency check is ignored because it was performed in sync's validation pipeline:
 	// validate_aggregate_proof.go and validate_beacon_attestation.go
+	// 注意LMG GHOST以及FFG的一致性检查是忽略的，因为它在sync的valiation pipeline中处理
+	// validate_aggregate_proof.go以及validate_beacon_attestation.go
 
 	// Verify attestations can only affect the fork choice of subsequent slots.
+	// 校验attestations只会影响后续slots的fork choice
 	if err := slots.VerifyTime(genesisTime, a.Data.Slot+1, params.BeaconNetworkConfig().MaximumGossipClockDisparity); err != nil {
 		return err
 	}
@@ -94,6 +97,7 @@ func (s *Service) OnAttestation(ctx context.Context, a *ethpb.Attestation) error
 	if err != nil {
 		return err
 	}
+	// 转换为indexed attr
 	indexedAtt, err := attestation.ConvertToIndexed(ctx, a, committee)
 	if err != nil {
 		return err

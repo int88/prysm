@@ -66,6 +66,7 @@ func ProcessBlockHeader(
 
 // ProcessBlockHeaderNoVerify validates a block by its header but skips proposer
 // signature verification.
+// ProcessBlockHeaderNoVerify通过header校验一个block
 //
 // WARNING: This method does not verify proposer signature. This is used for proposer to compute state root
 // using a unsigned block.
@@ -73,14 +74,19 @@ func ProcessBlockHeader(
 // Spec pseudocode definition:
 //  def process_block_header(state: BeaconState, block: BeaconBlock) -> None:
 //    # Verify that the slots match
+//    # 校验slots匹配
 //    assert block.slot == state.slot
 //    # Verify that the block is newer than latest block header
+//    # 校验block比最新的block header更新
 //    assert block.slot > state.latest_block_header.slot
 //    # Verify that proposer index is the correct index
+//    # 校验proposer index是正确的
 //    assert block.proposer_index == get_beacon_proposer_index(state)
 //    # Verify that the parent matches
+//    # 确认parent匹配
 //    assert block.parent_root == hash_tree_root(state.latest_block_header)
 //    # Cache current block as the new latest block
+//    # 缓存当前的block作为新的latest block
 //    state.latest_block_header = BeaconBlockHeader(
 //        slot=block.slot,
 //        proposer_index=block.proposer_index,
@@ -90,6 +96,7 @@ func ProcessBlockHeader(
 //    )
 //
 //    # Verify proposer is not slashed
+//    # 校验proposer没有被slashed
 //    proposer = state.validators[block.proposer_index]
 //    assert not proposer.slashed
 func ProcessBlockHeaderNoVerify(
@@ -101,6 +108,7 @@ func ProcessBlockHeaderNoVerify(
 	if beaconState.Slot() != slot {
 		return nil, fmt.Errorf("state slot: %d is different than block slot: %d", beaconState.Slot(), slot)
 	}
+	// 计算出proposer index
 	idx, err := helpers.BeaconProposerIndex(ctx, beaconState)
 	if err != nil {
 		return nil, err

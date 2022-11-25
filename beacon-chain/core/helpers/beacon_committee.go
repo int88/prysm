@@ -300,6 +300,7 @@ func ShuffledIndices(s state.ReadOnlyBeaconState, epoch types.Epoch) ([]types.Va
 // 用committee index和epoch number，它缓存shuffled indices，对于当前的epoch以及下一个epoch
 func UpdateCommitteeCache(ctx context.Context, state state.ReadOnlyBeaconState, epoch types.Epoch) error {
 	for _, e := range []types.Epoch{epoch, epoch + 1} {
+		// 获取seed
 		seed, err := Seed(state, e, params.BeaconConfig().DomainBeaconAttester)
 		if err != nil {
 			return err
@@ -318,6 +319,7 @@ func UpdateCommitteeCache(ctx context.Context, state state.ReadOnlyBeaconState, 
 		// Store the sorted indices as well as shuffled indices. In current spec,
 		// sorted indices is required to retrieve proposer index. This is also
 		// used for failing verify signature fallback.
+		// 存储sorted indices以及shuffled indices，在当前的spec
 		sortedIndices := make([]types.ValidatorIndex, len(shuffledIndices))
 		copy(sortedIndices, shuffledIndices)
 		sort.Slice(sortedIndices, func(i, j int) bool {
@@ -348,6 +350,7 @@ func UpdateProposerIndicesInCache(ctx context.Context, state state.ReadOnlyBeaco
 	}
 
 	// Use state root from (current_epoch - 1))
+	// 使用来自(current_epoch - 1)的state root
 	wantedEpoch := time.PrevEpoch(state)
 	s, err := slots.EpochEnd(wantedEpoch)
 	if err != nil {
@@ -358,10 +361,12 @@ func UpdateProposerIndicesInCache(ctx context.Context, state state.ReadOnlyBeaco
 		return err
 	}
 	// Skip cache update if we have an invalid key
+	// 跳过cache update，如果我们有一个非法的key
 	if r == nil || bytes.Equal(r, params.BeaconConfig().ZeroHash[:]) {
 		return nil
 	}
 	// Skip cache update if the key already exists
+	// 跳过cache update，如果key已经存在了
 	exists, err := proposerIndicesCache.HasProposerIndices(bytesutil.ToBytes32(r))
 	if err != nil {
 		return err
@@ -374,10 +379,12 @@ func UpdateProposerIndicesInCache(ctx context.Context, state state.ReadOnlyBeaco
 	if err != nil {
 		return err
 	}
+	// 提前计算proposer indices
 	proposerIndices, err := precomputeProposerIndices(state, indices)
 	if err != nil {
 		return err
 	}
+	// 添加proposer indices
 	return proposerIndicesCache.AddProposerIndices(&cache.ProposerIndices{
 		BlockRoot:       bytesutil.ToBytes32(r),
 		ProposerIndices: proposerIndices,
@@ -436,6 +443,7 @@ func computeCommittee(
 
 // This computes proposer indices of the current epoch and returns a list of proposer indices,
 // the index of the list represents the slot number.
+// 这个函数计算proposer indices，对于当前的epoch，并且返回一系列的proposer indices，list的索引代表slot number
 func precomputeProposerIndices(state state.ReadOnlyBeaconState, activeIndices []types.ValidatorIndex) ([]types.ValidatorIndex, error) {
 	hashFunc := hash.CustomSHA256Hasher()
 	proposerIndices := make([]types.ValidatorIndex, params.BeaconConfig().SlotsPerEpoch)

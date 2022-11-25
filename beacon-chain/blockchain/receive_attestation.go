@@ -208,6 +208,7 @@ func (s *Service) notifyEngineIfChangedHead(ctx context.Context, newHeadRoot [32
 	}
 	headState, err := s.cfg.StateGen.StateByRoot(ctx, newHeadRoot)
 	if err != nil {
+		// 不能从db中获取state
 		log.WithError(err).Error("Could not get state from db")
 		return
 	}
@@ -216,6 +217,7 @@ func (s *Service) notifyEngineIfChangedHead(ctx context.Context, newHeadRoot [32
 		headRoot:  newHeadRoot,
 		headBlock: newHeadBlock.Block(),
 	}
+	// 通知forkchocie update
 	_, err = s.notifyForkchoiceUpdate(s.ctx, arg)
 	if err != nil {
 		log.WithError(err).Error("could not notify forkchoice update")

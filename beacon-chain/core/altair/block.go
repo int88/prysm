@@ -17,6 +17,7 @@ import (
 )
 
 // ProcessSyncAggregate verifies sync committee aggregate signature signing over the previous slot block root.
+// ProcessSyncAggregate校验sync committee aggregate在之前的slot block root上签名
 //
 // Spec code:
 // def process_sync_aggregate(state: BeaconState, sync_aggregate: SyncAggregate) -> None:
@@ -29,6 +30,7 @@ import (
 //    assert eth2_fast_aggregate_verify(participant_pubkeys, signing_root, sync_aggregate.sync_committee_signature)
 //
 //    # Compute participant and proposer rewards
+//    # 计算participant以及proposer rewards
 //    total_active_increments = get_total_active_balance(state) // EFFECTIVE_BALANCE_INCREMENT
 //    total_base_rewards = Gwei(get_base_reward_per_increment(state) * total_active_increments)
 //    max_participant_rewards = Gwei(total_base_rewards * SYNC_REWARD_WEIGHT // WEIGHT_DENOMINATOR // SLOTS_PER_EPOCH)
@@ -36,6 +38,7 @@ import (
 //    proposer_reward = Gwei(participant_reward * PROPOSER_WEIGHT // (WEIGHT_DENOMINATOR - PROPOSER_WEIGHT))
 //
 //    # Apply participant and proposer rewards
+//    # 应用participant以及proposer rewards
 //    all_pubkeys = [v.pubkey for v in state.validators]
 //    committee_indices = [ValidatorIndex(all_pubkeys.index(pubkey)) for pubkey in state.current_sync_committee.pubkeys]
 //    for participant_index, participation_bit in zip(committee_indices, sync_aggregate.sync_committee_bits):

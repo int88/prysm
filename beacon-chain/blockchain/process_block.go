@@ -68,32 +68,41 @@ var initialSyncBlockCacheSize = uint64(2 * params.BeaconConfig().SlotsPerEpoch)
 //    assert get_ancestor(store, block.parent_root, finalized_slot) == store.finalized_checkpoint.root
 //
 //    # Check the block is valid and compute the post-state
+//	  # 检查block是合法的并且计算post-state
 //    state = pre_state.copy()
 //    state_transition(state, signed_block, True)
 //    # Add new block to the store
+//	  # 添加新的block到store
 //    store.blocks[hash_tree_root(block)] = block
 //    # Add new state for this block to the store
+//    # 添加这个block的新的state到store
 //    store.block_states[hash_tree_root(block)] = state
 //
 //    # Update justified checkpoint
+//    # 更新justified checkpoint
 //    if state.current_justified_checkpoint.epoch > store.justified_checkpoint.epoch:
 //        if state.current_justified_checkpoint.epoch > store.best_justified_checkpoint.epoch:
+//            设置best_justified_checkpoint
 //            store.best_justified_checkpoint = state.current_justified_checkpoint
 //        if should_update_justified_checkpoint(store, state.current_justified_checkpoint):
 //            store.justified_checkpoint = state.current_justified_checkpoint
 //
 //    # Update finalized checkpoint
+//    # 更新finalized checkpoint
 //    if state.finalized_checkpoint.epoch > store.finalized_checkpoint.epoch:
 //        store.finalized_checkpoint = state.finalized_checkpoint
 //
 //        # Potentially update justified if different from store
+//        # 潜在地更新justified，如果和store不同
 //        if store.justified_checkpoint != state.current_justified_checkpoint:
 //            # Update justified if new justified is later than store justified
+//			  # 更新justified，如果新的justified比存储的justified更新
 //            if state.current_justified_checkpoint.epoch > store.justified_checkpoint.epoch:
 //                store.justified_checkpoint = state.current_justified_checkpoint
 //                return
 //
 //            # Update justified if store justified is not in chain with finalized checkpoint
+//			  # 更新justified，如果存储的justified与finalized checkpoint不在链上
 //            finalized_slot = compute_start_slot_at_epoch(store.finalized_checkpoint.epoch)
 //            ancestor_at_finalized_slot = get_ancestor(store, store.justified_checkpoint.root, finalized_slot)
 //            if ancestor_at_finalized_slot != store.finalized_checkpoint.root:
@@ -120,6 +129,7 @@ func (s *Service) onBlock(ctx context.Context, signed interfaces.SignedBeaconBlo
 	if err != nil {
 		return invalidBlock{err}
 	}
+	// 获取state version以及payload
 	postStateVersion, postStateHeader, err := getStateVersionAndPayload(postState)
 	if err != nil {
 		return err
@@ -191,10 +201,13 @@ func (s *Service) onBlock(ctx context.Context, signed interfaces.SignedBeaconBlo
 	}
 	headRoot, err := s.cfg.ForkChoiceStore.Head(ctx, balances)
 	if err != nil {
+		// 不能update head
 		log.WithError(err).Warn("Could not update head")
 	}
+	// 通知engine，如果head改变的话
 	s.notifyEngineIfChangedHead(ctx, headRoot)
 
+	// 将canonical attrs从pool中移除
 	if err := s.pruneCanonicalAttsFromPool(ctx, blockRoot, signed); err != nil {
 		return err
 	}
@@ -240,6 +253,7 @@ func (s *Service) onBlock(ctx context.Context, signed interfaces.SignedBeaconBlo
 	// 更新finalized checkpoint
 	finalized := s.ForkChoicer().FinalizedCheckpoint()
 	if finalized.Epoch > currFinalizedEpoch {
+		// 更新finalized checkpoint
 		if err := s.updateFinalized(ctx, &ethpb.Checkpoint{Epoch: finalized.Epoch, Root: finalized.Root[:]}); err != nil {
 			return err
 		}
@@ -495,6 +509,7 @@ func (s *Service) handleEpochBoundary(ctx context.Context, postState state.Beaco
 		if err := helpers.UpdateCommitteeCache(ctx, copied, coreTime.CurrentEpoch(copied)); err != nil {
 			return err
 		}
+		// 更新proposer indices
 		if err := helpers.UpdateProposerIndicesInCache(ctx, copied); err != nil {
 			return err
 		}
@@ -541,20 +556,24 @@ func (s *Service) insertBlockAndAttestationsToForkChoiceStore(ctx context.Contex
 		}
 	}
 
+	// 将block作为node插入
 	if err := s.cfg.ForkChoiceStore.InsertNode(ctx, st, root); err != nil {
 		return err
 	}
 	// Feed in block's attestations to fork choice store.
 	// Feed block的attestations到fork choice store
 	for _, a := range blk.Body().Attestations() {
+		// 获取committee
 		committee, err := helpers.BeaconCommitteeFromState(ctx, st, a.Data.Slot, a.Data.CommitteeIndex)
 		if err != nil {
 			return err
 		}
+		// 获取attesting indices
 		indices, err := attestation.AttestingIndices(a.AggregationBits, committee)
 		if err != nil {
 			return err
 		}
+		// 处理attestations
 		s.cfg.ForkChoiceStore.ProcessAttestation(ctx, indices, bytesutil.ToBytes32(a.Data.BeaconBlockRoot), a.Data.Target.Epoch)
 	}
 	return nil
@@ -599,6 +618,7 @@ func (s *Service) pruneCanonicalAttsFromPool(ctx context.Context, r [32]byte, b 
 
 	atts := b.Block().Body().Attestations()
 	for _, att := range atts {
+		// 从pool中删除canonical chain中的attestations
 		if helpers.IsAggregated(att) {
 			if err := s.cfg.AttPool.DeleteAggregatedAttestation(att); err != nil {
 				return err

@@ -25,6 +25,7 @@ func ProcessEth1DataInBlock(_ context.Context, beaconState state.BeaconState, et
 	if beaconState == nil || beaconState.IsNil() {
 		return nil, errors.New("nil state")
 	}
+	// 扩展eth1 data votes
 	if err := beaconState.AppendEth1DataVotes(eth1Data); err != nil {
 		return nil, err
 	}
@@ -57,6 +58,9 @@ func AreEth1DataEqual(a, b *ethpb.Eth1Data) bool {
 // eth1 voting period. A vote is cast by including eth1data in a block and part of state processing
 // appends eth1data to the state in the Eth1DataVotes list. Iterating through this list checks the
 // votes to see if they match the eth1data.
+// Eth1DataHasEnoughSupport返回true，当给定的eth1data有超过50%的votes，在eth1的voting period
+// 一个vote可以被转换，当包括eth1data，在一个block，并且部分state processing将eth1data扩展到Eth1DataVotes
+// list的state中，遍历list查看votes，它们是否匹配eth1data
 func Eth1DataHasEnoughSupport(beaconState state.ReadOnlyBeaconState, data *ethpb.Eth1Data) (bool, error) {
 	voteCount := uint64(0)
 	data = ethpb.CopyETH1Data(data)
@@ -69,6 +73,7 @@ func Eth1DataHasEnoughSupport(beaconState state.ReadOnlyBeaconState, data *ethpb
 
 	// If 50+% majority converged on the same eth1data, then it has enough support to update the
 	// state.
+	// 如果50+%的大多数覆盖了同样的eth1data，那么它有足够的支持来更新state
 	support := params.BeaconConfig().SlotsPerEpoch.Mul(uint64(params.BeaconConfig().EpochsPerEth1VotingPeriod))
 	return voteCount*2 > uint64(support), nil
 }

@@ -38,13 +38,16 @@ import (
 //  def state_transition(state: BeaconState, signed_block: SignedBeaconBlock, validate_result: bool=True) -> None:
 //    block = signed_block.message
 //    # Process slots (including those with no blocks) since block
+//    # 处理slots（包括这些没有blocks），从block之后
 //    process_slots(state, block.slot)
 //    # Verify signature
 //    if validate_result:
 //        assert verify_block_signature(state, signed_block)
 //    # Process block
+// 	  # 处理block
 //    process_block(state, block)
 //    # Verify state root
+//    # 校验state root
 //    if validate_result:
 //        assert block.state_root == hash_tree_root(state)
 func ExecuteStateTransition(
@@ -88,12 +91,15 @@ func ExecuteStateTransition(
 //
 //  def process_slot(state: BeaconState) -> None:
 //    # Cache state root
+//	  # 缓存state root
 //    previous_state_root = hash_tree_root(state)
 //    state.state_roots[state.slot % SLOTS_PER_HISTORICAL_ROOT] = previous_state_root
 //    # Cache latest block header state root
+//    # 缓存最新的block header state root
 //    if state.latest_block_header.state_root == Bytes32():
 //        state.latest_block_header.state_root = previous_state_root
 //    # Cache block root
+//    # 缓存block root
 //    previous_block_root = hash_tree_root(state.latest_block_header)
 //    state.block_roots[state.slot % SLOTS_PER_HISTORICAL_ROOT] = previous_block_root
 func ProcessSlot(ctx context.Context, state state.BeaconState) (state.BeaconState, error) {
@@ -157,17 +163,21 @@ func ProcessSlotsUsingNextSlotCache(
 	cachedStateExists := nextSlotState != nil && !nextSlotState.IsNil()
 	// If the next slot state is not nil (i.e. cache hit).
 	// We replace next slot state with parent state.
+	// 如果下一个slot state不为nil（例如，cache hit）
+	// 我们用parent state替换next slot
 	if cachedStateExists {
 		parentState = nextSlotState
 	}
 
 	// In the event our cached state has advanced our
 	// state to the desired slot, we exit early.
+	// 如果我们缓存的state已经移动state到期望的slot，我们尽早退出
 	if cachedStateExists && parentState.Slot() == slot {
 		return parentState, nil
 	}
 	// Since next slot cache only advances state by 1 slot,
 	// we check if there's more slots that need to process.
+	// 我们查看是否有更多的slots需要处理
 	parentState, err = ProcessSlots(ctx, parentState, slot)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not process slots")

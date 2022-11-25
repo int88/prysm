@@ -64,6 +64,7 @@ func (b *BeaconState) SetGenesisValidatorsRoot(val []byte) error {
 }
 
 // SetSlot for the beacon state.
+// 为beacon state设置slot
 func (b *BeaconState) SetSlot(val types.Slot) error {
 	b.lock.Lock()
 	defer b.lock.Unlock()
