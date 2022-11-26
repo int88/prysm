@@ -160,8 +160,10 @@ func (s *Service) UpdateHead(ctx context.Context) error {
 	s.processAttestationsLock.Lock()
 	defer s.processAttestationsLock.Unlock()
 
+	// 处理attestations
 	s.processAttestations(ctx)
 
+	// 获取justified checkpoint
 	justified := s.ForkChoicer().JustifiedCheckpoint()
 	balances, err := s.justifiedBalances.get(ctx, justified.Root)
 	if err != nil {
@@ -181,6 +183,7 @@ func (s *Service) UpdateHead(ctx context.Context) error {
 		}).Debug("Head changed due to attestations")
 	}
 	s.headLock.RUnlock()
+	// 通知engine，如果head root发生了改变
 	s.notifyEngineIfChangedHead(ctx, newHeadRoot)
 	return nil
 }

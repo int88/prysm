@@ -191,6 +191,7 @@ func ProcessSlotsUsingNextSlotCache(
 // 否则，它不改变地返回input state
 func ProcessSlotsIfPossible(ctx context.Context, state state.BeaconState, targetSlot types.Slot) (state.BeaconState, error) {
 	if targetSlot > state.Slot() {
+		// 如果target slot大于state中的slot，继续进行处理
 		return ProcessSlots(ctx, state, targetSlot)
 	}
 	return state, nil

@@ -1,5 +1,6 @@
 // Package blocks contains block processing libraries according to
 // the Ethereum beacon chain spec.
+// blocks包包含了block processing库，根据Ethereum beacon chain spec
 package blocks
 
 import (
@@ -15,6 +16,7 @@ func NewGenesisBlock(stateRoot []byte) *ethpb.SignedBeaconBlock {
 	zeroHash := params.BeaconConfig().ZeroHash[:]
 	block := &ethpb.SignedBeaconBlock{
 		Block: &ethpb.BeaconBlock{
+			// parent是zero hash
 			ParentRoot: zeroHash,
 			StateRoot:  bytesutil.PadTo(stateRoot, 32),
 			Body: &ethpb.BeaconBlockBody{
@@ -26,6 +28,7 @@ func NewGenesisBlock(stateRoot []byte) *ethpb.SignedBeaconBlock {
 				Graffiti: make([]byte, 32),
 			},
 		},
+		// 空的signature
 		Signature: params.BeaconConfig().EmptySignature[:],
 	}
 	return block

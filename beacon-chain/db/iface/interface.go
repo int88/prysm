@@ -53,6 +53,7 @@ type ReadOnlyDatabase interface {
 	// Powchain operations.
 	PowchainData(ctx context.Context) (*ethpb.ETH1ChainData, error)
 	// Fee reicipients operations.
+	// Fee reicipients的操作
 	FeeRecipientByValidatorID(ctx context.Context, id types.ValidatorIndex) (common.Address, error)
 	// origin checkpoint sync support
 	OriginCheckpointBlockRoot(ctx context.Context) ([32]byte, error)

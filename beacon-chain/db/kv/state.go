@@ -126,6 +126,7 @@ func (s *Store) SaveState(ctx context.Context, st state.ReadOnlyBeaconState, blo
 }
 
 // SaveStates stores multiple states to the db using the provided corresponding roots.
+// SaveStates存储多个states到db，使用提供的，对应的roots
 func (s *Store) SaveStates(ctx context.Context, states []state.ReadOnlyBeaconState, blockRoots [][32]byte) error {
 	ctx, span := trace.StartSpan(ctx, "BeaconDB.SaveStates")
 	defer span.End()
@@ -142,6 +143,7 @@ func (s *Store) SaveStates(ctx context.Context, states []state.ReadOnlyBeaconSta
 	}
 
 	return s.db.Update(func(tx *bolt.Tx) error {
+		// 获取state bucket
 		bucket := tx.Bucket(stateBucket)
 		for i, rt := range blockRoots {
 			indicesByBucket := createStateIndicesFromStateSlot(ctx, states[i].Slot())

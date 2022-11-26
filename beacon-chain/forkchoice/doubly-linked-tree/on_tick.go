@@ -20,14 +20,17 @@ import (
 //
 // Spec pseudocode definition:
 //    # Reset store.proposer_boost_root if this is a new slot
+//    # 重置store.proposer_boost_root，如果这是一个新的slot
 //    if current_slot > previous_slot:
 //        store.proposer_boost_root = Root()
 //
 //    # Not a new epoch, return
+//    # 不是一个新的epoch，返回
 //    if not (current_slot > previous_slot and compute_slots_since_epoch_start(current_slot) == 0):
 //        return
 //
 //    # Update store.justified_checkpoint if a better checkpoint on the store.finalized_checkpoint chain
+//    # 更新store.justified_checkpoint，如果在store.finalized_checkpoint chain中有一个更好的checkpoint
 //    if store.best_justified_checkpoint.epoch > store.justified_checkpoint.epoch:
 //        finalized_slot = compute_start_slot_at_epoch(store.finalized_checkpoint.epoch)
 //        ancestor_at_finalized_slot = get_ancestor(store, store.best_justified_checkpoint.root, finalized_slot)
@@ -40,11 +43,13 @@ func (f *ForkChoice) NewSlot(ctx context.Context, slot types.Slot) error {
 	}
 
 	// Return if it's not a new epoch.
+	// 不是一个新的epoch，直接返回
 	if !slots.IsEpochStart(slot) {
 		return nil
 	}
 
 	// Update store.justified_checkpoint if a better checkpoint on the store.finalized_checkpoint chain
+	// 更新store.justified_checkpoint，如果在store.finalized_checkpoint chain中有一个更好的checkpoint
 	f.store.checkpointsLock.Lock()
 	defer f.store.checkpointsLock.Unlock()
 
@@ -61,6 +66,7 @@ func (f *ForkChoice) NewSlot(ctx context.Context, slot types.Slot) error {
 		// This should always happen as forkchoice enforces that every node is a descendant of the
 		// finalized checkpoint. This check is here for additional security, consider removing the extra
 		// loop call here.
+		// 我们检查best justified checkpoint是finalized checkpoint的descendant
 		r, err := f.AncestorRoot(ctx, bjcp.Root, finalizedSlot)
 		if err != nil {
 			return err

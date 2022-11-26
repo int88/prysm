@@ -78,13 +78,16 @@ func (f *ForkChoice) Head(
 	}
 
 	if err := f.store.applyProposerBoostScore(justifiedStateBalances); err != nil {
+		// 不能应用proposer boost store
 		return [32]byte{}, errors.Wrap(err, "could not apply proposer boost score")
 	}
 
 	if err := f.store.treeRootNode.applyWeightChanges(ctx); err != nil {
+		// 不能应用weight的变更
 		return [32]byte{}, errors.Wrap(err, "could not apply weight changes")
 	}
 
+	// 获取justified checkpoint和finalized checkpoint
 	jc := f.JustifiedCheckpoint()
 	fc := f.FinalizedCheckpoint()
 	if err := f.store.treeRootNode.updateBestDescendant(ctx, jc.Epoch, fc.Epoch); err != nil {
@@ -228,6 +231,7 @@ func (f *ForkChoice) updateCheckpoints(ctx context.Context, jc, fc *ethpb.Checkp
 
 // HasNode returns true if the node exists in fork choice store,
 // false else wise.
+// HasNode返回true，如果node在fork choice store中存在，否则返回false
 func (f *ForkChoice) HasNode(root [32]byte) bool {
 	f.store.nodesLock.RLock()
 	defer f.store.nodesLock.RUnlock()
@@ -624,6 +628,7 @@ func (f *ForkChoice) CachedHeadRoot() [32]byte {
 }
 
 // FinalizedPayloadBlockHash returns the hash of the payload at the finalized checkpoint
+// FinalizedPayloadBlockHash返回在finalized checkpoint的hash of the payload
 func (f *ForkChoice) FinalizedPayloadBlockHash() [32]byte {
 	f.store.nodesLock.RLock()
 	defer f.store.nodesLock.RUnlock()
@@ -637,6 +642,7 @@ func (f *ForkChoice) FinalizedPayloadBlockHash() [32]byte {
 }
 
 // JustifiedPayloadBlockHash returns the hash of the payload at the justified checkpoint
+// JustifiedPayloadBlockHash返回在justified checkpoint的hash of the payload
 func (f *ForkChoice) JustifiedPayloadBlockHash() [32]byte {
 	f.store.nodesLock.RLock()
 	defer f.store.nodesLock.RUnlock()

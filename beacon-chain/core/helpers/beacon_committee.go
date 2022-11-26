@@ -274,6 +274,8 @@ func VerifyAttestationBitfieldLengths(ctx context.Context, state state.ReadOnlyB
 
 // ShuffledIndices uses input beacon state and returns the shuffled indices of the input epoch,
 // the shuffled indices then can be used to break up into committees.
+// ShuffledIndices使用输入的beacon state并且返回输入的epoch的shuffled indices
+// shuffled indices之后可以用于分成committees
 func ShuffledIndices(s state.ReadOnlyBeaconState, epoch types.Epoch) ([]types.ValidatorIndex, error) {
 	seed, err := Seed(s, epoch, params.BeaconConfig().DomainBeaconAttester)
 	if err != nil {
@@ -281,6 +283,7 @@ func ShuffledIndices(s state.ReadOnlyBeaconState, epoch types.Epoch) ([]types.Va
 	}
 
 	indices := make([]types.ValidatorIndex, 0, s.NumValidators())
+	// 读取所有合法的validator
 	if err := s.ReadFromEveryValidator(func(idx int, val state.ReadOnlyValidator) error {
 		if IsActiveValidatorUsingTrie(val, epoch) {
 			indices = append(indices, types.ValidatorIndex(idx))
@@ -291,6 +294,7 @@ func ShuffledIndices(s state.ReadOnlyBeaconState, epoch types.Epoch) ([]types.Va
 	}
 
 	// UnshuffleList is used as an optimized implementation for raw speed.
+	// UnshuffleList用于作为一个优化的实现，用于raw speed
 	return UnshuffleList(indices, seed)
 }
 
@@ -299,6 +303,7 @@ func ShuffledIndices(s state.ReadOnlyBeaconState, epoch types.Epoch) ([]types.Va
 // UpdateCommitteeCache在每个epoch的开始被调用，来缓存committee shuffled indices list
 // 用committee index和epoch number，它缓存shuffled indices，对于当前的epoch以及下一个epoch
 func UpdateCommitteeCache(ctx context.Context, state state.ReadOnlyBeaconState, epoch types.Epoch) error {
+	// 设置当前epoch和下一个epoch
 	for _, e := range []types.Epoch{epoch, epoch + 1} {
 		// 获取seed
 		seed, err := Seed(state, e, params.BeaconConfig().DomainBeaconAttester)
@@ -356,6 +361,7 @@ func UpdateProposerIndicesInCache(ctx context.Context, state state.ReadOnlyBeaco
 	if err != nil {
 		return err
 	}
+	// 获取在slot的state root
 	r, err := StateRootAtSlot(state, s)
 	if err != nil {
 		return err
@@ -457,6 +463,7 @@ func precomputeProposerIndices(state state.ReadOnlyBeaconState, activeIndices []
 	if err != nil {
 		return nil, err
 	}
+	// 计算出每个slot的proposer
 	for i := uint64(0); i < uint64(params.BeaconConfig().SlotsPerEpoch); i++ {
 		seedWithSlot := append(seed[:], bytesutil.Bytes8(uint64(slot)+i)...)
 		seedWithSlotHash := hashFunc(seedWithSlot)

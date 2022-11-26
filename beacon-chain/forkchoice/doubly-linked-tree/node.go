@@ -22,6 +22,8 @@ func (n *Node) depth() uint64 {
 // applyWeightChanges recomputes the weight of the node passed as an argument and all of its descendants,
 // using the current balance stored in each node. This function requires a lock
 // in Store.nodesLock
+// applyWeightChanges重新计算weight of the node，传入作为一个参数以及所有它的后代
+// 使用当前存在每个node中的current balance
 func (n *Node) applyWeightChanges(ctx context.Context) error {
 	// Recursively calling the children to sum their weights.
 	childrenWeight := uint64(0)

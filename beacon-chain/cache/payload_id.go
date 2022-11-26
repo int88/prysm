@@ -43,6 +43,7 @@ func (f *ProposerPayloadIDsCache) GetProposerPayloadIDs(slot types.Slot) (types.
 	var pId [pIdLength]byte
 	copy(pId[:], b)
 
+	// 转换为validator index
 	return types.ValidatorIndex(bytesutil.BytesToUint64BigEndian(vId)), pId, true
 }
 
@@ -60,6 +61,8 @@ func (f *ProposerPayloadIDsCache) SetProposerAndPayloadIDs(slot types.Slot, vId 
 	_, ok := f.slotToProposerAndPayloadIDs[slot]
 	// Ok to overwrite if the slot is already set but the payload ID is not set.
 	// This combats the re-org case where payload assignment could change the epoch of.
+	// 覆盖ok，如果slot已经被设置，但是payload ID没有设置，
+	// 这与reorg做了斗争，payload assignment可以改变epoch
 	if !ok || (ok && pId != [pIdLength]byte{}) {
 		f.slotToProposerAndPayloadIDs[slot] = bytes
 	}

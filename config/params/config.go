@@ -109,8 +109,9 @@ type BeaconChainConfig struct {
 	MaxVoluntaryExits    uint64 `yaml:"MAX_VOLUNTARY_EXITS" spec:"true"`    // MaxVoluntaryExits defines the maximum number of validator exits in a block.
 
 	// BLS domain values.
-	DomainBeaconProposer              [4]byte `yaml:"DOMAIN_BEACON_PROPOSER" spec:"true"`                // DomainBeaconProposer defines the BLS signature domain for beacon proposal verification.
-	DomainRandao                      [4]byte `yaml:"DOMAIN_RANDAO" spec:"true"`                         // DomainRandao defines the BLS signature domain for randao verification.
+	DomainBeaconProposer [4]byte `yaml:"DOMAIN_BEACON_PROPOSER" spec:"true"` // DomainBeaconProposer defines the BLS signature domain for beacon proposal verification.
+	DomainRandao         [4]byte `yaml:"DOMAIN_RANDAO" spec:"true"`          // DomainRandao defines the BLS signature domain for randao verification.
+	// DomainBeaconAttester定义了BLS signature domain用于attestation verification
 	DomainBeaconAttester              [4]byte `yaml:"DOMAIN_BEACON_ATTESTER" spec:"true"`                // DomainBeaconAttester defines the BLS signature domain for attestation verification.
 	DomainDeposit                     [4]byte `yaml:"DOMAIN_DEPOSIT" spec:"true"`                        // DomainDeposit defines the BLS signature domain for deposit verification.
 	DomainVoluntaryExit               [4]byte `yaml:"DOMAIN_VOLUNTARY_EXIT" spec:"true"`                 // DomainVoluntaryExit defines the BLS signature domain for exit verification.

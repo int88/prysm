@@ -54,10 +54,12 @@ func (s *Service) notifyForkchoiceUpdate(ctx context.Context, arg *notifyForkcho
 	if !isExecutionBlk {
 		return nil, nil
 	}
+	// 获取execution payload
 	headPayload, err := headBlk.Body().ExecutionPayload()
 	if err != nil {
 		return nil, errors.Wrap(err, "could not get execution payload")
 	}
+	// 获取finalized和justified payload hash
 	finalizedHash := s.ForkChoicer().FinalizedPayloadBlockHash()
 	justifiedHash := s.ForkChoicer().JustifiedPayloadBlockHash()
 	fcs := &enginev1.ForkchoiceState{
@@ -130,12 +132,14 @@ func (s *Service) notifyForkchoiceUpdate(ctx context.Context, arg *notifyForkcho
 	}
 	forkchoiceUpdatedValidNodeCount.Inc()
 	if err := s.cfg.ForkChoiceStore.SetOptimisticToValid(ctx, arg.headRoot); err != nil {
+		// 不能设置block为valid
 		return nil, errors.Wrap(err, "could not set block to valid")
 	}
 	if hasAttr { // If the forkchoice update call has an attribute, update the proposer payload ID cache.
 		// 如果forkchoice update call有一个attribute，更新proposer payload ID cache
 		var pId [8]byte
 		copy(pId[:], payloadID[:])
+		// 设置proposer以及payload ID
 		s.cfg.ProposerSlotIndexCache.SetProposerAndPayloadIDs(nextSlot, proposerId, pId)
 	}
 	return payloadID, nil
@@ -257,10 +261,14 @@ func (s *Service) optimisticCandidateBlock(ctx context.Context, blk interfaces.B
 }
 
 // getPayloadAttributes returns the payload attributes for the given state and slot.
+// getPayloadAttributes返回给定state和slot的payload attributes
 // The attribute is required to initiate a payload build process in the context of an `engine_forkchoiceUpdated` call.
+// attribute在初始化一个payload的build过程是必须的，在一个`engine_forkchoiceUpdated`的上下文
 func (s *Service) getPayloadAttribute(ctx context.Context, st state.BeaconState, slot types.Slot) (bool, *enginev1.PayloadAttributes, types.ValidatorIndex, error) {
+	// 获取proposer payload IDs
 	proposerID, _, ok := s.cfg.ProposerSlotIndexCache.GetProposerPayloadIDs(slot)
 	if !ok { // There's no need to build attribute if there is no proposer for slot.
+		// 没有必要构建attribute，如果这个slot没有proposer
 		return false, nil, 0, nil
 	}
 
@@ -276,7 +284,9 @@ func (s *Service) getPayloadAttribute(ctx context.Context, st state.BeaconState,
 	}
 
 	// Get fee recipient.
+	// 获取fee recipient
 	feeRecipient := params.BeaconConfig().DefaultFeeRecipient
+	// 通过proposer id获取receipient
 	recipient, err := s.cfg.BeaconDB.FeeRecipientByValidatorID(ctx, proposerID)
 	switch {
 	case errors.Is(err, kv.ErrNotFoundFeeRecipient):
@@ -301,8 +311,9 @@ func (s *Service) getPayloadAttribute(ctx context.Context, st state.BeaconState,
 		return false, nil, 0, err
 	}
 	attr := &enginev1.PayloadAttributes{
-		Timestamp:             uint64(t.Unix()),
-		PrevRandao:            prevRando,
+		Timestamp:  uint64(t.Unix()),
+		PrevRandao: prevRando,
+		// 指定fee recipient
 		SuggestedFeeRecipient: feeRecipient.Bytes(),
 	}
 	return true, attr, proposerID, nil

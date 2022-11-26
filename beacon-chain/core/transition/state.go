@@ -113,9 +113,11 @@ func OptimizedGenesisBeaconState(genesisTime uint64, preState state.BeaconState,
 
 	genesisValidatorsRoot, err := stateutil.ValidatorRegistryRoot(preState.Validators())
 	if err != nil {
+		// 不能对genesis validators进行hash root
 		return nil, errors.Wrapf(err, "could not hash tree root genesis validators %v", err)
 	}
 
+	// 构建BeaconState
 	st := &ethpb.BeaconState{
 		// Misc fields.
 		Slot:                  0,
@@ -129,10 +131,12 @@ func OptimizedGenesisBeaconState(genesisTime uint64, preState state.BeaconState,
 		},
 
 		// Validator registry fields.
+		// Validator的registry字段
 		Validators: preState.Validators(),
 		Balances:   preState.Balances(),
 
 		// Randomness and committees.
+		// 随机以及committees
 		RandaoMixes: randaoMixes,
 
 		// Finality.
@@ -150,11 +154,13 @@ func OptimizedGenesisBeaconState(genesisTime uint64, preState state.BeaconState,
 			Root:  params.BeaconConfig().ZeroHash[:],
 		},
 
-		HistoricalRoots:           [][]byte{},
-		BlockRoots:                blockRoots,
-		StateRoots:                stateRoots,
-		Slashings:                 slashings,
-		CurrentEpochAttestations:  []*ethpb.PendingAttestation{},
+		HistoricalRoots: [][]byte{},
+		BlockRoots:      blockRoots,
+		StateRoots:      stateRoots,
+		Slashings:       slashings,
+		// 当前epoch的attestations
+		CurrentEpochAttestations: []*ethpb.PendingAttestation{},
+		// 之前epoch的attestations
 		PreviousEpochAttestations: []*ethpb.PendingAttestation{},
 
 		// Eth1 data.
@@ -172,6 +178,7 @@ func OptimizedGenesisBeaconState(genesisTime uint64, preState state.BeaconState,
 		Graffiti: make([]byte, 32),
 	}).HashTreeRoot()
 	if err != nil {
+		// 不能对空的block body进行hash tree root
 		return nil, errors.Wrap(err, "could not hash tree root empty block body")
 	}
 

@@ -40,6 +40,7 @@ func (s *Store) SaveGenesisData(ctx context.Context, genesisState state.BeaconSt
 		// 保存genesis state
 		return errors.Wrap(err, "could not save genesis state")
 	}
+	// 保存state summary
 	if err := s.SaveStateSummary(ctx, &ethpb.StateSummary{
 		Slot: 0,
 		Root: genesisBlkRoot[:],

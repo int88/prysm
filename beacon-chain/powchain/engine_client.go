@@ -124,6 +124,7 @@ func (s *Service) ForkchoiceUpdated(
 	case pb.PayloadStatus_INVALID:
 		return nil, resp.LatestValidHash, ErrInvalidPayloadStatus
 	case pb.PayloadStatus_VALID:
+		// 获取payload id
 		return result.PayloadId, resp.LatestValidHash, nil
 	default:
 		return nil, nil, ErrUnknownPayloadStatus

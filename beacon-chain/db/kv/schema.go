@@ -40,6 +40,7 @@ var (
 	blockRootValidatorHashesBucket      = []byte("block-root-validator-hashes")
 
 	// Specific item keys.
+	// 特定的item keys
 	headBlockRootKey           = []byte("head-root")
 	genesisBlockRootKey        = []byte("genesis-root")
 	depositContractAddressKey  = []byte("deposit-contract")

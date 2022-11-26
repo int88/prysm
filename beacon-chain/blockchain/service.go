@@ -144,7 +144,9 @@ func (s *Service) Start() {
 			log.Fatal(err)
 		}
 	}
+	// 启动处理attestations的routine
 	s.spawnProcessAttestationsRoutine(s.cfg.StateNotifier.StateFeed())
+	// 填充缺失的payload ID Routine
 	s.fillMissingPayloadIDRoutine(s.ctx, s.cfg.StateNotifier.StateFeed())
 }
 
@@ -465,6 +467,7 @@ func (s *Service) initializeBeaconChain(
 	genesisTime time.Time,
 	preGenesisState state.BeaconState,
 	eth1data *ethpb.Eth1Data) (state.BeaconState, error) {
+	// 初始化beacon chain
 	ctx, span := trace.StartSpan(ctx, "beacon-chain.Service.initializeBeaconChain")
 	defer span.End()
 	s.genesisTime = genesisTime
@@ -493,10 +496,12 @@ func (s *Service) initializeBeaconChain(
 	if err := helpers.UpdateCommitteeCache(ctx, genesisState, 0); err != nil {
 		return nil, err
 	}
+	// 更新缓存中的proposer indices
 	if err := helpers.UpdateProposerIndicesInCache(ctx, genesisState); err != nil {
 		return nil, err
 	}
 
+	// 保存genesis time
 	s.cfg.AttService.SetGenesisTime(genesisState.GenesisTime())
 
 	return genesisState, nil
@@ -518,9 +523,11 @@ func (s *Service) saveGenesisData(ctx context.Context, genesisState state.Beacon
 	}
 
 	s.originBlockRoot = genesisBlkRoot
+	// 保存finalized state
 	s.cfg.StateGen.SaveFinalizedState(0 /*slot*/, genesisBlkRoot, genesisState)
 
 	if err := s.cfg.ForkChoiceStore.InsertNode(ctx, genesisState, genesisBlkRoot); err != nil {
+		// 不能为fork choice处理genesis block
 		log.Fatalf("Could not process genesis block for fork choice: %v", err)
 	}
 	s.cfg.ForkChoiceStore.SetOriginRoot(genesisBlkRoot)
@@ -538,6 +545,9 @@ func (s *Service) saveGenesisData(ctx context.Context, genesisState state.Beacon
 // 1.) Check fork choice store.
 // 2.) Check DB.
 // Checking 1.) is ten times faster than checking 2.)
+// 这个函数返回true，如果block之前已经被处理了，两种方法校验block已经被处理
+// 1) 检查fork choice store
+// 2) 检查DB
 func (s *Service) hasBlock(ctx context.Context, root [32]byte) bool {
 	if s.cfg.ForkChoiceStore.HasNode(root) {
 		return true

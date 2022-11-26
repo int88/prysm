@@ -52,7 +52,9 @@ func NewProposerIndicesCache() *ProposerIndicesCache {
 }
 
 // AddProposerIndices adds ProposerIndices object to the cache.
+// AddProposerIndices添加ProposerIndices对象到缓存中
 // This method also trims the least recently list if the cache size has ready the max cache size limit.
+// 这个方法修剪最新添加的list，如果缓存大小已经超过了max cache size limit
 func (c *ProposerIndicesCache) AddProposerIndices(p *ProposerIndices) error {
 	c.lock.Lock()
 	defer c.lock.Unlock()

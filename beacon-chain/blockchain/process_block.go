@@ -690,6 +690,7 @@ func (s *Service) fillMissingPayloadIDRoutine(ctx context.Context, stateFeed *ev
 			select {
 			case ti := <-ticker.C:
 				if !atHalfSlot(ti) {
+					// 只在每个slot的中间运行
 					continue
 				}
 				_, id, has := s.cfg.ProposerSlotIndexCache.GetProposerPayloadIDs(s.CurrentSlot() + 1)
@@ -697,10 +698,12 @@ func (s *Service) fillMissingPayloadIDRoutine(ctx context.Context, stateFeed *ev
 				// 对于下一个slot存在proposer，但是我们没有调用fcu w/ payload attribute
 				if has && id == [8]byte{} {
 					if _, err := s.notifyForkchoiceUpdate(ctx, &notifyForkchoiceUpdateArg{
+						// 获取head state, head root以及head block
 						headState: s.headState(ctx),
 						headRoot:  s.headRoot(),
 						headBlock: s.headBlock().Block(),
 					}); err != nil {
+						// 不能在空的id上准备payload
 						log.WithError(err).Error("Could not prepare payload on empty ID")
 					}
 					missedPayloadIDFilledCount.Inc()

@@ -26,6 +26,7 @@ var CommitteeCacheInProgressHit = promauto.NewCounter(prometheus.CounterOpts{
 
 // IsActiveValidator returns the boolean value on whether the validator
 // is active or not.
+// IsActiveValidator返回布尔值，表示validator是否是合法的
 //
 // Spec pseudocode definition:
 //  def is_active_validator(validator: Validator, epoch: Epoch) -> bool:
