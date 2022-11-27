@@ -212,8 +212,11 @@ func (s *Service) headSlot() types.Slot {
 }
 
 // This returns the head root.
+// 它返回the head root
 // It does a full copy on head root for immutability.
+// 它对head做了一个full copy，为了不变性
 // This is a lock free version.
+// 这是一个lock free的版本
 func (s *Service) headRoot() [32]byte {
 	if s.head == nil {
 		return params.BeaconConfig().ZeroHash

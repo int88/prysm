@@ -28,11 +28,14 @@ type Store struct {
 	unrealizedFinalizedCheckpoint *forkchoicetypes.Checkpoint // best unrealized finalized checkpoint in store.
 	prevJustifiedCheckpoint       *forkchoicetypes.Checkpoint // previous justified checkpoint in store.
 	// store中最新的finalized epoch
-	finalizedCheckpoint        *forkchoicetypes.Checkpoint  // latest finalized epoch in store.
-	pruneThreshold             uint64                       // do not prune tree unless threshold is reached.
-	proposerBoostRoot          [fieldparams.RootLength]byte // latest block root that was boosted after being received in a timely manner.
-	previousProposerBoostRoot  [fieldparams.RootLength]byte // previous block root that was boosted after being received in a timely manner.
-	previousProposerBoostScore uint64                       // previous proposer boosted root score.
+	finalizedCheckpoint *forkchoicetypes.Checkpoint // latest finalized epoch in store.
+	pruneThreshold      uint64                      // do not prune tree unless threshold is reached.
+	// 最新被boosted block root，在以一个timely mannner被接收之后
+	proposerBoostRoot [fieldparams.RootLength]byte // latest block root that was boosted after being received in a timely manner.
+	// 上一个block root，在及时接收之后
+	previousProposerBoostRoot [fieldparams.RootLength]byte // previous block root that was boosted after being received in a timely manner.
+	// 上一个proposer boosted root score
+	previousProposerBoostScore uint64 // previous proposer boosted root score.
 	// store tree的root node
 	treeRootNode *Node // the root node of the store tree.
 	headNode     *Node // last head Node

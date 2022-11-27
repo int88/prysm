@@ -38,6 +38,7 @@ import (
 //            store.justified_checkpoint = store.best_justified_checkpoint
 func (f *ForkChoice) NewSlot(ctx context.Context, slot types.Slot) error {
 	// Reset proposer boost root
+	// 重置proposer的boost root
 	if err := f.ResetBoostedProposerRoot(ctx); err != nil {
 		return errors.Wrap(err, "could not reset boosted proposer root in fork choice")
 	}
@@ -66,12 +67,15 @@ func (f *ForkChoice) NewSlot(ctx context.Context, slot types.Slot) error {
 		// This should always happen as forkchoice enforces that every node is a descendant of the
 		// finalized checkpoint. This check is here for additional security, consider removing the extra
 		// loop call here.
-		// 我们检查best justified checkpoint是finalized checkpoint的descendant
+		// 我们检查best justified checkpoint是finalized checkpoint的后代
+		// 这总是应该发生的，因为forkchoice强制每个node都是finalized checkpoint的后代，这里的检查只是为了
+		// 额外的安全性，考虑移除这里额外的loop call
 		r, err := f.AncestorRoot(ctx, bjcp.Root, finalizedSlot)
 		if err != nil {
 			return err
 		}
 		if r == fcp.Root {
+			// 更新justified checkpoint
 			f.store.justifiedCheckpoint = bjcp
 		}
 	}

@@ -63,6 +63,7 @@ func (f *ForkChoice) Head(
 ) ([32]byte, error) {
 	ctx, span := trace.StartSpan(ctx, "doublyLinkedForkchoice.Head")
 	defer span.End()
+	// 先把vouteLock锁上
 	f.votesLock.Lock()
 	defer f.votesLock.Unlock()
 
@@ -301,6 +302,7 @@ func (f *ForkChoice) AncestorRoot(ctx context.Context, root [32]byte, slot types
 
 	node, ok := f.store.nodeByRoot[root]
 	if !ok || node == nil {
+		// 在nodeByRoot中找不到对应的节点
 		return [32]byte{}, errors.Wrap(ErrNilNode, "could not determine ancestor root")
 	}
 
@@ -309,6 +311,7 @@ func (f *ForkChoice) AncestorRoot(ctx context.Context, root [32]byte, slot types
 		if ctx.Err() != nil {
 			return [32]byte{}, ctx.Err()
 		}
+		// 不断往上遍历
 		n = n.parent
 	}
 

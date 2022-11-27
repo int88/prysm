@@ -72,6 +72,8 @@ func (c *stateBalanceCache) update(ctx context.Context, justifiedRoot [32]byte) 
 // getBalances takes an explicit justifiedRoot so it can invalidate the singleton cache key
 // when the justified root changes, and takes a context so that the long-running stategen
 // read path can connect to the upstream cancellation/timeout chain.
+// getBalances有一个显式的justifiedRoot，这样它可以使单例的cache key失效，当justified root改变时
+// 拿一个context，这样long-running的stategen read path可以连接到upstream cancellation/timeout chain
 func (c *stateBalanceCache) get(ctx context.Context, justifiedRoot [32]byte) ([]uint64, error) {
 	c.Lock()
 	defer c.Unlock()

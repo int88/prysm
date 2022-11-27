@@ -31,6 +31,7 @@ func (s *Store) applyProposerBoostScore(newBalances []uint64) error {
 		if !ok || previousNode == nil {
 			return errInvalidProposerBoostRoot
 		}
+		// 设置previousNode的balance
 		previousNode.balance -= s.previousProposerBoostScore
 	}
 
@@ -39,12 +40,14 @@ func (s *Store) applyProposerBoostScore(newBalances []uint64) error {
 		if !ok || currentNode == nil {
 			return errInvalidProposerBoostRoot
 		}
+		// 计算proposer boost store
 		proposerScore, err = computeProposerBoostScore(newBalances)
 		if err != nil {
 			return err
 		}
 		currentNode.balance += proposerScore
 	}
+	// 设置previousProposerBoostRoot和previousProposerBoostScore
 	s.previousProposerBoostRoot = s.proposerBoostRoot
 	s.previousProposerBoostScore = proposerScore
 	return nil
