@@ -9,7 +9,9 @@ import (
 )
 
 // We test the algorithm to update a node from SYNCING to INVALID
+// 我们测试算法，将一个node从SYNCING更新到INVALID
 // We start with the same diagram as above:
+// 从下图开始：
 //
 //                E -- F
 //               /
@@ -20,6 +22,7 @@ import (
 //         J        -- K -- L
 //
 // And every block in the Fork choice is optimistic.
+// 每个block在Fork choice都是乐观的
 //
 func TestPruneInvalid(t *testing.T) {
 	tests := []struct {

@@ -11,6 +11,7 @@ import (
 )
 
 // depth returns the length of the path to the root of Fork Choice
+// depth返回到Fork Choice的root的路径的长度
 func (n *Node) depth() uint64 {
 	ret := uint64(0)
 	for node := n.parent; node != nil; node = node.parent {
@@ -61,6 +62,7 @@ func (n *Node) updateBestDescendant(ctx context.Context, justifiedEpoch, finaliz
 		if child == nil {
 			return errors.Wrap(ErrNilNode, "could not update best descendant")
 		}
+		// 更新best descendant
 		if err := child.updateBestDescendant(ctx, justifiedEpoch, finalizedEpoch); err != nil {
 			return err
 		}
@@ -130,6 +132,7 @@ func (n *Node) setNodeAndParentValidated(ctx context.Context) error {
 
 // rpcNodes is used by the RPC Debug endpoint to return information
 // about all nodes in the fork choice store
+// rpcNodes由RPC Debug endpoint使用，返回在fork choice store中所有nodes的信息
 func (n *Node) rpcNodes(ret []*pbrpc.ForkChoiceNode) []*pbrpc.ForkChoiceNode {
 	for _, child := range n.children {
 		ret = child.rpcNodes(ret)

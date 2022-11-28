@@ -26,6 +26,7 @@ func TestStore_NewSlot(t *testing.T) {
 		args args
 	}{
 		{
+			// 不是epoch boundary，不发生变更
 			name: "Not epoch boundary. No change",
 			args: args{
 				slot:          params.BeaconConfig().SlotsPerEpoch + 1,
@@ -36,6 +37,7 @@ func TestStore_NewSlot(t *testing.T) {
 			},
 		},
 		{
+			// justified比best justified高，不改变
 			name: "Justified higher than best justified. No change",
 			args: args{
 				slot:          params.BeaconConfig().SlotsPerEpoch,
@@ -46,6 +48,7 @@ func TestStore_NewSlot(t *testing.T) {
 			},
 		},
 		{
+			// best justifed和finalized不是在同一个chain，不改变
 			name: "Best justified not on the same chain as finalized. No change",
 			args: args{
 				slot:          params.BeaconConfig().SlotsPerEpoch,
@@ -56,6 +59,7 @@ func TestStore_NewSlot(t *testing.T) {
 			},
 		},
 		{
+			// best justified和finalized在同一个chain，不改变
 			name: "Best justified on the same chain as finalized. Yes change",
 			args: args{
 				slot:          params.BeaconConfig().SlotsPerEpoch,
@@ -70,15 +74,19 @@ func TestStore_NewSlot(t *testing.T) {
 		f := setup(test.args.justified.Epoch, test.args.finalized.Epoch)
 		state, blkRoot, err := prepareForkchoiceState(ctx, 0, [32]byte{}, [32]byte{}, [32]byte{}, 0, 0)
 		require.NoError(t, err)
+		// 插入genesis
 		require.NoError(t, f.InsertNode(ctx, state, blkRoot)) // genesis
 		state, blkRoot, err = prepareForkchoiceState(ctx, 32, [32]byte{'a'}, [32]byte{}, [32]byte{}, 0, 0)
 		require.NoError(t, err)
+		// 32可以finalized
 		require.NoError(t, f.InsertNode(ctx, state, blkRoot)) // finalized
 		state, blkRoot, err = prepareForkchoiceState(ctx, 64, [32]byte{'b'}, [32]byte{'a'}, [32]byte{}, 0, 0)
 		require.NoError(t, err)
+		// 64可以justified
 		require.NoError(t, f.InsertNode(ctx, state, blkRoot)) // justified
 		state, blkRoot, err = prepareForkchoiceState(ctx, 96, bj, [32]byte{'a'}, [32]byte{}, 0, 0)
 		require.NoError(t, err)
+		// 96可以best justified
 		require.NoError(t, f.InsertNode(ctx, state, blkRoot)) // best justified
 		state, blkRoot, err = prepareForkchoiceState(ctx, 97, [32]byte{'d'}, [32]byte{}, [32]byte{}, 0, 0)
 		require.NoError(t, err)
@@ -90,8 +98,10 @@ func TestStore_NewSlot(t *testing.T) {
 
 		require.NoError(t, f.NewSlot(ctx, test.args.slot))
 		if test.args.shouldEqual {
+			// 获取best justified checkpoint和justified checkpoint
 			bcp := f.BestJustifiedCheckpoint()
 			cp := f.JustifiedCheckpoint()
+			// best justified checkpoint和justified checkpoint相等
 			require.Equal(t, bcp.Epoch, cp.Epoch)
 			require.Equal(t, bcp.Root, cp.Root)
 		} else {
@@ -99,6 +109,7 @@ func TestStore_NewSlot(t *testing.T) {
 			cp := f.JustifiedCheckpoint()
 			epochsEqual := bcp.Epoch == cp.Epoch
 			rootsEqual := bcp.Root == cp.Root
+			// 应该存在不相等，epoch和root
 			require.Equal(t, false, epochsEqual && rootsEqual)
 		}
 	}

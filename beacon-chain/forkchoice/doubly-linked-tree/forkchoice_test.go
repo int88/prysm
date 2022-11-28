@@ -27,9 +27,11 @@ import (
 func prepareForkchoiceState(
 	_ context.Context,
 	slot types.Slot,
+	// 设置blockRoot和parentRoot
 	blockRoot [32]byte,
 	parentRoot [32]byte,
 	payloadHash [32]byte,
+	// 设置justified epoch
 	justifiedEpoch types.Epoch,
 	finalizedEpoch types.Epoch,
 ) (state.BeaconState, [32]byte, error) {

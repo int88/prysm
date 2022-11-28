@@ -42,9 +42,10 @@ type Store struct {
 	// 通过roots进行索引的nodes
 	nodeByRoot map[[fieldparams.RootLength]byte]*Node // nodes indexed by roots.
 	// 通过payload Hash进行索引的nodes
-	nodeByPayload     map[[fieldparams.RootLength]byte]*Node // nodes indexed by payload Hash
-	slashedIndices    map[types.ValidatorIndex]bool          // the list of equivocating validator indices
-	originRoot        [fieldparams.RootLength]byte           // The genesis block root
+	nodeByPayload map[[fieldparams.RootLength]byte]*Node // nodes indexed by payload Hash
+	// 一系列模棱两可的validator索引
+	slashedIndices    map[types.ValidatorIndex]bool // the list of equivocating validator indices
+	originRoot        [fieldparams.RootLength]byte  // The genesis block root
 	nodesLock         sync.RWMutex
 	proposerBoostLock sync.RWMutex
 	checkpointsLock   sync.RWMutex
@@ -68,6 +69,7 @@ type Node struct {
 	// 这个epoch会被justified，如果block被移动到下一个epoch
 	unrealizedJustifiedEpoch types.Epoch // the epoch that would be justified if the block would be advanced to the next epoch.
 	finalizedEpoch           types.Epoch // finalizedEpoch of this node.
+	// 这个epoch会被finalized，如果block被移动到下一个epoch
 	unrealizedFinalizedEpoch types.Epoch // the epoch that would be finalized if the block would be advanced to the next epoch.
 	// 直接投向这个node的balance
 	balance uint64 // the balance that voted for this node directly

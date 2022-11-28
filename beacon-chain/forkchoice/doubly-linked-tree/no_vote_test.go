@@ -15,6 +15,7 @@ func TestNoVote_CanFindHead(t *testing.T) {
 	ctx := context.Background()
 
 	// The head should always start at the finalized block.
+	// head总是应该从finalized block开始
 	r, err := f.Head(context.Background(), balances)
 	require.NoError(t, err)
 	if r != params.BeaconConfig().ZeroHash {
@@ -22,6 +23,7 @@ func TestNoVote_CanFindHead(t *testing.T) {
 	}
 
 	// Insert block 2 into the tree and verify head is at 2:
+	// 将block 2插入tree中并且校验head在2
 	//         0
 	//        /
 	//       2 <- head
@@ -33,6 +35,7 @@ func TestNoVote_CanFindHead(t *testing.T) {
 	assert.Equal(t, indexToHash(2), r, "Incorrect head for with justified epoch at 1")
 
 	// Insert block 1 into the tree and verify head is still at 2:
+	// 插入block 1到tree并且校验head还是在2
 	//            0
 	//           / \
 	//  head -> 2  1
@@ -70,6 +73,7 @@ func TestNoVote_CanFindHead(t *testing.T) {
 	assert.Equal(t, indexToHash(4), r, "Incorrect head for with justified epoch at 1")
 
 	// Insert block 5 with justified epoch of 2, verify head is 5
+	// 插入block 5，justified epoch为2，校验head为5
 	//            0
 	//           / \
 	//          2  1
@@ -85,6 +89,7 @@ func TestNoVote_CanFindHead(t *testing.T) {
 	assert.Equal(t, indexToHash(5), r, "Incorrect head for with justified epoch at 2")
 
 	// Insert block 6 with justified epoch of 2, verify head is at 6.
+	// 插入block 6，其中justified epoch为2，校验head为6
 	//            0
 	//           / \
 	//          2  1

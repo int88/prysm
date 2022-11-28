@@ -74,6 +74,7 @@ func (f *ForkChoice) NewSlot(ctx context.Context, slot types.Slot) error {
 		if err != nil {
 			return err
 		}
+		// 确定ancestor
 		if r == fcp.Root {
 			// 更新justified checkpoint
 			f.store.justifiedCheckpoint = bjcp

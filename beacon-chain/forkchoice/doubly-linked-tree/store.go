@@ -134,6 +134,7 @@ func (s *Store) insert(ctx context.Context,
 		return n, nil
 	}
 
+	// 找到parent root
 	parent := s.nodeByRoot[parentRoot]
 
 	// 构建新的Node
@@ -152,6 +153,7 @@ func (s *Store) insert(ctx context.Context,
 	s.nodeByPayload[payloadHash] = n
 	s.nodeByRoot[root] = n
 	if parent == nil {
+		// 如果没有parent，说明是根节点
 		if s.treeRootNode == nil {
 			s.treeRootNode = n
 			s.headNode = n
@@ -193,6 +195,8 @@ func (s *Store) insert(ctx context.Context,
 // pruneFinalizedNodeByRootMap prunes the `nodeByRoot` map
 // starting from `node` down to the finalized Node or to a leaf of the Fork
 // choice store. This method assumes a lock on nodesLock.
+// pruneFinalizedNodeByRootMap修剪`nodByRoot` map，从`node`开始到finalized Node或者Fork choice
+// store的leaf，这个方法假设对nodesLock上锁
 func (s *Store) pruneFinalizedNodeByRootMap(ctx context.Context, node, finalizedNode *Node) error {
 	if ctx.Err() != nil {
 		return ctx.Err()
@@ -213,6 +217,8 @@ func (s *Store) pruneFinalizedNodeByRootMap(ctx context.Context, node, finalized
 // prune prunes the fork choice store with the new finalized root. The store is only pruned if the input
 // root is different than the current store finalized root, and the number of the store has met prune threshold.
 // This function does not prune for invalid optimistically synced nodes, it deals only with pruning upon finalization
+// prune用新的finalized root修剪fork choic store，store只会在input root和当前store的finalized root不同时才会修剪，并且store的
+// 数目已经到达了prune threshold，这个函数不修剪非法的optimistically synced nodes，它只处理对于finalization的修剪
 func (s *Store) prune(ctx context.Context) error {
 	_, span := trace.StartSpan(ctx, "doublyLinkedForkchoice.Prune")
 	defer span.End()
@@ -229,16 +235,19 @@ func (s *Store) prune(ctx context.Context) error {
 	}
 
 	// The number of the nodes has not met the prune threshold.
+	// nodes的数目没有达到prune threshold，修剪small numbers不会有更多的好处
 	// Pruning at small numbers incurs more cost than benefit.
 	if finalizedNode.depth() < s.pruneThreshold {
 		return nil
 	}
 
 	// Prune nodeByRoot starting from root
+	// 从root开始修剪nodeByRoot
 	if err := s.pruneFinalizedNodeByRootMap(ctx, s.treeRootNode, finalizedNode); err != nil {
 		return err
 	}
 
+	// 将finalizedNode.parent设置为nil，设置s.treeRootNode为finalizedRootNode
 	finalizedNode.parent = nil
 	s.treeRootNode = finalizedNode
 
