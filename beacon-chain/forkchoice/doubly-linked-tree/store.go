@@ -86,6 +86,7 @@ func (s *Store) head(ctx context.Context) ([32]byte, error) {
 		if s.justifiedCheckpoint.Epoch == params.BeaconConfig().GenesisEpoch {
 			justifiedNode = s.treeRootNode
 		} else {
+			// 未知的justified root
 			return [32]byte{}, errUnknownJustifiedRoot
 		}
 	}
@@ -226,6 +227,7 @@ func (s *Store) prune(ctx context.Context) error {
 	s.nodesLock.Lock()
 	defer s.nodesLock.Unlock()
 	s.checkpointsLock.RLock()
+	// 获取finalized root
 	finalizedRoot := s.finalizedCheckpoint.Root
 	s.checkpointsLock.RUnlock()
 
@@ -257,6 +259,7 @@ func (s *Store) prune(ctx context.Context) error {
 
 // tips returns a list of possible heads from fork choice store, it returns the
 // roots and the slots of the leaf nodes.
+// tips从fork choice store返回一系列可能的heads，它返回leaf nodes的roots以及slots
 func (s *Store) tips() ([][32]byte, []types.Slot) {
 	var roots [][32]byte
 	var slots []types.Slot

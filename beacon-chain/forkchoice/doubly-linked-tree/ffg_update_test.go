@@ -218,9 +218,12 @@ func TestFFGUpdates_TwoBranches(t *testing.T) {
 func setup(justifiedEpoch, finalizedEpoch types.Epoch) *ForkChoice {
 	ctx := context.Background()
 	f := New()
+	// 设置justified checkpoint和best justified checkpoint
 	f.store.justifiedCheckpoint = &forkchoicetypes.Checkpoint{Epoch: justifiedEpoch, Root: params.BeaconConfig().ZeroHash}
 	f.store.bestJustifiedCheckpoint = &forkchoicetypes.Checkpoint{Epoch: justifiedEpoch, Root: params.BeaconConfig().ZeroHash}
+	// 设置finalized checkpoint
 	f.store.finalizedCheckpoint = &forkchoicetypes.Checkpoint{Epoch: finalizedEpoch, Root: params.BeaconConfig().ZeroHash}
+	// 在slot为0设置一个
 	state, blkRoot, err := prepareForkchoiceState(ctx, 0, params.BeaconConfig().ZeroHash, [32]byte{}, params.BeaconConfig().ZeroHash, justifiedEpoch, finalizedEpoch)
 	if err != nil {
 		return nil

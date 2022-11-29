@@ -53,6 +53,7 @@ func TestStore_NodeByRoot(t *testing.T) {
 	node1 := node0.children[0]
 	node2 := node1.children[0]
 
+	// 期望nodes和预期的一致
 	expectedRoots := map[[32]byte]*Node{
 		params.BeaconConfig().ZeroHash: node0,
 		indexToHash(1):                 node1,
@@ -79,6 +80,7 @@ func TestForkChoice_HasNode(t *testing.T) {
 func TestStore_Head_UnknownJustifiedRoot(t *testing.T) {
 	f := setup(0, 0)
 
+	// 手动设置justified checkpoint
 	f.store.justifiedCheckpoint = &forkchoicetypes.Checkpoint{Epoch: 1, Root: [32]byte{'a'}}
 	_, err := f.store.head(context.Background())
 	assert.ErrorContains(t, errUnknownJustifiedRoot.Error(), err)
@@ -92,6 +94,7 @@ func TestStore_Head_Itself(t *testing.T) {
 
 	// Since the justified node does not have a best descendant so the best node
 	// is itself.
+	// 因为justified node没有一个best descendant，因此best node就是它自己
 	f.store.justifiedCheckpoint = &forkchoicetypes.Checkpoint{Epoch: 0, Root: indexToHash(1)}
 	h, err := f.store.head(context.Background())
 	require.NoError(t, err)
@@ -114,6 +117,7 @@ func TestStore_Head_BestDescendant(t *testing.T) {
 	require.NoError(t, err)
 	require.NoError(t, f.InsertNode(ctx, state, blkRoot))
 	f.store.justifiedCheckpoint = &forkchoicetypes.Checkpoint{Epoch: 0, Root: indexToHash(1)}
+	// indexToHash(4)作为head
 	h, err := f.store.head(context.Background())
 	require.NoError(t, err)
 	require.Equal(t, h, indexToHash(4))
@@ -134,13 +138,16 @@ func TestStore_UpdateBestDescendant_ContextCancelled(t *testing.T) {
 
 func TestStore_Insert(t *testing.T) {
 	// The new node does not have a parent.
+	// 新的node没有parent
 	treeRootNode := &Node{slot: 0, root: indexToHash(0)}
+	// 默认包含一个tree root node
 	nodeByRoot := map[[32]byte]*Node{indexToHash(0): treeRootNode}
 	nodeByPayload := map[[32]byte]*Node{indexToHash(0): treeRootNode}
 	jc := &forkchoicetypes.Checkpoint{Epoch: 0}
 	fc := &forkchoicetypes.Checkpoint{Epoch: 0}
 	s := &Store{nodeByRoot: nodeByRoot, treeRootNode: treeRootNode, nodeByPayload: nodeByPayload, justifiedCheckpoint: jc, finalizedCheckpoint: fc}
 	payloadHash := [32]byte{'a'}
+	// 新插入节点的jc和fc为1
 	_, err := s.insert(context.Background(), 100, indexToHash(100), indexToHash(0), payloadHash, 1, 1)
 	require.NoError(t, err)
 	assert.Equal(t, 2, len(s.nodeByRoot), "Did not insert block")
@@ -148,6 +155,7 @@ func TestStore_Insert(t *testing.T) {
 	assert.Equal(t, 1, len(treeRootNode.children), "Incorrect children number")
 	assert.Equal(t, payloadHash, treeRootNode.children[0].payloadHash, "Incorrect payload hash")
 	child := treeRootNode.children[0]
+	// jc和fc都变为1？
 	assert.Equal(t, types.Epoch(1), child.justifiedEpoch, "Incorrect justification")
 	assert.Equal(t, types.Epoch(1), child.finalizedEpoch, "Incorrect finalization")
 	assert.Equal(t, indexToHash(100), child.root, "Incorrect root")
@@ -172,6 +180,8 @@ func TestStore_Prune_LessThanThreshold(t *testing.T) {
 
 	// Finalized root has depth 99 so everything before it should be pruned,
 	// but PruneThreshold is at 100 so nothing will be pruned.
+	// Finalized root的depth为99，这样它之前的所有都应该被修剪，但是PruneThreshold
+	// 在100，这样就没有东西要被被移除
 	s.finalizedCheckpoint.Root = indexToHash(99)
 	require.NoError(t, s.prune(context.Background()))
 	assert.Equal(t, 100, len(s.nodeByRoot), "Incorrect nodes count")
@@ -182,6 +192,7 @@ func TestStore_Prune_MoreThanThreshold(t *testing.T) {
 	numOfNodes := uint64(100)
 	f := setup(0, 0)
 	ctx := context.Background()
+	// slot为1
 	state, blkRoot, err := prepareForkchoiceState(ctx, 1, indexToHash(1), params.BeaconConfig().ZeroHash, params.BeaconConfig().ZeroHash, 0, 0)
 	require.NoError(t, err)
 	require.NoError(t, f.InsertNode(ctx, state, blkRoot))
@@ -195,6 +206,7 @@ func TestStore_Prune_MoreThanThreshold(t *testing.T) {
 	s.pruneThreshold = 0
 
 	// Finalized root is at index 99 so everything before 99 should be pruned.
+	// Finalized root在索引99，这样所有在99之前的都应该被移除
 	s.finalizedCheckpoint.Root = indexToHash(99)
 	require.NoError(t, s.prune(context.Background()))
 	assert.Equal(t, 1, len(s.nodeByRoot), "Incorrect nodes count")
@@ -235,6 +247,7 @@ func TestStore_Prune_MoreThanOnce(t *testing.T) {
 // -- 0 -- 2
 //
 // And we finalize 1. As a result only 1 should survive
+// 我们在1 finalize，作为结果，只有1应该保留下来
 func TestStore_Prune_NoDanglingBranch(t *testing.T) {
 	f := setup(0, 0)
 	ctx := context.Background()
@@ -248,6 +261,7 @@ func TestStore_Prune_NoDanglingBranch(t *testing.T) {
 
 	s := f.store
 	s.finalizedCheckpoint.Root = indexToHash(1)
+	// 进行prune
 	require.NoError(t, s.prune(context.Background()))
 	require.Equal(t, len(s.nodeByRoot), 1)
 }
@@ -304,6 +318,7 @@ func TestStore_tips(t *testing.T) {
 	state, blkRoot, err = prepareForkchoiceState(ctx, 106, [32]byte{'l'}, [32]byte{'k'}, params.BeaconConfig().ZeroHash, 1, 1)
 	require.NoError(t, err)
 	require.NoError(t, f.InsertNode(ctx, state, blkRoot))
+	// 期望的map
 	expectedMap := map[[32]byte]types.Slot{
 		[32]byte{'f'}: 105,
 		[32]byte{'i'}: 106,
@@ -348,6 +363,7 @@ func TestStore_HasParent(t *testing.T) {
 	state, blkRoot, err = prepareForkchoiceState(ctx, 3, indexToHash(3), indexToHash(2), params.BeaconConfig().ZeroHash, 1, 1)
 	require.NoError(t, err)
 	require.NoError(t, f.InsertNode(ctx, state, blkRoot))
+	// 对应的节点都有parent
 	require.Equal(t, false, f.HasParent(params.BeaconConfig().ZeroHash))
 	require.Equal(t, true, f.HasParent(indexToHash(1)))
 	require.Equal(t, true, f.HasParent(indexToHash(2)))

@@ -50,6 +50,7 @@ func New() *ForkChoice {
 func (f *ForkChoice) NodeCount() int {
 	f.store.nodesLock.RLock()
 	defer f.store.nodesLock.RUnlock()
+	// 获取nodes的数目
 	return len(f.store.nodeByRoot)
 }
 
