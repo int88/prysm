@@ -99,6 +99,7 @@ func (b *BeaconState) ValidatorAtIndex(idx types.ValidatorIndex) (*ethpb.Validat
 
 // ValidatorAtIndexReadOnly is the validator at the provided index. This method
 // doesn't clone the validator.
+// ValidatorAtIndexReadOnly是在给定index的validator，这个方法不克隆validator
 func (b *BeaconState) ValidatorAtIndexReadOnly(idx types.ValidatorIndex) (state.ReadOnlyValidator, error) {
 	if b.validators == nil {
 		return nil, state.ErrNilValidatorsInState

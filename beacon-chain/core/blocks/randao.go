@@ -15,6 +15,8 @@ import (
 // ProcessRandao checks the block proposer's
 // randao commitment and generates a new randao mix to update
 // in the beacon state's latest randao mixes slice.
+// ProcessRandao检查block的proposer的randao commitment并且生成一个新的randao
+// mix来更新beacon state中的最新的randao mixes slice
 //
 // Spec pseudocode definition:
 //   def process_randao(state: BeaconState, body: BeaconBlockBody) -> None:
@@ -52,6 +54,7 @@ func ProcessRandao(
 
 // ProcessRandaoNoVerify generates a new randao mix to update
 // in the beacon state's latest randao mixes slice.
+// ProcessRandaoNoVerify创建一个新的randao mix来更新beacon state的最新的randao mixes slice
 //
 // Spec pseudocode definition:
 //     # Mix it in

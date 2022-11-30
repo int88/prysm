@@ -92,6 +92,7 @@ func (bs *Server) GetWeakSubjectivity(ctx context.Context, _ *empty.Empty) (*eth
 }
 
 // GetBlockHeader retrieves block header for given block id.
+// GetBlockHeader获取block header，对于给定的block id
 func (bs *Server) GetBlockHeader(ctx context.Context, req *ethpbv1.BlockRequest) (*ethpbv1.BlockHeaderResponse, error) {
 	ctx, span := trace.StartSpan(ctx, "beacon.GetBlockHeader")
 	defer span.End()
@@ -116,10 +117,12 @@ func (bs *Server) GetBlockHeader(ctx context.Context, req *ethpbv1.BlockRequest)
 	}
 	canonical, err := bs.ChainInfoFetcher.IsCanonical(ctx, blkRoot)
 	if err != nil {
+		// 不能确定block root是否是canonical
 		return nil, status.Errorf(codes.Internal, "Could not determine if block root is canonical: %v", err)
 	}
 	isOptimistic, err := bs.OptimisticModeFetcher.IsOptimisticForRoot(ctx, blkRoot)
 	if err != nil {
+		// 不能检查是否block是optimistic
 		return nil, status.Errorf(codes.Internal, "Could not check if block is optimistic: %v", err)
 	}
 

@@ -263,6 +263,7 @@ func (f *ForkChoice) IsCanonical(root [32]byte) bool {
 	f.store.nodesLock.RLock()
 	defer f.store.nodesLock.RUnlock()
 
+	// 看看是不是在best descendant之内
 	node, ok := f.store.nodeByRoot[root]
 	if !ok || node == nil {
 		return false
@@ -367,6 +368,7 @@ func (f *ForkChoice) updateBalances(newBalances []uint64) error {
 				if nextNode == nil {
 					return errors.Wrap(ErrNilNode, "could not update balances")
 				}
+				// 在balance中添加newBalance
 				nextNode.balance += newBalance
 			}
 
@@ -390,6 +392,7 @@ func (f *ForkChoice) updateBalances(newBalances []uint64) error {
 						// 有着非法balance的node，设置为0
 					}).Warning("node with invalid balance, setting it to zero")
 					f.store.proposerBoostLock.RUnlock()
+					// 将balance设为0？
 					currentNode.balance = 0
 				} else {
 					// 减去oldBalance
@@ -465,6 +468,7 @@ func (f *ForkChoice) ForkChoiceNodes() []*ethpb.ForkChoiceNode {
 }
 
 // SetOptimisticToInvalid removes a block with an invalid execution payload from fork choice store
+// SetOptimisticToInvalid将一个有着非法的execution payload的block从fork choice store中移除
 func (f *ForkChoice) SetOptimisticToInvalid(ctx context.Context, root, parentRoot, payloadHash [fieldparams.RootLength]byte) ([][32]byte, error) {
 	return f.store.setOptimisticToInvalid(ctx, root, parentRoot, payloadHash)
 }
@@ -472,6 +476,8 @@ func (f *ForkChoice) SetOptimisticToInvalid(ctx context.Context, root, parentRoo
 // InsertSlashedIndex adds the given slashed validator index to the
 // store-tracked list. Votes from these validators are not accounted for
 // in forkchoice.
+// InsertSlashedIndex将给定的slashed validator index加入store-tracked list
+// 来自这些validators的votes不计入forkchoice
 func (f *ForkChoice) InsertSlashedIndex(_ context.Context, index types.ValidatorIndex) {
 	f.store.nodesLock.Lock()
 	defer f.store.nodesLock.Unlock()
@@ -482,9 +488,11 @@ func (f *ForkChoice) InsertSlashedIndex(_ context.Context, index types.Validator
 	f.store.slashedIndices[index] = true
 
 	// Subtract last vote from this equivocating validator
+	// 将来自这个equivocating validator的vote移除
 	f.votesLock.RLock()
 	defer f.votesLock.RUnlock()
 
+	// 不在ForkChoice有记录的validator中
 	if index >= types.ValidatorIndex(len(f.balances)) {
 		return
 	}
@@ -499,6 +507,7 @@ func (f *ForkChoice) InsertSlashedIndex(_ context.Context, index types.Validator
 	}
 
 	if node.balance < f.balances[index] {
+		// 重新设置这个validator投票的节点的balance
 		node.balance = 0
 	} else {
 		node.balance -= f.balances[index]
@@ -539,6 +548,7 @@ func (f *ForkChoice) UpdateFinalizedCheckpoint(fc *forkchoicetypes.Checkpoint) e
 }
 
 // CommonAncestorRoot returns the common ancestor root between the two block roots r1 and r2.
+// CommonAncestorRoot返回block roots r1和r2的公共的ancestor root
 func (f *ForkChoice) CommonAncestorRoot(ctx context.Context, r1 [32]byte, r2 [32]byte) ([32]byte, error) {
 	ctx, span := trace.StartSpan(ctx, "doublelinkedtree.CommonAncestorRoot")
 	defer span.End()
@@ -569,6 +579,8 @@ func (f *ForkChoice) CommonAncestorRoot(ctx context.Context, r1 [32]byte, r2 [32
 			// Reaches the end of the tree and unable to find common ancestor.
 			// This should not happen at runtime as the finalized
 			// node has to be a common ancestor
+			// 到了tree的最后并且不能找到common ancestor，这不应该在runtime的时候发生
+			// 因为finalized node必须是common ancestor
 			if n1 == nil {
 				return [32]byte{}, forkchoice.ErrUnknownCommonAncestor
 			}

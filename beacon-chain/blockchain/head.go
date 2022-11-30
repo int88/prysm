@@ -101,6 +101,7 @@ func (s *Service) saveHead(ctx context.Context, newHeadRoot [32]byte, headBlock 
 	headSlot := s.HeadSlot()
 	newHeadSlot := headBlock.Block().Slot()
 	newStateRoot := headBlock.Block().StateRoot()
+	// oldHeadRoot不是newHead的root，则说明发生了reorg
 	if bytesutil.ToBytes32(headBlock.Block().ParentRoot()) != oldHeadRoot {
 		log.WithFields(logrus.Fields{
 			"newSlot": fmt.Sprintf("%d", newHeadSlot),
@@ -112,6 +113,7 @@ func (s *Service) saveHead(ctx context.Context, newHeadRoot [32]byte, headBlock 
 			return errors.Wrap(err, "could not check if node is optimistically synced")
 		}
 		s.cfg.StateNotifier.StateFeed().Send(&feed.Event{
+			// 发生了reorg事件
 			Type: statefeed.Reorg,
 			Data: &ethpbv1.EventChainReorg{
 				Slot:                newHeadSlot,

@@ -38,7 +38,8 @@ type Store struct {
 	previousProposerBoostScore uint64 // previous proposer boosted root score.
 	// store tree的root node
 	treeRootNode *Node // the root node of the store tree.
-	headNode     *Node // last head Node
+	// 最新的head Node
+	headNode *Node // last head Node
 	// 通过roots进行索引的nodes
 	nodeByRoot map[[fieldparams.RootLength]byte]*Node // nodes indexed by roots.
 	// 通过payload Hash进行索引的nodes

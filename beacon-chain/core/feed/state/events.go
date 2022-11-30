@@ -32,6 +32,7 @@ const (
 	// FinalizedCheckpoint事件
 	FinalizedCheckpoint
 	// NewHead of the chain event.
+	// chain event中的NewHead事件
 	NewHead
 )
 

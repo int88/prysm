@@ -35,6 +35,7 @@ func TestUnslashedAttestingIndices_CanSortAndFilter(t *testing.T) {
 	}
 
 	// Generate validators and state for the 2 attestations.
+	// 生成validators以及2个attestations的state
 	validatorCount := 1000
 	validators := make([]*ethpb.Validator, validatorCount)
 	for i := 0; i < len(validators); i++ {
@@ -43,6 +44,7 @@ func TestUnslashedAttestingIndices_CanSortAndFilter(t *testing.T) {
 		}
 	}
 	base := &ethpb.BeaconState{
+		// 设置validators
 		Validators:  validators,
 		RandaoMixes: make([][]byte, params.BeaconConfig().EpochsPerHistoricalVector),
 	}
@@ -58,9 +60,11 @@ func TestUnslashedAttestingIndices_CanSortAndFilter(t *testing.T) {
 	}
 
 	// Verify the slashed validator is filtered.
+	// 校验slashed validator被过滤
 	slashedValidator := indices[0]
 	validators = beaconState.Validators()
 	validators[slashedValidator].Slashed = true
+	// 设置validators
 	require.NoError(t, beaconState.SetValidators(validators))
 	indices, err = epoch.UnslashedAttestingIndices(context.Background(), beaconState, atts)
 	require.NoError(t, err)
@@ -71,6 +75,7 @@ func TestUnslashedAttestingIndices_CanSortAndFilter(t *testing.T) {
 
 func TestUnslashedAttestingIndices_DuplicatedAttestations(t *testing.T) {
 	// Generate 5 of the same attestations.
+	// 构建五个同样的attestations
 	atts := make([]*ethpb.PendingAttestation, 5)
 	for i := 0; i < len(atts); i++ {
 		atts[i] = &ethpb.PendingAttestation{
@@ -81,6 +86,7 @@ func TestUnslashedAttestingIndices_DuplicatedAttestations(t *testing.T) {
 	}
 
 	// Generate validators and state for the 5 attestations.
+	// 为5个attestations生成validators以及state
 	validatorCount := 1000
 	validators := make([]*ethpb.Validator, validatorCount)
 	for i := 0; i < len(validators); i++ {
@@ -100,6 +106,7 @@ func TestUnslashedAttestingIndices_DuplicatedAttestations(t *testing.T) {
 
 	for i := 0; i < len(indices)-1; i++ {
 		if indices[i] >= indices[i+1] {
+			// 生成的indices没有排序或者有重复
 			t.Error("sorted indices not sorted or duplicated")
 		}
 	}
@@ -114,7 +121,8 @@ func TestAttestingBalance_CorrectBalance(t *testing.T) {
 			Data: &ethpb.AttestationData{
 				Target: &ethpb.Checkpoint{Root: make([]byte, fieldparams.RootLength)},
 				Source: &ethpb.Checkpoint{Root: make([]byte, fieldparams.RootLength)},
-				Slot:   types.Slot(i),
+				// 设置了Slot
+				Slot: types.Slot(i),
 			},
 			AggregationBits: bitfield.Bitlist{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
 				0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x01},
@@ -122,6 +130,7 @@ func TestAttestingBalance_CorrectBalance(t *testing.T) {
 	}
 
 	// Generate validators with balances and state for the 2 attestations.
+	// 为2个attestations生成validators，有着state以及balances
 	validators := make([]*ethpb.Validator, params.BeaconConfig().MinGenesisActiveValidatorCount)
 	balances := make([]uint64, params.BeaconConfig().MinGenesisActiveValidatorCount)
 	for i := 0; i < len(validators); i++ {
@@ -129,6 +138,7 @@ func TestAttestingBalance_CorrectBalance(t *testing.T) {
 			ExitEpoch:        params.BeaconConfig().FarFutureEpoch,
 			EffectiveBalance: params.BeaconConfig().MaxEffectiveBalance,
 		}
+		// 设置为MaxEffectiveBalance
 		balances[i] = params.BeaconConfig().MaxEffectiveBalance
 	}
 	base := &ethpb.BeaconState{
@@ -141,6 +151,7 @@ func TestAttestingBalance_CorrectBalance(t *testing.T) {
 	beaconState, err := v1.InitializeFromProto(base)
 	require.NoError(t, err)
 
+	// 获取balance
 	balance, err := epoch.AttestingBalance(context.Background(), beaconState, atts)
 	require.NoError(t, err)
 	wanted := 256 * params.BeaconConfig().MaxEffectiveBalance
@@ -156,6 +167,7 @@ func TestProcessSlashings_NotSlashed(t *testing.T) {
 	}
 	s, err := v1.InitializeFromProto(base)
 	require.NoError(t, err)
+	// 处理slashing
 	newState, err := epoch.ProcessSlashings(s, params.BeaconConfig().ProportionalSlashingMultiplier)
 	require.NoError(t, err)
 	wanted := params.BeaconConfig().MaxEffectiveBalance
@@ -262,18 +274,22 @@ func TestProcessFinalUpdates_CanProcess(t *testing.T) {
 	require.NoError(t, err)
 
 	// Verify effective balance is correctly updated.
+	// 校验effective balance被正确更新
 	assert.Equal(t, params.BeaconConfig().MaxEffectiveBalance, newS.Validators()[0].EffectiveBalance, "Effective balance incorrectly updated")
 	assert.Equal(t, uint64(31*1e9), newS.Validators()[1].EffectiveBalance, "Effective balance incorrectly updated")
 
 	// Verify slashed balances correctly updated.
+	// 校验slashed balances被正确更新
 	assert.Equal(t, newS.Slashings()[ce], newS.Slashings()[ne], "Unexpected slashed balance")
 
 	// Verify randao is correctly updated in the right position.
+	// 校验randao在正确的位置被正确地更新
 	mix, err := newS.RandaoMixAtIndex(uint64(ne))
 	assert.NoError(t, err)
 	assert.DeepNotEqual(t, params.BeaconConfig().ZeroHash[:], mix, "latest RANDAO still zero hashes")
 
 	// Verify historical root accumulator was appended.
+	// 校验historical root accumulator被扩展
 	assert.Equal(t, 1, len(newS.HistoricalRoots()), "Unexpected slashed balance")
 	currAtt, err := newS.CurrentEpochAttestations()
 	require.NoError(t, err)
@@ -310,6 +326,7 @@ func TestProcessRegistryUpdates_EligibleToActivate(t *testing.T) {
 	limit, err := helpers.ValidatorChurnLimit(0)
 	require.NoError(t, err)
 	for i := uint64(0); i < limit+10; i++ {
+		// 比limit多10个validators
 		base.Validators = append(base.Validators, &ethpb.Validator{
 			ActivationEligibilityEpoch: params.BeaconConfig().FarFutureEpoch,
 			EffectiveBalance:           params.BeaconConfig().MaxEffectiveBalance,
@@ -386,6 +403,7 @@ func TestProcessRegistryUpdates_CanExits(t *testing.T) {
 		Slot: params.BeaconConfig().SlotsPerEpoch.Mul(uint64(e)),
 		Validators: []*ethpb.Validator{
 			{
+				// 设置ExitEpoch
 				ExitEpoch:         exitEpoch,
 				WithdrawableEpoch: exitEpoch + minWithdrawalDelay},
 			{

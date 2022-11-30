@@ -226,6 +226,7 @@ func (s *Service) notifyEngineIfChangedHead(ctx context.Context, newHeadRoot [32
 		log.WithError(err).Error("could not notify forkchoice update")
 	}
 	if err := s.saveHead(ctx, newHeadRoot, newHeadBlock, headState); err != nil {
+		// 保存head
 		log.WithError(err).Error("could not save head")
 	}
 }
@@ -267,6 +268,7 @@ func (s *Service) processAttestations(ctx context.Context) {
 				"beaconBlockRoot":  fmt.Sprintf("%#x", bytesutil.Trunc(a.Data.BeaconBlockRoot)),
 				"targetRoot":       fmt.Sprintf("%#x", bytesutil.Trunc(a.Data.Target.Root)),
 				"aggregationCount": a.AggregationBits.Count(),
+				// 不能处理attestation，对于fork choice
 			}).WithError(err).Warn("Could not process attestation for fork choice")
 		}
 	}
@@ -274,9 +276,14 @@ func (s *Service) processAttestations(ctx context.Context) {
 
 // receiveAttestationNoPubsub is a function that defines the operations that are performed on
 // attestation that is received from regular sync. The operations consist of:
+// receiveAttestationNoPubsub是一个函数，定义了从regular sync中接收到attestation时执行的操作
+// 操作如下：
 //  1. Validate attestation, update validator's latest vote
 //  2. Apply fork choice to the processed attestation
 //  3. Save latest head info
+//  1. 校验attestation，更新validator的最新的vote
+//  2. 应用fork choice，对processed attestation
+//  3. 保存最新的head info
 func (s *Service) receiveAttestationNoPubsub(ctx context.Context, att *ethpb.Attestation) error {
 	ctx, span := trace.StartSpan(ctx, "beacon-chain.blockchain.receiveAttestationNoPubsub")
 	defer span.End()

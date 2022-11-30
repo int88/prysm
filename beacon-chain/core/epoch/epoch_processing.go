@@ -2,6 +2,8 @@
 // process new balance for validators, justify and finalize new
 // check points, and shuffle validators to different slots and
 // shards.
+// epoch包包含了根据spec对于libraries的处理，能够为validator处理新的balances，justify以及
+// finalize新的checkpoints，以及对于不同的slots以及shards对validators进行shuffle
 package epoch
 
 import (
@@ -43,6 +45,7 @@ func (s sortableIndices) Less(i, j int) bool {
 }
 
 // AttestingBalance returns the total balance from all the attesting indices.
+// AttestingBalance从所有的attesting indices返回total balance
 //
 // WARNING: This method allocates a new copy of the attesting validator indices set and is
 // considered to be very memory expensive. Avoid using this unless you really
@@ -52,6 +55,7 @@ func (s sortableIndices) Less(i, j int) bool {
 //  def get_attesting_balance(state: BeaconState, attestations: Sequence[PendingAttestation]) -> Gwei:
 //    """
 //    Return the combined effective balance of the set of unslashed validators participating in ``attestations``.
+//    返回一系列unslashed validators参与到``attestations``的组合的effective balance
 //    Note: ``get_total_balance`` returns ``EFFECTIVE_BALANCE_INCREMENT`` Gwei minimum to avoid divisions by zero.
 //    """
 //    return get_total_balance(state, get_unslashed_attesting_indices(state, attestations))
@@ -65,10 +69,12 @@ func AttestingBalance(ctx context.Context, state state.ReadOnlyBeaconState, atts
 
 // ProcessRegistryUpdates rotates validators in and out of active pool.
 // the amount to rotate is determined churn limit.
+// ProcessRegistryUpdates轮转validators，进入以及退出active pool，轮转的数量取决于churn limit
 //
 // Spec pseudocode definition:
 //   def process_registry_updates(state: BeaconState) -> None:
 //    # Process activation eligibility and ejections
+//    # 处理activation的合格以及弹射
 //    for index, validator in enumerate(state.validators):
 //        if is_eligible_for_activation_queue(validator):
 //            validator.activation_eligibility_epoch = get_current_epoch(state) + 1
@@ -77,6 +83,7 @@ func AttestingBalance(ctx context.Context, state state.ReadOnlyBeaconState, atts
 //            initiate_validator_exit(state, ValidatorIndex(index))
 //
 //    # Queue validators eligible for activation and not yet dequeued for activation
+//    # 将合格的，能激活的validators入队并且将不能激活的出队
 //    activation_queue = sorted([
 //        index for index, validator in enumerate(state.validators)
 //        if is_eligible_for_activation(state, validator)
@@ -88,12 +95,14 @@ func AttestingBalance(ctx context.Context, state state.ReadOnlyBeaconState, atts
 //        validator.activation_epoch = compute_activation_exit_epoch(get_current_epoch(state))
 func ProcessRegistryUpdates(ctx context.Context, state state.BeaconState) (state.BeaconState, error) {
 	currentEpoch := time.CurrentEpoch(state)
+	// 从state获取validators
 	vals := state.Validators()
 	var err error
 	ejectionBal := params.BeaconConfig().EjectionBalance
 	activationEligibilityEpoch := time.CurrentEpoch(state) + 1
 	for idx, validator := range vals {
 		// Process the validators for activation eligibility.
+		// 处理validators用于activation eligibility
 		if helpers.IsEligibleForActivationQueue(validator) {
 			validator.ActivationEligibilityEpoch = activationEligibilityEpoch
 			if err := state.UpdateValidatorAtIndex(types.ValidatorIndex(idx), validator); err != nil {
@@ -102,6 +111,7 @@ func ProcessRegistryUpdates(ctx context.Context, state state.BeaconState) (state
 		}
 
 		// Process the validators for ejection.
+		// 处理validators的退出
 		isActive := helpers.IsActiveValidator(validator, currentEpoch)
 		belowEjectionBalance := validator.EffectiveBalance <= ejectionBal
 		if isActive && belowEjectionBalance {
@@ -113,6 +123,7 @@ func ProcessRegistryUpdates(ctx context.Context, state state.BeaconState) (state
 	}
 
 	// Queue validators eligible for activation and not yet dequeued for activation.
+	// 处理合格的validators用于激活以及不合格的出队
 	var activationQ []types.ValidatorIndex
 	for idx, validator := range vals {
 		if helpers.IsEligibleForActivation(state, validator) {
@@ -123,6 +134,7 @@ func ProcessRegistryUpdates(ctx context.Context, state state.BeaconState) (state
 	sort.Sort(sortableIndices{indices: activationQ, validators: vals})
 
 	// Only activate just enough validators according to the activation churn limit.
+	// 只激活足够数目的validators，根据activation的churn limit
 	limit := uint64(len(activationQ))
 	activeValidatorCount, err := helpers.ActiveValidatorCount(ctx, state, currentEpoch)
 	if err != nil {
@@ -135,6 +147,7 @@ func ProcessRegistryUpdates(ctx context.Context, state state.BeaconState) (state
 	}
 
 	// Prevent churn limit cause index out of bound.
+	// 防止churn limit导致out of bound
 	if churnLimit < limit {
 		limit = churnLimit
 	}
@@ -154,6 +167,7 @@ func ProcessRegistryUpdates(ctx context.Context, state state.BeaconState) (state
 }
 
 // ProcessSlashings processes the slashed validators during epoch processing,
+// ProcessSlashings在epoch processing中处理slashed validators
 //
 //  def process_slashings(state: BeaconState) -> None:
 //    epoch = get_current_epoch(state)
@@ -439,6 +453,8 @@ func ProcessFinalUpdates(state state.BeaconState) (state.BeaconState, error) {
 
 // UnslashedAttestingIndices returns all the attesting indices from a list of attestations,
 // it sorts the indices and filters out the slashed ones.
+// UnslashedAttestingIndices从一个attestations列表中返回attesting indices，它对indices进行排序
+// 并且过滤slashed ones
 //
 // Spec pseudocode definition:
 //  def get_unslashed_attesting_indices(state: BeaconState,
@@ -461,6 +477,7 @@ func UnslashedAttestingIndices(ctx context.Context, state state.ReadOnlyBeaconSt
 			return nil, err
 		}
 		// Create a set for attesting indices
+		// 为attesting indices创建一个集合
 		for _, index := range attestingIndices {
 			if !seen[index] {
 				setIndices = append(setIndices, types.ValidatorIndex(index))
@@ -469,8 +486,10 @@ func UnslashedAttestingIndices(ctx context.Context, state state.ReadOnlyBeaconSt
 		}
 	}
 	// Sort the attesting set indices by increasing order.
+	// 按照升序，对attesting set进行排序
 	sort.Slice(setIndices, func(i, j int) bool { return setIndices[i] < setIndices[j] })
 	// Remove the slashed validator indices.
+	// 移除slashed validator indices
 	for i := 0; i < len(setIndices); i++ {
 		v, err := state.ValidatorAtIndexReadOnly(setIndices[i])
 		if err != nil {

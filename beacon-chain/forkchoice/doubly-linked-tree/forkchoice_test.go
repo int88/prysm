@@ -90,6 +90,7 @@ func TestForkChoice_UpdateBalancesPositiveChange(t *testing.T) {
 	// 每个node都获取到唯一的一个vote，weight应该为103 <- 102 <- 101，因为它们会传播回来
 	require.NoError(t, f.updateBalances([]uint64{10, 20, 30}))
 	s := f.store
+	// 确定每个node获得的balance是否符合预期
 	assert.Equal(t, uint64(10), s.nodeByRoot[indexToHash(1)].balance)
 	assert.Equal(t, uint64(20), s.nodeByRoot[indexToHash(2)].balance)
 	assert.Equal(t, uint64(30), s.nodeByRoot[indexToHash(3)].balance)
@@ -108,6 +109,7 @@ func TestForkChoice_UpdateBalancesNegativeChange(t *testing.T) {
 	require.NoError(t, err)
 	require.NoError(t, f.InsertNode(ctx, st, blkRoot))
 	s := f.store
+	// 设置每个node的balance
 	s.nodeByRoot[indexToHash(1)].balance = 100
 	s.nodeByRoot[indexToHash(2)].balance = 100
 	s.nodeByRoot[indexToHash(3)].balance = 100
@@ -120,6 +122,7 @@ func TestForkChoice_UpdateBalancesNegativeChange(t *testing.T) {
 	}
 
 	require.NoError(t, f.updateBalances([]uint64{10, 20, 30}))
+	// 变为更新后的balance
 	assert.Equal(t, uint64(10), s.nodeByRoot[indexToHash(1)].balance)
 	assert.Equal(t, uint64(20), s.nodeByRoot[indexToHash(2)].balance)
 	assert.Equal(t, uint64(30), s.nodeByRoot[indexToHash(3)].balance)
@@ -150,6 +153,7 @@ func TestForkChoice_UpdateBalancesUnderflow(t *testing.T) {
 	}
 
 	require.NoError(t, f.updateBalances([]uint64{10, 20, 30}))
+	// 更新balance之后
 	assert.Equal(t, uint64(0), s.nodeByRoot[indexToHash(1)].balance)
 	assert.Equal(t, uint64(0), s.nodeByRoot[indexToHash(2)].balance)
 	assert.Equal(t, uint64(5), s.nodeByRoot[indexToHash(3)].balance)
@@ -723,6 +727,7 @@ func TestForkChoice_UpdateCheckpoints(t *testing.T) {
 			require.NoError(t, err)
 			require.NoError(t, fcs.InsertNode(ctx, st, blkRoot))
 			// restart justifications cause insertion messed it up
+			// 重启justifications导致插入混乱
 			fcs.store.justifiedCheckpoint = tt.justified
 			fcs.store.finalizedCheckpoint = tt.finalized
 			fcs.store.bestJustifiedCheckpoint = tt.bestJustified

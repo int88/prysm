@@ -7,6 +7,7 @@ import (
 )
 
 // BeaconConfig retrieves beacon chain config.
+// BeaconConfig获取beacon chain的配置
 func BeaconConfig() *BeaconChainConfig {
 	return configs.getActive()
 }

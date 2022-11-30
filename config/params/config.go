@@ -55,10 +55,11 @@ type BeaconChainConfig struct {
 	MinAttestationInclusionDelay types.Slot `yaml:"MIN_ATTESTATION_INCLUSION_DELAY" spec:"true"` // MinAttestationInclusionDelay defines how many slots validator has to wait to include attestation for beacon block.
 	SecondsPerSlot               uint64     `yaml:"SECONDS_PER_SLOT" spec:"true"`                // SecondsPerSlot is how many seconds are in a single slot. // SecondsPerSlot决定了单个slot里有多少秒
 	// SlotsPerEpoch是一个epoch里slots的数目
-	SlotsPerEpoch        types.Slot  `yaml:"SLOTS_PER_EPOCH" spec:"true"` // SlotsPerEpoch is the number of slots in an epoch.
-	SqrRootSlotsPerEpoch types.Slot  // SqrRootSlotsPerEpoch is a hard coded value where we take the square root of `SlotsPerEpoch` and round down.
-	MinSeedLookahead     types.Epoch `yaml:"MIN_SEED_LOOKAHEAD" spec:"true"` // MinSeedLookahead is the duration of randao look ahead seed.
-	MaxSeedLookahead     types.Epoch `yaml:"MAX_SEED_LOOKAHEAD" spec:"true"` // MaxSeedLookahead is the duration a validator has to wait for entry and exit in epoch.
+	SlotsPerEpoch        types.Slot `yaml:"SLOTS_PER_EPOCH" spec:"true"` // SlotsPerEpoch is the number of slots in an epoch.
+	SqrRootSlotsPerEpoch types.Slot // SqrRootSlotsPerEpoch is a hard coded value where we take the square root of `SlotsPerEpoch` and round down.
+	// MinSeedLookahead是randao look ahead seed的时间
+	MinSeedLookahead types.Epoch `yaml:"MIN_SEED_LOOKAHEAD" spec:"true"` // MinSeedLookahead is the duration of randao look ahead seed.
+	MaxSeedLookahead types.Epoch `yaml:"MAX_SEED_LOOKAHEAD" spec:"true"` // MaxSeedLookahead is the duration a validator has to wait for entry and exit in epoch.
 	// 定义了deposit receipts更新的频率，在每个epoch的基础上
 	EpochsPerEth1VotingPeriod        types.Epoch `yaml:"EPOCHS_PER_ETH1_VOTING_PERIOD" spec:"true"`       // EpochsPerEth1VotingPeriod defines how often the merkle root of deposit receipts get updated in beacon node on per epoch basis.
 	SlotsPerHistoricalRoot           types.Slot  `yaml:"SLOTS_PER_HISTORICAL_ROOT" spec:"true"`           // SlotsPerHistoricalRoot defines how often the historical root is saved.
@@ -93,11 +94,12 @@ type BeaconChainConfig struct {
 	ValidatorRegistryLimit    uint64      `yaml:"VALIDATOR_REGISTRY_LIMIT" spec:"true"`     // ValidatorRegistryLimit defines the upper bound of validators can participate in eth2.
 
 	// Reward and penalty quotients constants.
-	BaseRewardFactor               uint64 `yaml:"BASE_REWARD_FACTOR" spec:"true"`               // BaseRewardFactor is used to calculate validator per-slot interest rate.
-	WhistleBlowerRewardQuotient    uint64 `yaml:"WHISTLEBLOWER_REWARD_QUOTIENT" spec:"true"`    // WhistleBlowerRewardQuotient is used to calculate whistle blower reward.
-	ProposerRewardQuotient         uint64 `yaml:"PROPOSER_REWARD_QUOTIENT" spec:"true"`         // ProposerRewardQuotient is used to calculate the reward for proposers.
-	InactivityPenaltyQuotient      uint64 `yaml:"INACTIVITY_PENALTY_QUOTIENT" spec:"true"`      // InactivityPenaltyQuotient is used to calculate the penalty for a validator that is offline.
-	MinSlashingPenaltyQuotient     uint64 `yaml:"MIN_SLASHING_PENALTY_QUOTIENT" spec:"true"`    // MinSlashingPenaltyQuotient is used to calculate the minimum penalty to prevent DoS attacks.
+	BaseRewardFactor            uint64 `yaml:"BASE_REWARD_FACTOR" spec:"true"`            // BaseRewardFactor is used to calculate validator per-slot interest rate.
+	WhistleBlowerRewardQuotient uint64 `yaml:"WHISTLEBLOWER_REWARD_QUOTIENT" spec:"true"` // WhistleBlowerRewardQuotient is used to calculate whistle blower reward.
+	ProposerRewardQuotient      uint64 `yaml:"PROPOSER_REWARD_QUOTIENT" spec:"true"`      // ProposerRewardQuotient is used to calculate the reward for proposers.
+	InactivityPenaltyQuotient   uint64 `yaml:"INACTIVITY_PENALTY_QUOTIENT" spec:"true"`   // InactivityPenaltyQuotient is used to calculate the penalty for a validator that is offline.
+	MinSlashingPenaltyQuotient  uint64 `yaml:"MIN_SLASHING_PENALTY_QUOTIENT" spec:"true"` // MinSlashingPenaltyQuotient is used to calculate the minimum penalty to prevent DoS attacks.
+	// ProportionalSlashingMultiplier在使用的时候作为slashed penalties的乘数
 	ProportionalSlashingMultiplier uint64 `yaml:"PROPORTIONAL_SLASHING_MULTIPLIER" spec:"true"` // ProportionalSlashingMultiplier is used as a multiplier on slashed penalties.
 
 	// Max operations per block constants.

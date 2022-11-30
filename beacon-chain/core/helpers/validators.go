@@ -204,11 +204,13 @@ func ActivationExitEpoch(epoch types.Epoch) types.Epoch {
 
 // ValidatorChurnLimit returns the number of validators that are allowed to
 // enter and exit validator pool for an epoch.
+// ValidatorChurnLimit返回validators的数目，对于一个epoch，允许进入以及退出validator pool
 //
 // Spec pseudocode definition:
 //   def get_validator_churn_limit(state: BeaconState) -> uint64:
 //    """
 //    Return the validator churn limit for the current epoch.
+//    返回当前epoch的validator churn limit
 //    """
 //    active_validator_indices = get_active_validator_indices(state, get_current_epoch(state))
 //    return max(MIN_PER_EPOCH_CHURN_LIMIT, uint64(len(active_validator_indices)) // CHURN_LIMIT_QUOTIENT)
@@ -249,6 +251,7 @@ func BeaconProposerIndex(ctx context.Context, state state.ReadOnlyBeaconState) (
 		if r != nil && !bytes.Equal(r, params.BeaconConfig().ZeroHash[:]) {
 			proposerIndices, err := proposerIndicesCache.ProposerIndices(bytesutil.ToBytes32(r))
 			if err != nil {
+				// 不能和committee cache进行交互
 				return 0, errors.Wrap(err, "could not interface with committee cache")
 			}
 			if proposerIndices != nil {
@@ -258,6 +261,7 @@ func BeaconProposerIndex(ctx context.Context, state state.ReadOnlyBeaconState) (
 				return proposerIndices[state.Slot()%params.BeaconConfig().SlotsPerEpoch], nil
 			}
 			if err := UpdateProposerIndicesInCache(ctx, state); err != nil {
+				// 不能更新
 				return 0, errors.Wrap(err, "could not update committee cache")
 			}
 		}
@@ -271,6 +275,7 @@ func BeaconProposerIndex(ctx context.Context, state state.ReadOnlyBeaconState) (
 	seedWithSlot := append(seed[:], bytesutil.Bytes8(uint64(state.Slot()))...)
 	seedWithSlotHash := hash.Hash(seedWithSlot)
 
+	//获取active validator
 	indices, err := ActiveValidatorIndices(ctx, state, e)
 	if err != nil {
 		return 0, errors.Wrap(err, "could not get active indices")
@@ -286,6 +291,7 @@ func BeaconProposerIndex(ctx context.Context, state state.ReadOnlyBeaconState) (
 //  def compute_proposer_index(state: BeaconState, indices: Sequence[ValidatorIndex], seed: Bytes32) -> ValidatorIndex:
 //    """
 //    Return from ``indices`` a random index sampled by effective balance.
+//    从``indices``返回一个random index，通过effective balance进行采样
 //    """
 //    assert len(indices) > 0
 //    MAX_RANDOM_BYTE = 2**8 - 1

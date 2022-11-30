@@ -15,19 +15,25 @@ import (
 )
 
 // ProcessBlockHeader validates a block by its header.
+// ProcessBlockHeader通过它的header校验一个block
 //
 // Spec pseudocode definition:
 //
 //  def process_block_header(state: BeaconState, block: BeaconBlock) -> None:
 //    # Verify that the slots match
+//    # 校验slots匹配
 //    assert block.slot == state.slot
 //    # Verify that the block is newer than latest block header
+//    # 校验block比最新的block ehader更新
 //    assert block.slot > state.latest_block_header.slot
 //    # Verify that proposer index is the correct index
+//    # 校验proposer index是正确的索引
 //    assert block.proposer_index == get_beacon_proposer_index(state)
 //    # Verify that the parent matches
+//    # 校验parent匹配
 //    assert block.parent_root == hash_tree_root(state.latest_block_header)
 //    # Cache current block as the new latest block
+//    # 缓存当前的block作为最新的block
 //    state.latest_block_header = BeaconBlockHeader(
 //        slot=block.slot,
 //        proposer_index=block.proposer_index,
@@ -37,6 +43,7 @@ import (
 //    )
 //
 //    # Verify proposer is not slashed
+//    # 校验proposer没有被slashed
 //    proposer = state.validators[block.proposer_index]
 //    assert not proposer.slashed
 func ProcessBlockHeader(
@@ -57,6 +64,7 @@ func ProcessBlockHeader(
 	}
 
 	// Verify proposer signature.
+	// 校验proposer signature
 	if err := VerifyBlockSignature(beaconState, block.Block().ProposerIndex(), block.Signature(), block.Block().HashTreeRoot); err != nil {
 		return nil, err
 	}
@@ -116,8 +124,10 @@ func ProcessBlockHeaderNoVerify(
 	if proposerIndex != idx {
 		return nil, fmt.Errorf("proposer index: %d is different than calculated: %d", proposerIndex, idx)
 	}
+	// 最新的block header为parent?
 	parentHeader := beaconState.LatestBlockHeader()
 	if parentHeader.Slot >= slot {
+		// block.Slot必须比state.LatestBlockHeader.Slot更大
 		return nil, fmt.Errorf("block.Slot %d must be greater than state.LatestBlockHeader.Slot %d", slot, parentHeader.Slot)
 	}
 	parentHeaderRoot, err := parentHeader.HashTreeRoot()
@@ -136,9 +146,11 @@ func ProcessBlockHeaderNoVerify(
 		return nil, err
 	}
 	if proposer.Slashed() {
+		// 在索引的proposer之前已经被slashed
 		return nil, fmt.Errorf("proposer at index %d was previously slashed", idx)
 	}
 
+	// 重新设置latest block header
 	if err := beaconState.SetLatestBlockHeader(&ethpb.BeaconBlockHeader{
 		Slot:          slot,
 		ProposerIndex: proposerIndex,

@@ -380,6 +380,8 @@ func VerifyOperationLengths(_ context.Context, state state.BeaconState, b interf
 
 // ProcessEpochPrecompute describes the per epoch operations that are performed on the beacon state.
 // It's optimized by pre computing validator attested info and epoch total/attested balances upfront.
+/// ProcessEpochPrecompute描述了每个epoch的操作，在beacon state之上，它通过提前计算validator attested info
+// 以及epoch total/attested balances进行优化
 func ProcessEpochPrecompute(ctx context.Context, state state.BeaconState) (state.BeaconState, error) {
 	ctx, span := trace.StartSpan(ctx, "core.state.ProcessEpochPrecompute")
 	defer span.End()

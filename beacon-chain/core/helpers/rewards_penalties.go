@@ -15,6 +15,7 @@ var balanceCache = cache.NewEffectiveBalanceCache()
 
 // TotalBalance returns the total amount at stake in Gwei
 // of input validators.
+// TotalBalance返回输入的validators的所有stake的数目，以Gwei为单位
 //
 // Spec pseudocode definition:
 //   def get_total_balance(state: BeaconState, indices: Set[ValidatorIndex]) -> Gwei:
