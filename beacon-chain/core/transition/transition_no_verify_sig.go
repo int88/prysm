@@ -32,13 +32,17 @@ import (
 //  def state_transition(state: BeaconState, signed_block: SignedBeaconBlock, validate_result: bool=True) -> None:
 //    block = signed_block.message
 //    # Process slots (including those with no blocks) since block
+//    # 处理slots（包括那些没有blocks），从block之后
 //    process_slots(state, block.slot)
 //    # Verify signature
+//    # 校验signature
 //    if validate_result:
 //        assert verify_block_signature(state, signed_block)
 //    # Process block
+//    # 处理block
 //    process_block(state, block)
 //    # Verify state root
+//    # 校验state root
 //    if validate_result:
 //        assert block.state_root == hash_tree_root(state)
 func ExecuteStateTransitionNoVerifyAnySig(

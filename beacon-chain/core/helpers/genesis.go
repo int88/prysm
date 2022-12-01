@@ -31,6 +31,7 @@ func UpdateGenesisEth1Data(state state.BeaconState, deposits []*ethpb.Deposit, e
 	var t *trie.SparseMerkleTrie
 	var err error
 	if len(leaves) > 0 {
+		// 构建一个trie
 		t, err = trie.GenerateTrieFromItems(leaves, params.BeaconConfig().DepositContractTreeDepth)
 		if err != nil {
 			return nil, err

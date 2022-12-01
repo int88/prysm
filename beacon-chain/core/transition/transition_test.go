@@ -46,6 +46,7 @@ func TestExecuteStateTransition_IncorrectSlot(t *testing.T) {
 	want := "expected state.slot"
 	wsb, err := wrapper.WrappedSignedBeaconBlock(block)
 	require.NoError(t, err)
+	// slot发生错误，则报错
 	_, err = transition.ExecuteStateTransition(context.Background(), beaconState, wsb)
 	assert.ErrorContains(t, want, err)
 }
@@ -60,10 +61,12 @@ func TestExecuteStateTransition_FullProcess(t *testing.T) {
 	}
 	require.NoError(t, beaconState.SetSlot(params.BeaconConfig().SlotsPerEpoch-1))
 	e := beaconState.Eth1Data()
+	// 重置DepositCount?
 	e.DepositCount = 100
 	require.NoError(t, beaconState.SetEth1Data(e))
 	bh := beaconState.LatestBlockHeader()
 	bh.Slot = beaconState.Slot()
+	// 设置最新的block header
 	require.NoError(t, beaconState.SetLatestBlockHeader(bh))
 	require.NoError(t, beaconState.SetEth1DataVotes([]*ethpb.Eth1Data{eth1Data}))
 
@@ -76,21 +79,25 @@ func TestExecuteStateTransition_FullProcess(t *testing.T) {
 	require.NoError(t, err)
 	require.NoError(t, beaconState.SetSlot(beaconState.Slot()-1))
 
+	// 处理slots
 	nextSlotState, err := transition.ProcessSlots(context.Background(), beaconState.Copy(), beaconState.Slot()+1)
 	require.NoError(t, err)
 	parentRoot, err := nextSlotState.LatestBlockHeader().HashTreeRoot()
 	require.NoError(t, err)
 	proposerIdx, err := helpers.BeaconProposerIndex(context.Background(), nextSlotState)
 	require.NoError(t, err)
+	// 构建一个新的beacon block
 	block := util.NewBeaconBlock()
 	block.Block.ProposerIndex = proposerIdx
 	block.Block.Slot = beaconState.Slot() + 1
 	block.Block.ParentRoot = parentRoot[:]
 	block.Block.Body.RandaoReveal = randaoReveal
+	// 设置ethdata
 	block.Block.Body.Eth1Data = eth1Data
 
 	wsb, err := wrapper.WrappedSignedBeaconBlock(block)
 	require.NoError(t, err)
+	// 构建state root
 	stateRoot, err := transition.CalculateStateRoot(context.Background(), beaconState, wsb)
 	require.NoError(t, err)
 
@@ -109,6 +116,7 @@ func TestExecuteStateTransition_FullProcess(t *testing.T) {
 
 	mix, err := beaconState.RandaoMixAtIndex(1)
 	require.NoError(t, err)
+	// 不期望新的和老的randao mix相等
 	assert.DeepNotEqual(t, oldMix, mix, "Did not expect new and old randao mix to equal")
 }
 
@@ -129,6 +137,7 @@ func TestProcessBlock_IncorrectProcessExits(t *testing.T) {
 					ProposerIndex: 3,
 					Slot:          1,
 				},
+				// signature不同
 				Signature: bytesutil.PadTo([]byte("B"), 96),
 			}),
 		},
@@ -164,9 +173,11 @@ func TestProcessBlock_IncorrectProcessExits(t *testing.T) {
 	for i := uint64(0); i < params.BeaconConfig().MaxVoluntaryExits+1; i++ {
 		exits = append(exits, &ethpb.SignedVoluntaryExit{})
 	}
+	// 构建genesis block
 	genesisBlock := blocks.NewGenesisBlock([]byte{})
 	bodyRoot, err := genesisBlock.Block.HashTreeRoot()
 	require.NoError(t, err)
+	// 设置最新的block header
 	err = beaconState.SetLatestBlockHeader(util.HydrateBeaconHeader(&ethpb.BeaconBlockHeader{
 		Slot:       genesisBlock.Block.Slot,
 		ParentRoot: genesisBlock.Block.ParentRoot,
@@ -175,6 +186,7 @@ func TestProcessBlock_IncorrectProcessExits(t *testing.T) {
 	require.NoError(t, err)
 	parentRoot, err := beaconState.LatestBlockHeader().HashTreeRoot()
 	require.NoError(t, err)
+	// 构建最新的block
 	block := util.NewBeaconBlock()
 	block.Block.Slot = 1
 	block.Block.ParentRoot = parentRoot[:]
@@ -186,12 +198,14 @@ func TestProcessBlock_IncorrectProcessExits(t *testing.T) {
 	block.Block.Body.Eth1Data.BlockHash = bytesutil.PadTo([]byte{3}, 32)
 	err = beaconState.SetSlot(beaconState.Slot() + params.BeaconConfig().MinAttestationInclusionDelay)
 	require.NoError(t, err)
+	// 当前的justified checkpoint
 	cp := beaconState.CurrentJustifiedCheckpoint()
 	cp.Root = []byte("hello-world")
 	require.NoError(t, beaconState.SetCurrentJustifiedCheckpoint(cp))
 	require.NoError(t, beaconState.AppendCurrentEpochAttestations(&ethpb.PendingAttestation{}))
 	wsb, err := wrapper.WrappedSignedBeaconBlock(block)
 	require.NoError(t, err)
+	// 校验操作的长度
 	_, err = transition.VerifyOperationLengths(context.Background(), beaconState, wsb)
 	wanted := "number of voluntary exits (17) in block body exceeds allowed threshold of 16"
 	assert.ErrorContains(t, wanted, err)

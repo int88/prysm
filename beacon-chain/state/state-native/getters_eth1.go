@@ -28,6 +28,8 @@ func (b *BeaconState) eth1DataVal() *ethpb.Eth1Data {
 
 // Eth1DataVotes corresponds to votes from Ethereum on the canonical proof-of-work chain
 // data retrieved from eth1.
+// Eth1DataVotes相应地返回来自Ethereum的votess，从canonical proof-of-work chain data
+// 来自eth1
 func (b *BeaconState) Eth1DataVotes() []*ethpb.Eth1Data {
 	if b.eth1DataVotes == nil {
 		return nil

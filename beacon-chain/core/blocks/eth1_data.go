@@ -42,6 +42,7 @@ func ProcessEth1DataInBlock(_ context.Context, beaconState state.BeaconState, et
 }
 
 // AreEth1DataEqual checks equality between two eth1 data objects.
+// AreEth1DataEqual检查两个eth1 data对象是否相等
 func AreEth1DataEqual(a, b *ethpb.Eth1Data) bool {
 	if a == nil && b == nil {
 		return true

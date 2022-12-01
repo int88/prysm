@@ -25,6 +25,7 @@ func TestProcessDeposits_SameValidatorMultipleDepositsSameBlock(t *testing.T) {
 
 	dep, _, err := util.DeterministicDepositsAndKeysSameValidator(3)
 	require.NoError(t, err)
+	// 确定eth1 data，其实包括了block hash，deposit hash以及root
 	eth1Data, err := util.DeterministicEth1Data(len(dep))
 	require.NoError(t, err)
 	b := util.NewBeaconBlock()
@@ -42,6 +43,7 @@ func TestProcessDeposits_SameValidatorMultipleDepositsSameBlock(t *testing.T) {
 		},
 	}
 	balances := []uint64{0}
+	// 初始化beacon state
 	beaconState, err := v1.InitializeFromProto(&ethpb.BeaconState{
 		Validators: registry,
 		Balances:   balances,
@@ -52,6 +54,7 @@ func TestProcessDeposits_SameValidatorMultipleDepositsSameBlock(t *testing.T) {
 		},
 	})
 	require.NoError(t, err)
+	// 处理deposits
 	newState, err := blocks.ProcessDeposits(context.Background(), beaconState, b.Block.Body.Deposits)
 	require.NoError(t, err, "Expected block deposits to process correctly")
 
@@ -140,6 +143,7 @@ func TestProcessDeposits_RepeatedDeposit_IncreasesValidatorBalance(t *testing.T)
 	require.NoError(t, err)
 	deposit := &ethpb.Deposit{
 		Data: &ethpb.Deposit_Data{
+			// 设置public key
 			PublicKey: sk.PublicKey().Marshal(),
 			// Depoist的数量是1000
 			Amount:                1000,
@@ -155,6 +159,7 @@ func TestProcessDeposits_RepeatedDeposit_IncreasesValidatorBalance(t *testing.T)
 	require.NoError(t, err)
 
 	// We then create a merkle branch for the test.
+	// 我们之后创建一个merkel branch用于测试
 	depositTrie, err := trie.GenerateTrieFromItems([][]byte{leaf[:]}, params.BeaconConfig().DepositContractTreeDepth)
 	require.NoError(t, err, "Could not generate trie")
 	proof, err := depositTrie.MerkleProof(0)
@@ -238,6 +243,7 @@ func TestProcessDeposit_SkipsInvalidDeposit(t *testing.T) {
 	// 和TestProcessDeposit_AddsNewValidatorDeposit的测试设置相同，除了我们使用一个非法的signature
 	dep, _, err := util.DeterministicDepositsAndKeys(1)
 	require.NoError(t, err)
+	// 重置signature
 	dep[0].Data.Signature = make([]byte, 96)
 	dt, _, err := util.DepositTrieFromDeposits(dep)
 	require.NoError(t, err)
@@ -264,6 +270,7 @@ func TestProcessDeposit_SkipsInvalidDeposit(t *testing.T) {
 		},
 	})
 	require.NoError(t, err)
+	// 期望invalid block deposit直接被忽略，没有错误
 	newState, isNewValidator, err := blocks.ProcessDeposit(beaconState, dep[0], true)
 	require.NoError(t, err, "Expected invalid block deposit to be ignored without error")
 	assert.Equal(t, false, isNewValidator, "Expected isNewValidator to be false")

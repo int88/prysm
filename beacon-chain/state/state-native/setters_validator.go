@@ -61,6 +61,7 @@ func (b *BeaconState) ApplyToEveryValidator(f func(idx int, val *ethpb.Validator
 
 // UpdateValidatorAtIndex for the beacon state. Updates the validator
 // at a specific index to a new value.
+// 更新指定index的validator到一个新值
 func (b *BeaconState) UpdateValidatorAtIndex(idx types.ValidatorIndex, val *ethpb.Validator) error {
 	if uint64(len(b.validators)) <= uint64(idx) {
 		return errors.Errorf("invalid index provided %d", idx)
@@ -185,6 +186,7 @@ func (b *BeaconState) AppendValidator(val *ethpb.Validator) error {
 
 // AppendBalance for the beacon state. Appends the new value
 // to the the end of list.
+// 添加新的值到list的最后
 func (b *BeaconState) AppendBalance(bal uint64) error {
 	b.lock.Lock()
 	defer b.lock.Unlock()

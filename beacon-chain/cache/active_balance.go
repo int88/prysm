@@ -35,12 +35,14 @@ var (
 )
 
 // BalanceCache is a struct with 1 LRU cache for looking up balance by epoch.
+// BalanceCache是一个有着1个LRU cache的结构，能够通过epoch寻找balance
 type BalanceCache struct {
 	cache *lru.Cache
 	lock  sync.RWMutex
 }
 
 // NewEffectiveBalanceCache creates a new effective balance cache for storing/accessing total balance by epoch.
+// NewEffectiveBalanceCache创建一个新的effective balance cache用于存储/访问 total balance，通过epoch
 func NewEffectiveBalanceCache() *BalanceCache {
 	return &BalanceCache{
 		cache: lruwrpr.New(maxBalanceCacheSize),

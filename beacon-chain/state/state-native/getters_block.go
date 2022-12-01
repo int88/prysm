@@ -7,6 +7,7 @@ import (
 )
 
 // LatestBlockHeader stored within the beacon state.
+// 存储在beacon state中的LatestBlockHeader
 func (b *BeaconState) LatestBlockHeader() *ethpb.BeaconBlockHeader {
 	if b.latestBlockHeader == nil {
 		return nil

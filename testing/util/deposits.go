@@ -219,6 +219,7 @@ func signedDeposit(
 
 // DeterministicDepositTrie returns a merkle trie of the requested size from the
 // deterministic deposits.
+// DeterministicDepositTrie返回请求的大小的merkle trie，从deterministic deposits
 func DeterministicDepositTrie(size int) (*trie.SparseMerkleTrie, [][32]byte, error) {
 	if t == nil {
 		return nil, [][32]byte{}, errors.New("trie cache is empty, generate deposits at an earlier point")
@@ -255,17 +256,20 @@ func DepositTrieSubset(sparseTrie *trie.SparseMerkleTrie, size int) (*trie.Spars
 // DeterministicEth1Data takes an array of deposits and returns the eth1Data made from the deposit trie.
 // DeterministicEth1Data获取一系列的deposits并且返回来自deposit trie的eth1Data
 func DeterministicEth1Data(size int) (*ethpb.Eth1Data, error) {
+	// 构建deposit trie
 	depositTrie, _, err := DeterministicDepositTrie(size)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create trie")
 	}
+	// 获取deposit trie root
 	root, err := depositTrie.HashTreeRoot()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to compute deposit trie root")
 	}
 	eth1Data := &ethpb.Eth1Data{
-		BlockHash:    root[:],
-		DepositRoot:  root[:],
+		BlockHash:   root[:],
+		DepositRoot: root[:],
+		//deposit的数目
 		DepositCount: uint64(size),
 	}
 	return eth1Data, nil
@@ -274,14 +278,17 @@ func DeterministicEth1Data(size int) (*ethpb.Eth1Data, error) {
 // DeterministicGenesisState returns a genesis state made using the deterministic deposits.
 // DeterministicGenesisState返回一个由deterministic deposits创建的genesis state
 func DeterministicGenesisState(t testing.TB, numValidators uint64) (state.BeaconState, []bls.SecretKey) {
+	// 创建numValidators数目的validators
 	deposits, privKeys, err := DeterministicDepositsAndKeys(numValidators)
 	if err != nil {
 		t.Fatal(errors.Wrapf(err, "failed to get %d deposits", numValidators))
 	}
+	// 确定eth data
 	eth1Data, err := DeterministicEth1Data(len(deposits))
 	if err != nil {
 		t.Fatal(errors.Wrapf(err, "failed to get eth1data for %d deposits", numValidators))
 	}
+	// 构建genesis state
 	beaconState, err := transition.GenesisBeaconState(context.Background(), deposits, uint64(0), eth1Data)
 	if err != nil {
 		t.Fatal(errors.Wrapf(err, "failed to get genesis beacon state of %d validators", numValidators))
@@ -363,6 +370,7 @@ func DeterministicDepositsAndKeysSameValidator(numDeposits uint64) ([]*ethpb.Dep
 			withdrawalCreds := hash.Hash(publicKeys[1].Marshal())
 			withdrawalCreds[0] = params.BeaconConfig().BLSWithdrawalPrefixByte
 
+			// 构建deposit message
 			depositMessage := &ethpb.DepositMessage{
 				PublicKey:             publicKeys[1].Marshal(),
 				Amount:                params.BeaconConfig().MaxEffectiveBalance,
@@ -379,6 +387,7 @@ func DeterministicDepositsAndKeysSameValidator(numDeposits uint64) ([]*ethpb.Dep
 			}
 			sigRoot, err := (&ethpb.SigningData{ObjectRoot: root[:], Domain: domain}).HashTreeRoot()
 			if err != nil {
+				// 不能获取deposit data以及domain的signing root
 				return nil, nil, errors.Wrap(err, "could not get signing root of deposit data and domain")
 			}
 			// Always use the same validator to sign
@@ -389,6 +398,7 @@ func DeterministicDepositsAndKeysSameValidator(numDeposits uint64) ([]*ethpb.Dep
 				WithdrawalCredentials: depositMessage.WithdrawalCredentials,
 				Signature:             secretKeys[1].Sign(sigRoot[:]).Marshal(),
 			}
+			// 构建deposit
 			deposit := &ethpb.Deposit{
 				Data: depositData,
 			}
@@ -399,6 +409,7 @@ func DeterministicDepositsAndKeysSameValidator(numDeposits uint64) ([]*ethpb.Dep
 				return nil, nil, errors.Wrap(err, "could not tree hash deposit data")
 			}
 
+			// 在tree中插入hashed deposit
 			if err = t.Insert(hashedDeposit[:], int(numExisting+i)); err != nil {
 				return nil, nil, err
 			}

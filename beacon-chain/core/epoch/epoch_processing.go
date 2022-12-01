@@ -241,10 +241,12 @@ func ProcessEth1DataReset(state state.BeaconState) (state.BeaconState, error) {
 }
 
 // ProcessEffectiveBalanceUpdates processes effective balance updates during epoch processing.
+// ProcessEffectiveBalanceUpdates处理effective balance的更新，在epoch processing中
 //
 // Spec pseudocode definition:
 //  def process_effective_balance_updates(state: BeaconState) -> None:
 //    # Update effective balances with hysteresis
+//    # 更新effective balances，有迟滞
 //    for index, validator in enumerate(state.validators):
 //        balance = state.balances[index]
 //        HYSTERESIS_INCREMENT = uint64(EFFECTIVE_BALANCE_INCREMENT // HYSTERESIS_QUOTIENT)

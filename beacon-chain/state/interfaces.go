@@ -198,6 +198,7 @@ type WriteOnlyValidators interface {
 }
 
 // WriteOnlyBalances defines a struct which only has write access to balances methods.
+// WriteOnlyBalances定义了一个结构，对于balances方法只有写权限
 type WriteOnlyBalances interface {
 	SetBalances(val []uint64) error
 	UpdateBalancesAtIndex(idx types.ValidatorIndex, val uint64) error
@@ -219,6 +220,7 @@ type WriteOnlyCheckpoint interface {
 }
 
 // WriteOnlyAttestations defines a struct which only has write access to attestations methods.
+// WriteOnlyAttestations定义了一个结构，对于attestations方法只有写权限
 type WriteOnlyAttestations interface {
 	AppendCurrentEpochAttestations(val *ethpb.PendingAttestation) error
 	AppendPreviousEpochAttestations(val *ethpb.PendingAttestation) error

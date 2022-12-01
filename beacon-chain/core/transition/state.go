@@ -36,6 +36,7 @@ import (
 //    )
 //
 //    # Process deposits
+//    # 处理deposits
 //    leaves = list(map(lambda deposit: deposit.data, deposits))
 //    for index, deposit in enumerate(deposits):
 //        deposit_data_list = List[DepositData, 2**DEPOSIT_CONTRACT_TREE_DEPTH](*leaves[:index + 1])
@@ -43,6 +44,7 @@ import (
 //        process_deposit(state, deposit)
 //
 //    # Process activations
+//    # 处理activations
 //    for index, validator in enumerate(state.validators):
 //        balance = state.balances[index]
 //        validator.effective_balance = min(balance - balance % EFFECTIVE_BALANCE_INCREMENT, MAX_EFFECTIVE_BALANCE)
@@ -51,6 +53,7 @@ import (
 //            validator.activation_epoch = GENESIS_EPOCH
 //
 //    # Set genesis validators root for domain separation and chain versioning
+//    # 设置genesis validators root，对于domain separation以及chain versioning
 //    state.genesis_validators_root = hash_tree_root(state.validators)
 //
 //    return state
@@ -71,6 +74,7 @@ func GenesisBeaconState(ctx context.Context, deposits []*ethpb.Deposit, genesisT
 	// 处理pre genesis deposits
 	st, err = b.ProcessPreGenesisDeposits(ctx, st, deposits)
 	if err != nil {
+		// 不能处理validator deposits
 		return nil, errors.Wrap(err, "could not process validator deposits")
 	}
 

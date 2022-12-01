@@ -20,6 +20,7 @@ import (
 
 func FakeDeposits(n uint64) []*ethpb.Eth1Data {
 	deposits := make([]*ethpb.Eth1Data, n)
+	// 构建n个deposits
 	for i := uint64(0); i < n; i++ {
 		deposits[i] = &ethpb.Eth1Data{
 			DepositCount: 1,
@@ -177,6 +178,7 @@ func TestProcessEth1Data_SetsCorrectly(t *testing.T) {
 
 	period := uint64(params.BeaconConfig().SlotsPerEpoch.Mul(uint64(params.BeaconConfig().EpochsPerEth1VotingPeriod)))
 	for i := uint64(0); i < period; i++ {
+		// 处理block中的Eth1 Data
 		processedState, err := blocks.ProcessEth1DataInBlock(context.Background(), beaconState, b.Block.Body.Eth1Data)
 		require.NoError(t, err)
 		require.Equal(t, true, processedState.Version() == version.Phase0)
@@ -184,6 +186,7 @@ func TestProcessEth1Data_SetsCorrectly(t *testing.T) {
 
 	newETH1DataVotes := beaconState.Eth1DataVotes()
 	if len(newETH1DataVotes) <= 1 {
+		// 期望ETH1 data votes大于1
 		t.Error("Expected new ETH1 data votes to have length > 1")
 	}
 	if !proto.Equal(beaconState.Eth1Data(), ethpb.CopyETH1Data(b.Block.Body.Eth1Data)) {

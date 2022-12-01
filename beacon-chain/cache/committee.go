@@ -66,6 +66,8 @@ func NewCommitteesCache() *CommitteeCache {
 
 // Committee fetches the shuffled indices by slot and committee index. Every list of indices
 // represent one committee. Returns true if the list exists with slot and committee index. Otherwise returns false, nil.
+// Committee获取shuffled indices，通过slot以及committee index，每个list of indices代表一个committee
+// 返回true，如果list存在
 func (c *CommitteeCache) Committee(ctx context.Context, slot types.Slot, seed [32]byte, index types.CommitteeIndex) ([]types.ValidatorIndex, error) {
 	if err := c.checkInProgress(ctx, seed); err != nil {
 		return nil, err

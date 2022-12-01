@@ -6,6 +6,7 @@ import (
 
 // FieldIndex represents the relevant field position in the
 // state struct for a field.
+// FieldIndex代表相关的字段在state结构中的位置
 type FieldIndex int
 
 // String returns the name of the field index.

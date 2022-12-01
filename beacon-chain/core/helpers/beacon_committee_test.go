@@ -29,6 +29,7 @@ func TestComputeCommittee_WithoutCache(t *testing.T) {
 	for i := 0; i < len(validators); i++ {
 		k := make([]byte, 48)
 		copy(k, strconv.Itoa(i))
+		// 构建指定数目的validators
 		validators[i] = &ethpb.Validator{
 			PublicKey:             k,
 			WithdrawalCredentials: make([]byte, 32),
@@ -50,10 +51,12 @@ func TestComputeCommittee_WithoutCache(t *testing.T) {
 	require.NoError(t, err)
 	seed, err := Seed(state, epoch, params.BeaconConfig().DomainBeaconAttester)
 	require.NoError(t, err)
+	// 计算committee
 	committees, err := computeCommittee(indices, seed, 0, 1 /* Total committee*/)
 	assert.NoError(t, err, "Could not compute committee")
 
 	// Test shuffled indices are correct for index 5 committee
+	// 测试在索引为5的committee，shuffled indices是正确的
 	index := uint64(5)
 	committee5, err := computeCommittee(indices, seed, index, committeeCount)
 	assert.NoError(t, err, "Could not compute committee")
@@ -96,6 +99,7 @@ func TestCommitteeAssignments_CannotRetrieveFutureEpoch(t *testing.T) {
 		Slot: 0, // Epoch 0.
 	})
 	require.NoError(t, err)
+	// 不能获取未来epoch的committee assignments
 	_, _, err = CommitteeAssignments(context.Background(), state, epoch+1)
 	assert.ErrorContains(t, "can't be greater than next epoch", err)
 }
@@ -130,9 +134,11 @@ func TestCommitteeAssignments_NoProposerForSlot0(t *testing.T) {
 
 func TestCommitteeAssignments_CanRetrieve(t *testing.T) {
 	// Initialize test with 256 validators, each slot and each index gets 4 validators.
+	// 初始化256个validators，每个slot以及每个index获取4个validators
 	validators := make([]*ethpb.Validator, 4*params.BeaconConfig().SlotsPerEpoch)
 	for i := 0; i < len(validators); i++ {
 		// First 2 epochs only half validators are activated.
+		// 开始2个epochs，只有一半的validators是activated
 		var activationEpoch types.Epoch
 		if i >= len(validators)/2 {
 			activationEpoch = 3

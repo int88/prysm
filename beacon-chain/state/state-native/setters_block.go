@@ -15,6 +15,7 @@ func (b *BeaconState) SetLatestBlockHeader(val *ethpb.BeaconBlockHeader) error {
 	b.lock.Lock()
 	defer b.lock.Unlock()
 
+	// 设置latest block header
 	b.latestBlockHeader = ethpb.CopyBeaconBlockHeader(val)
 	b.markFieldAsDirty(nativetypes.LatestBlockHeader)
 	return nil

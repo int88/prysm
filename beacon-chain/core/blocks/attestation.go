@@ -21,6 +21,7 @@ import (
 
 // ProcessAttestationsNoVerifySignature applies processing operations to a block's inner attestation
 // records. The only difference would be that the attestation signature would not be verified.
+// ProcessAttestationsNoVerifySignature应用对于block内部的attestation records的处理操作
 func ProcessAttestationsNoVerifySignature(
 	ctx context.Context,
 	beaconState state.BeaconState,
@@ -32,6 +33,7 @@ func ProcessAttestationsNoVerifySignature(
 	body := b.Block().Body()
 	var err error
 	for idx, att := range body.Attestations() {
+		// 遍历attestation
 		beaconState, err = ProcessAttestationNoVerifySignature(ctx, beaconState, att)
 		if err != nil {
 			return nil, errors.Wrapf(err, "could not verify attestation at index %d in block", idx)
@@ -136,6 +138,7 @@ func ProcessAttestationNoVerifySignature(
 	ctx, span := trace.StartSpan(ctx, "core.ProcessAttestationNoVerifySignature")
 	defer span.End()
 
+	// 首先校验attestation
 	if err := VerifyAttestationNoVerifySignature(ctx, beaconState, att); err != nil {
 		return nil, err
 	}
@@ -147,6 +150,7 @@ func ProcessAttestationNoVerifySignature(
 	if err != nil {
 		return nil, err
 	}
+	// 构建pending attestation
 	pendingAtt := &ethpb.PendingAttestation{
 		Data:            data,
 		AggregationBits: att.AggregationBits,
@@ -155,10 +159,12 @@ func ProcessAttestationNoVerifySignature(
 	}
 
 	if data.Target.Epoch == currEpoch {
+		// 如果处于当前的epoch，则扩展当前的epoch attestations
 		if err := beaconState.AppendCurrentEpochAttestations(pendingAtt); err != nil {
 			return nil, err
 		}
 	} else {
+		// 否则扩展之前的epoch attestations
 		if err := beaconState.AppendPreviousEpochAttestations(pendingAtt); err != nil {
 			return nil, err
 		}
@@ -185,6 +191,7 @@ func VerifyAttestationSignature(ctx context.Context, beaconState state.ReadOnlyB
 }
 
 // VerifyIndexedAttestation determines the validity of an indexed attestation.
+// VerifyIndexedAttestation确定一个indexed attestation的合法性
 //
 // Spec pseudocode definition:
 //  def is_valid_indexed_attestation(state: BeaconState, indexed_attestation: IndexedAttestation) -> bool:
@@ -192,10 +199,12 @@ func VerifyAttestationSignature(ctx context.Context, beaconState state.ReadOnlyB
 //    Check if ``indexed_attestation`` is not empty, has sorted and unique indices and has a valid aggregate signature.
 //    """
 //    # Verify indices are sorted and unique
+//    # 校验indices是有序并且唯一的
 //    indices = indexed_attestation.attesting_indices
 //    if len(indices) == 0 or not indices == sorted(set(indices)):
 //        return False
 //    # Verify aggregate signature
+//    # 校验aggregate signature
 //    pubkeys = [state.validators[i].pubkey for i in indices]
 //    domain = get_domain(state, DOMAIN_BEACON_ATTESTER, indexed_attestation.data.target.epoch)
 //    signing_root = compute_signing_root(indexed_attestation.data, domain)

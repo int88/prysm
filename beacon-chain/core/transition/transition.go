@@ -66,6 +66,7 @@ func ExecuteStateTransition(
 	defer span.End()
 	var err error
 
+	// 真正执行state transition
 	set, postState, err := ExecuteStateTransitionNoVerifyAnySig(ctx, state, signed)
 	if err != nil {
 		// 不能执行state transition
@@ -206,6 +207,7 @@ func ProcessSlotsIfPossible(ctx context.Context, state state.BeaconState, target
 //    while state.slot < slot:
 //        process_slot(state)
 //        # Process epoch on the start slot of the next epoch
+//        # 在下一个epoch的start slot进行处理
 //        if (state.slot + 1) % SLOTS_PER_EPOCH == 0:
 //            process_epoch(state)
 //        state.slot = Slot(state.slot + 1)
@@ -324,6 +326,7 @@ func ProcessSlots(ctx context.Context, state state.BeaconState, slot types.Slot)
 }
 
 // VerifyOperationLengths verifies that block operation lengths are valid.
+// VerifyOperationLengths校验block操作的长度是合法的
 func VerifyOperationLengths(_ context.Context, state state.BeaconState, b interfaces.SignedBeaconBlock) (state.BeaconState, error) {
 	if err := wrapper.BeaconBlockIsNil(b); err != nil {
 		return nil, err
@@ -370,6 +373,7 @@ func VerifyOperationLengths(_ context.Context, state state.BeaconState, b interf
 	}
 	maxDeposits := math.Min(params.BeaconConfig().MaxDeposits, eth1Data.DepositCount-state.Eth1DepositIndex())
 	// Verify outstanding deposits are processed up to max number of deposits
+	// 校验outstanding deposits已经被处理到最大的deposits的数目
 	if uint64(len(body.Deposits())) != maxDeposits {
 		return nil, fmt.Errorf("incorrect outstanding deposits in block body, wanted: %d, got: %d",
 			maxDeposits, len(body.Deposits()))
@@ -394,26 +398,31 @@ func ProcessEpochPrecompute(ctx context.Context, state state.BeaconState) (state
 	if err != nil {
 		return nil, err
 	}
+	// 处理attestations
 	vp, bp, err = precompute.ProcessAttestations(ctx, state, vp, bp)
 	if err != nil {
 		return nil, err
 	}
 
+	// 处理justification和finalization
 	state, err = precompute.ProcessJustificationAndFinalizationPreCompute(state, bp)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not process justification")
 	}
 
+	// 处理rewards和penalties
 	state, err = precompute.ProcessRewardsAndPenaltiesPrecompute(state, bp, vp, precompute.AttestationsDelta, precompute.ProposersDelta)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not process rewards and penalties")
 	}
 
+	// 处理registry updates
 	state, err = e.ProcessRegistryUpdates(ctx, state)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not process registry updates")
 	}
 
+	// 处理slashing
 	err = precompute.ProcessSlashingsPrecompute(state, bp)
 	if err != nil {
 		return nil, err
@@ -421,6 +430,7 @@ func ProcessEpochPrecompute(ctx context.Context, state state.BeaconState) (state
 
 	state, err = e.ProcessFinalUpdates(state)
 	if err != nil {
+		// 处理final updates
 		return nil, errors.Wrap(err, "could not process final updates")
 	}
 	return state, nil

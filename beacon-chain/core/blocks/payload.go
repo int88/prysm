@@ -166,8 +166,11 @@ func ValidatePayload(st state.BeaconState, payload *enginev1.ExecutionPayload) e
 }
 
 // ProcessPayload processes input execution payload using beacon state.
+// ProcessPayload处理输入的execution payload，使用beacon state
 // ValidatePayloadWhenMergeCompletes validates if payload is valid versus input beacon state.
+// ValidatePayloadWhenMergeCompletes校验是否payload是合法的，对于beacon state
 // These validation steps ONLY apply to post merge.
+// 这些validation steps只应用到post merge
 //
 // Spec code:
 // def process_execution_payload(state: BeaconState, payload: ExecutionPayload, execution_engine: ExecutionEngine) -> None:

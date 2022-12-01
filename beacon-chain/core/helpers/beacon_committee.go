@@ -151,6 +151,7 @@ func BeaconCommittee(
 }
 
 // CommitteeAssignmentContainer represents a committee list, committee index, and to be attested slot for a given epoch.
+// CommitteeAssignmentContainer代表一个committee，committee索引，以及一个给定的epoch被attested的slot
 type CommitteeAssignmentContainer struct {
 	Committee      []types.ValidatorIndex
 	AttesterSlot   types.Slot
@@ -159,11 +160,16 @@ type CommitteeAssignmentContainer struct {
 
 // CommitteeAssignments is a map of validator indices pointing to the appropriate committee
 // assignment for the given epoch.
+// CommitteeAssignments是一个validator indices到合适的committee assignment的映射，对于给定的epoch
 //
 // 1. Determine the proposer validator index for each slot.
+// 1. 确定每个slot的proposer validator
 // 2. Compute all committees.
+// 2. 计算所有的committees
 // 3. Determine the attesting slot for each committee.
+// 3. 决定每个committee的attesting slot
 // 4. Construct a map of validator indices pointing to the respective committees.
+// 4. 构建一个映射表，validator indices到对应的committees
 func CommitteeAssignments(
 	ctx context.Context,
 	state state.BeaconState,
@@ -172,6 +178,7 @@ func CommitteeAssignments(
 	nextEpoch := time.NextEpoch(state)
 	if epoch > nextEpoch {
 		return nil, nil, fmt.Errorf(
+			// 不能计算大于next epoch的committee
 			"epoch %d can't be greater than next epoch %d",
 			epoch,
 			nextEpoch,
@@ -179,8 +186,11 @@ func CommitteeAssignments(
 	}
 
 	// We determine the slots in which proposers are supposed to act.
+	// 我们确定proposers应该行动的slots
 	// Some validators may need to propose multiple times per epoch, so
 	// we use a map of proposer idx -> []slot to keep track of this possibility.
+	// 有的validators可能需要在一个epoch中proposer多次，因此我们使用一个proposer idex到[]slot
+	// 的映射，来保证这种可能性
 	startSlot, err := slots.EpochStart(epoch)
 	if err != nil {
 		return nil, nil, err
@@ -188,12 +198,14 @@ func CommitteeAssignments(
 	proposerIndexToSlots := make(map[types.ValidatorIndex][]types.Slot, params.BeaconConfig().SlotsPerEpoch)
 	for slot := startSlot; slot < startSlot+params.BeaconConfig().SlotsPerEpoch; slot++ {
 		// Skip proposer assignment for genesis slot.
+		// 对于genesis slot，直接跳过proposer assignment
 		if slot == 0 {
 			continue
 		}
 		if err := state.SetSlot(slot); err != nil {
 			return nil, nil, err
 		}
+		// 计算出proposer index
 		i, err := BeaconProposerIndex(ctx, state)
 		if err != nil {
 			return nil, nil, errors.Wrapf(err, "could not check proposer at slot %d", state.Slot())
@@ -216,10 +228,12 @@ func CommitteeAssignments(
 	}
 	// Each slot in an epoch has a different set of committees. This value is derived from the
 	// active validator set, which does not change.
+	// 一个epoch中的每个slot有着不同的set of committees，这个值源自active validator set，它不会发生变更
 	numCommitteesPerSlot := SlotCommitteeCount(uint64(len(activeValidatorIndices)))
 	validatorIndexToCommittee := make(map[types.ValidatorIndex]*CommitteeAssignmentContainer, len(activeValidatorIndices))
 
 	// Compute all committees for all slots.
+	// 为所有的slots计算所有的committees
 	for i := types.Slot(0); i < params.BeaconConfig().SlotsPerEpoch; i++ {
 		// Compute committees.
 		for j := uint64(0); j < numCommitteesPerSlot; j++ {
@@ -235,6 +249,7 @@ func CommitteeAssignments(
 				AttesterSlot:   slot,
 			}
 			for _, vIndex := range committee {
+				// validator到committee的映射
 				validatorIndexToCommittee[vIndex] = cac
 			}
 		}
@@ -398,6 +413,7 @@ func UpdateProposerIndicesInCache(ctx context.Context, state state.ReadOnlyBeaco
 }
 
 // ClearCache clears the beacon committee cache and sync committee cache.
+// ClearCache清理beacon committee cache以及sync committee cache
 func ClearCache() {
 	committeeCache = cache.NewCommitteesCache()
 	proposerIndicesCache = cache.NewProposerIndicesCache()

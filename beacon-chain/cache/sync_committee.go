@@ -30,6 +30,8 @@ var (
 
 // SyncCommitteeCache utilizes a FIFO cache to sufficiently cache validator position within sync committee.
 // It is thread safe with concurrent read write.
+// SyncCommitteeCache使用一个FIFO cache来高效地缓存validator position，在sycn committee内，它对于并行读写
+// 是安全的
 type SyncCommitteeCache struct {
 	cache *cache.FIFO
 	lock  sync.RWMutex
@@ -50,6 +52,7 @@ type positionInCommittee struct {
 }
 
 // NewSyncCommittee initializes and returns a new SyncCommitteeCache.
+// NewSyncCommittee初始化并且返回一个新的SyncCommitteeCache
 func NewSyncCommittee() *SyncCommitteeCache {
 	return &SyncCommitteeCache{
 		cache: cache.NewFIFO(keyFn),

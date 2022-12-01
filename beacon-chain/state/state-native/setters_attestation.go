@@ -56,6 +56,7 @@ func (b *BeaconState) AppendCurrentEpochAttestations(val *ethpb.PendingAttestati
 	atts := b.currentEpochAttestations
 	max := uint64(fieldparams.CurrentEpochAttestationsLength)
 	if uint64(len(atts)) >= max {
+		// 当前的pending attestations已经超过了最大值
 		return fmt.Errorf("current pending attestation exceeds max length %d", max)
 	}
 
@@ -67,6 +68,7 @@ func (b *BeaconState) AppendCurrentEpochAttestations(val *ethpb.PendingAttestati
 		b.sharedFieldReferences[nativetypes.CurrentEpochAttestations] = stateutil.NewRef(1)
 	}
 
+	// 扩展当前的epoch attestations
 	b.currentEpochAttestations = append(atts, val)
 	b.markFieldAsDirty(nativetypes.CurrentEpochAttestations)
 	b.addDirtyIndices(nativetypes.CurrentEpochAttestations, []uint64{uint64(len(b.currentEpochAttestations) - 1)})

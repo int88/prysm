@@ -25,8 +25,9 @@ type BeaconChainConfig struct {
 	JustificationBitsLength  uint64      `yaml:"JUSTIFICATION_BITS_LENGTH"`   // JustificationBitsLength defines number of epochs to track when implementing k-finality in Casper FFG.
 
 	// Misc constants.
-	PresetBase                     string `yaml:"PRESET_BASE" spec:"true"`                        // PresetBase represents the underlying spec preset this config is based on.
-	ConfigName                     string `yaml:"CONFIG_NAME" spec:"true"`                        // ConfigName for allowing an easy human-readable way of knowing what chain is being used.
+	PresetBase string `yaml:"PRESET_BASE" spec:"true"` // PresetBase represents the underlying spec preset this config is based on.
+	ConfigName string `yaml:"CONFIG_NAME" spec:"true"` // ConfigName for allowing an easy human-readable way of knowing what chain is being used.
+	// 当chain处于healthy的状态时，一个committee中，validators的数目
 	TargetCommitteeSize            uint64 `yaml:"TARGET_COMMITTEE_SIZE" spec:"true"`              // TargetCommitteeSize is the number of validators in a committee when the chain is healthy.
 	MaxValidatorsPerCommittee      uint64 `yaml:"MAX_VALIDATORS_PER_COMMITTEE" spec:"true"`       // MaxValidatorsPerCommittee defines the upper bound of the size of a committee.
 	MaxCommitteesPerSlot           uint64 `yaml:"MAX_COMMITTEES_PER_SLOT" spec:"true"`            // MaxCommitteesPerSlot defines the max amount of committee in a single slot.
@@ -61,7 +62,8 @@ type BeaconChainConfig struct {
 	MinSeedLookahead types.Epoch `yaml:"MIN_SEED_LOOKAHEAD" spec:"true"` // MinSeedLookahead is the duration of randao look ahead seed.
 	MaxSeedLookahead types.Epoch `yaml:"MAX_SEED_LOOKAHEAD" spec:"true"` // MaxSeedLookahead is the duration a validator has to wait for entry and exit in epoch.
 	// 定义了deposit receipts更新的频率，在每个epoch的基础上
-	EpochsPerEth1VotingPeriod        types.Epoch `yaml:"EPOCHS_PER_ETH1_VOTING_PERIOD" spec:"true"`       // EpochsPerEth1VotingPeriod defines how often the merkle root of deposit receipts get updated in beacon node on per epoch basis.
+	EpochsPerEth1VotingPeriod types.Epoch `yaml:"EPOCHS_PER_ETH1_VOTING_PERIOD" spec:"true"` // EpochsPerEth1VotingPeriod defines how often the merkle root of deposit receipts get updated in beacon node on per epoch basis.
+	// SlotsPerHistoricalRoot定义了historical root保存的频率
 	SlotsPerHistoricalRoot           types.Slot  `yaml:"SLOTS_PER_HISTORICAL_ROOT" spec:"true"`           // SlotsPerHistoricalRoot defines how often the historical root is saved.
 	MinValidatorWithdrawabilityDelay types.Epoch `yaml:"MIN_VALIDATOR_WITHDRAWABILITY_DELAY" spec:"true"` // MinValidatorWithdrawabilityDelay is the shortest amount of time a validator has to wait to withdraw.
 	ShardCommitteePeriod             types.Epoch `yaml:"SHARD_COMMITTEE_PERIOD" spec:"true"`              // ShardCommitteePeriod is the minimum amount of epochs a validator must participate before exiting.
@@ -108,7 +110,8 @@ type BeaconChainConfig struct {
 	MaxAttesterSlashings uint64 `yaml:"MAX_ATTESTER_SLASHINGS" spec:"true"` // MaxAttesterSlashings defines the maximum number of casper FFG slashings possible in a block.
 	MaxAttestations      uint64 `yaml:"MAX_ATTESTATIONS" spec:"true"`       // MaxAttestations defines the maximum allowed attestations in a beacon block.
 	MaxDeposits          uint64 `yaml:"MAX_DEPOSITS" spec:"true"`           // MaxDeposits defines the maximum number of validator deposits in a block.
-	MaxVoluntaryExits    uint64 `yaml:"MAX_VOLUNTARY_EXITS" spec:"true"`    // MaxVoluntaryExits defines the maximum number of validator exits in a block.
+	// MaxVoluntaryExits定义了在一个block中定义的最大数目的validator exit
+	MaxVoluntaryExits uint64 `yaml:"MAX_VOLUNTARY_EXITS" spec:"true"` // MaxVoluntaryExits defines the maximum number of validator exits in a block.
 
 	// BLS domain values.
 	DomainBeaconProposer [4]byte `yaml:"DOMAIN_BEACON_PROPOSER" spec:"true"` // DomainBeaconProposer defines the BLS signature domain for beacon proposal verification.

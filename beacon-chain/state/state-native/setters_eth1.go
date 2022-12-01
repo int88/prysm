@@ -18,6 +18,7 @@ func (b *BeaconState) SetEth1Data(val *ethpb.Eth1Data) error {
 
 // SetEth1DataVotes for the beacon state. Updates the entire
 // list to a new value by overwriting the previous one.
+// 设置beacon state的Eth1 Data Votes，更新完整的list到一个新的值，通过覆盖之前的值
 func (b *BeaconState) SetEth1DataVotes(val []*ethpb.Eth1Data) error {
 	b.lock.Lock()
 	defer b.lock.Unlock()

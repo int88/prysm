@@ -12,6 +12,7 @@ var _ fssz.Marshaler = (*StateRoots)(nil)
 var _ fssz.Unmarshaler = (*StateRoots)(nil)
 
 // StateRoots represents block roots of the beacon state.
+// StateRoots代表了beacon state的block roots
 type StateRoots [fieldparams.StateRootsLength][32]byte
 
 // HashTreeRoot returns calculated hash root.
