@@ -665,9 +665,12 @@ func (s *Service) validateMergeTransitionBlock(ctx context.Context, stateVersion
 }
 
 // This routine checks if there is a cached proposer payload ID available for the next slot proposer.
+// 这个routine检查是否有一个cached proposer payload ID可以用于下一个slot proposer
 // If there is not, it will call forkchoice updated with the correct payload attribute then cache the payload ID.
+// 如果没有，它会调用forkchoice，用正确的payload attribute更新，之后缓存payload ID
 func (s *Service) fillMissingPayloadIDRoutine(ctx context.Context, stateFeed *event.Feed) {
 	// Wait for state to be initialized.
+	// 等待state初始化完成
 	stateChannel := make(chan *feed.Event, 1)
 	stateSub := stateFeed.Subscribe(stateChannel)
 	go func() {
@@ -686,6 +689,7 @@ func (s *Service) fillMissingPayloadIDRoutine(ctx context.Context, stateFeed *ev
 			select {
 			case ti := <-ticker.C:
 				if err := s.fillMissingBlockPayloadId(ctx, ti); err != nil {
+					// 不能填充缺失的payload ID
 					log.WithError(err).Error("Could not fill missing payload ID")
 				}
 			case <-s.ctx.Done():
@@ -706,10 +710,12 @@ func (s *Service) fillMissingBlockPayloadId(ctx context.Context, ti time.Time) e
 	if !atHalfSlot(ti) {
 		return nil
 	}
+	// 如果当前的slot是接收到的最高的block slot，则返回
 	if s.CurrentSlot() == s.cfg.ForkChoiceStore.HighestReceivedBlockSlot() {
 		return nil
 	}
 	// Head root should be empty when retrieving proposer index for the next slot.
+	// Head root应该为空，当为下一个slot获取proposer index
 	_, id, has := s.cfg.ProposerSlotIndexCache.GetProposerPayloadIDs(s.CurrentSlot()+1, [32]byte{} /* head root */)
 	// There exists proposer for next slot, but we haven't called fcu w/ payload attribute yet.
 	if has && id == [8]byte{} {

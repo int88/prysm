@@ -299,6 +299,7 @@ func (s *Service) ForkChoicer() forkchoice.ForkChoicer {
 }
 
 // IsOptimistic returns true if the current head is optimistic.
+// 返回true，如果当前的head是乐观的
 func (s *Service) IsOptimistic(ctx context.Context) (bool, error) {
 	if slots.ToEpoch(s.CurrentSlot()) < params.BeaconConfig().BellatrixForkEpoch {
 		return false, nil

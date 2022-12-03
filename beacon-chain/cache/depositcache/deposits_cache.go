@@ -48,8 +48,10 @@ type FinalizedDeposits struct {
 
 // DepositCache stores all in-memory deposit objects. This
 // stores all the deposit related data that is required by the beacon-node.
+// DepositCache存储所有内存中的deposit对象，它存储所有deposit相关的数据，beacon-node需要
 type DepositCache struct {
 	// Beacon chain deposits in memory.
+	// 内存中的Beacon chain deposits
 	pendingDeposits   []*ethpb.DepositContainer
 	deposits          []*ethpb.DepositContainer
 	finalizedDeposits *FinalizedDeposits

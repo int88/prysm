@@ -288,6 +288,8 @@ func ShuffledIndices(s state.ReadOnlyBeaconState, epoch types.Epoch) ([]types.Va
 
 // UpdateCommitteeCache gets called at the beginning of every epoch to cache the committee shuffled indices
 // list with committee index and epoch number. It caches the shuffled indices for current epoch and next epoch.
+// UpdateCommitteeCache在每个epoch的开始被调用，用来缓存committee shuffled indices list，有着committee index以及epoch number
+// 它为当前的epoch以及下一个epoch缓存shuffled indices
 func UpdateCommitteeCache(ctx context.Context, state state.ReadOnlyBeaconState, epoch types.Epoch) error {
 	for _, e := range []types.Epoch{epoch, epoch + 1} {
 		seed, err := Seed(state, e, params.BeaconConfig().DomainBeaconAttester)
@@ -308,12 +310,15 @@ func UpdateCommitteeCache(ctx context.Context, state state.ReadOnlyBeaconState, 
 		// Store the sorted indices as well as shuffled indices. In current spec,
 		// sorted indices is required to retrieve proposer index. This is also
 		// used for failing verify signature fallback.
+		// 存储sorted indices以及shuffled indices，在当前的spec，sorted indices需要用于
+		// 获取proposer index
 		sortedIndices := make([]types.ValidatorIndex, len(shuffledIndices))
 		copy(sortedIndices, shuffledIndices)
 		sort.Slice(sortedIndices, func(i, j int) bool {
 			return sortedIndices[i] < sortedIndices[j]
 		})
 
+		// 在committee cache中添加
 		if err := committeeCache.AddCommitteeShuffledList(ctx, &cache.Committees{
 			ShuffledIndices: shuffledIndices,
 			CommitteeCount:  uint64(params.BeaconConfig().SlotsPerEpoch.Mul(count)),
@@ -328,9 +333,11 @@ func UpdateCommitteeCache(ctx context.Context, state state.ReadOnlyBeaconState, 
 }
 
 // UpdateProposerIndicesInCache updates proposer indices entry of the committee cache.
+// UpdateProposerIndicesInCache更新committee cache的proposer indices entry
 func UpdateProposerIndicesInCache(ctx context.Context, state state.ReadOnlyBeaconState) error {
 	// The cache uses the state root at the (current epoch - 1)'s slot as key. (e.g. for epoch 2, the key is root at slot 63)
 	// Which is the reason why we skip genesis epoch.
+	// cache使用（当前epoch - 1）的slot的state root作为key，这就是跳过genesis epoch的原因
 	if time.CurrentEpoch(state) <= params.BeaconConfig().GenesisEpoch+params.BeaconConfig().MinSeedLookahead {
 		return nil
 	}
@@ -362,10 +369,12 @@ func UpdateProposerIndicesInCache(ctx context.Context, state state.ReadOnlyBeaco
 	if err != nil {
 		return err
 	}
+	// 提前计算proposer indices
 	proposerIndices, err := precomputeProposerIndices(state, indices)
 	if err != nil {
 		return err
 	}
+	// 添加到proposer indices cache
 	return proposerIndicesCache.AddProposerIndices(&cache.ProposerIndices{
 		BlockRoot:       bytesutil.ToBytes32(r),
 		ProposerIndices: proposerIndices,

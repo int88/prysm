@@ -14,6 +14,9 @@ type NoHeadAccessDatabase = iface.NoHeadAccessDatabase
 // chain head information. This interface should be used sparingly as the HeadFetcher is the source
 // of truth around chain head information while this interface serves as persistent storage for the
 // head fetcher.
+// HeadAccessDatabase暴露了Prysm的Ethereum backend用于对chain head信息的读写访问，这个可以用于有节制地
+// 访问，因为HeadFetcher是source of the truth，关于chain head的信息，而这个接口则作为head fetcher的持久化
+// 存储
 //
 // See github.com/prysmaticlabs/prysm/blockchain.HeadFetcher
 type HeadAccessDatabase = iface.HeadAccessDatabase

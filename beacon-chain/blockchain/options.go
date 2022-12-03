@@ -45,6 +45,7 @@ func WithDatabase(beaconDB db.HeadAccessDatabase) Option {
 }
 
 // WithChainStartFetcher to retrieve information about genesis.
+// WithChainStartFetcher获取genesis的相关信息
 func WithChainStartFetcher(f execution.ChainStartFetcher) Option {
 	return func(s *Service) error {
 		s.cfg.ChainStartFetcher = f
@@ -61,6 +62,7 @@ func WithExecutionEngineCaller(c execution.EngineCaller) Option {
 }
 
 // WithDepositCache for deposit lifecycle after chain inclusion.
+// WithDepositCache用于deposit的生命周期，在chain inclusion之后
 func WithDepositCache(c *depositcache.DepositCache) Option {
 	return func(s *Service) error {
 		s.cfg.DepositCache = c
@@ -77,6 +79,7 @@ func WithProposerIdsCache(c *cache.ProposerPayloadIDsCache) Option {
 }
 
 // WithAttestationPool for attestation lifecycle after chain inclusion.
+// WithAttestationPool用于在chain inclusion之后的attestation lifecycle
 func WithAttestationPool(p attestations.Pool) Option {
 	return func(s *Service) error {
 		s.cfg.AttPool = p
@@ -117,6 +120,7 @@ func WithP2PBroadcaster(p p2p.Broadcaster) Option {
 }
 
 // WithStateNotifier to notify an event feed of state processing.
+// WithStateNotifier是一个用于通知事件的feed，在state的处理过程中
 func WithStateNotifier(n statefeed.Notifier) Option {
 	return func(s *Service) error {
 		s.cfg.StateNotifier = n
@@ -125,6 +129,7 @@ func WithStateNotifier(n statefeed.Notifier) Option {
 }
 
 // WithForkChoiceStore to update an optimized fork-choice representation.
+// WithForkChoiceStore用于更新一个优化的fork-choice representation
 func WithForkChoiceStore(f forkchoice.ForkChoicer) Option {
 	return func(s *Service) error {
 		s.cfg.ForkChoiceStore = f
@@ -133,6 +138,7 @@ func WithForkChoiceStore(f forkchoice.ForkChoicer) Option {
 }
 
 // WithAttestationService for dealing with attestation lifecycles.
+// WithAttestationService用于处理attestation的生命周期
 func WithAttestationService(srv *attestations.Service) Option {
 	return func(s *Service) error {
 		s.cfg.AttService = srv
@@ -141,6 +147,7 @@ func WithAttestationService(srv *attestations.Service) Option {
 }
 
 // WithStateGen for managing state regeneration and replay.
+// WithStateGen用于管理state regeneration以及replay
 func WithStateGen(g *stategen.State) Option {
 	return func(s *Service) error {
 		s.cfg.StateGen = g

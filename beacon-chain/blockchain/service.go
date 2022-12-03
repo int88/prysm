@@ -1,5 +1,6 @@
 // Package blockchain defines the life-cycle of the blockchain at the core of
 // Ethereum, including processing of new blocks and attestations using proof of stake.
+// blockchain定义了Ethereum核心的blockchain的生命周期，包括使用pos处理新的blocks以及attestations
 package blockchain
 
 import (
@@ -87,6 +88,7 @@ type config struct {
 
 // NewService instantiates a new block service instance that will
 // be registered into a running beacon node.
+// NewService实例化一个新的block service实例，会在一个运行的beacon node注册
 func NewService(ctx context.Context, opts ...Option) (*Service, error) {
 	ctx, cancel := context.WithCancel(ctx)
 	srv := &Service{
@@ -97,6 +99,7 @@ func NewService(ctx context.Context, opts ...Option) (*Service, error) {
 		initSyncBlocks:       make(map[[32]byte]interfaces.SignedBeaconBlock),
 		cfg:                  &config{},
 	}
+	// 应用opts
 	for _, opt := range opts {
 		if err := opt(srv); err != nil {
 			return nil, err
@@ -117,6 +120,7 @@ func NewService(ctx context.Context, opts ...Option) (*Service, error) {
 }
 
 // Start a blockchain service's main event loop.
+// 启动blockchain service的主事件循环
 func (s *Service) Start() {
 	saved := s.cfg.FinalizedStateAtStartUp
 
@@ -175,9 +179,11 @@ func (s *Service) Status() error {
 }
 
 // StartFromSavedState initializes the blockchain using a previously saved finalized checkpoint.
+// StartFromSavedState使用之前保存的finalized checkpoint初始化blockchain
 func (s *Service) StartFromSavedState(saved state.BeaconState) error {
 	log.Info("Blockchain data already exists in DB, initializing...")
 	s.genesisTime = time.Unix(int64(saved.GenesisTime()), 0) // lint:ignore uintcast -- Genesis time will not exceed int64 in your lifetime.
+	// 设置genesis time
 	s.cfg.AttService.SetGenesisTime(saved.GenesisTime())
 
 	originRoot, err := s.originRootFromSavedState(s.ctx)
@@ -186,6 +192,7 @@ func (s *Service) StartFromSavedState(saved state.BeaconState) error {
 	}
 	s.originBlockRoot = originRoot
 
+	// 从DB对head进行初始化
 	if err := s.initializeHeadFromDB(s.ctx); err != nil {
 		return errors.Wrap(err, "could not set up chain info")
 	}
@@ -198,6 +205,7 @@ func (s *Service) StartFromSavedState(saved state.BeaconState) error {
 	if justified == nil {
 		return errNilJustifiedCheckpoint
 	}
+	// 从DB中获取justified和finalized checkpoint
 	finalized, err := s.cfg.BeaconDB.FinalizedCheckpoint(s.ctx)
 	if err != nil {
 		return errors.Wrap(err, "could not get finalized checkpoint")
@@ -237,8 +245,10 @@ func (s *Service) StartFromSavedState(saved state.BeaconState) error {
 	}
 	// not attempting to save initial sync blocks here, because there shouldn't be any until
 	// after the statefeed.Initialized event is fired (below)
+	// 不要试着在这里保存initial sync blocks，因为这里不应该有，直到statefeed.Initialized事件被触发之后
 	if err := s.wsVerifier.VerifyWeakSubjectivity(s.ctx, finalized.Epoch); err != nil {
 		// Exit run time if the node failed to verify weak subjectivity checkpoint.
+		// 退出runtime，如果node校验weak subjectivity checkpoint失败
 		return errors.Wrap(err, "could not verify initial checkpoint provided for chain sync")
 	}
 
@@ -316,6 +326,7 @@ func (s *Service) initializeHeadFromDB(ctx context.Context) error {
 }
 
 func (s *Service) startFromExecutionChain() error {
+	// 等待到达validator deposit threshold，来启动beacon chain...
 	log.Info("Waiting to reach the validator deposit threshold to start the beacon chain...")
 	if s.cfg.ChainStartFetcher == nil {
 		return errors.New("not configured execution chain")
@@ -327,6 +338,7 @@ func (s *Service) startFromExecutionChain() error {
 		for {
 			select {
 			case e := <-stateChannel:
+				// 等待chain started event
 				if e.Type == statefeed.ChainStarted {
 					data, ok := e.Data.(*statefeed.ChainStartedData)
 					if !ok {
@@ -334,6 +346,7 @@ func (s *Service) startFromExecutionChain() error {
 						return
 					}
 					log.WithField("starttime", data.StartTime).Debug("Received chain start event")
+					// 收到chain start
 					s.onExecutionChainStart(s.ctx, data.StartTime)
 					return
 				}
@@ -352,6 +365,8 @@ func (s *Service) startFromExecutionChain() error {
 
 // onExecutionChainStart initializes a series of deposits from the ChainStart deposits in the eth1
 // deposit contract, initializes the beacon chain's state, and kicks off the beacon chain.
+// onExecutionChainStart从ChainStart deposits初始化一系列的deposits，在eth1 deposit contract
+// 初始化beacon chain的state，并且开始beacon chain
 func (s *Service) onExecutionChainStart(ctx context.Context, genesisTime time.Time) {
 	preGenesisState := s.cfg.ChainStartFetcher.PreGenesisState()
 	initializedState, err := s.initializeBeaconChain(ctx, genesisTime, preGenesisState, s.cfg.ChainStartFetcher.ChainStartEth1Data())
@@ -359,6 +374,7 @@ func (s *Service) onExecutionChainStart(ctx context.Context, genesisTime time.Ti
 		log.WithError(err).Fatal("Could not initialize beacon chain")
 	}
 	// We start a counter to genesis, if needed.
+	// 我们启动到genesis的计数，如果需要的话
 	gRoot, err := initializedState.HashTreeRoot(s.ctx)
 	if err != nil {
 		log.WithError(err).Fatal("Could not hash tree root genesis state")
@@ -367,6 +383,7 @@ func (s *Service) onExecutionChainStart(ctx context.Context, genesisTime time.Ti
 
 	// We send out a state initialized event to the rest of the services
 	// running in the beacon node.
+	// 我们发送一个state initialized event到在beacon chain中运行的其余的services
 	s.cfg.StateNotifier.StateFeed().Send(&feed.Event{
 		Type: statefeed.Initialized,
 		Data: &statefeed.InitializedData{
@@ -379,6 +396,8 @@ func (s *Service) onExecutionChainStart(ctx context.Context, genesisTime time.Ti
 // initializes the state and genesis block of the beacon chain to persistent storage
 // based on a genesis timestamp value obtained from the ChainStart event emitted
 // by the ETH1.0 Deposit Contract and the POWChain service of the node.
+// 初始化state以及beacon chain的genesis block到持久化存储，基于从ChainStart event中
+// 获取的genesis timestamp，通过ETH1.0 Deposit Contract以及这个节点的POWChain service
 func (s *Service) initializeBeaconChain(
 	ctx context.Context,
 	genesisTime time.Time,
@@ -401,9 +420,11 @@ func (s *Service) initializeBeaconChain(
 	log.Info("Initialized beacon chain genesis state")
 
 	// Clear out all pre-genesis data now that the state is initialized.
+	// 清理所有的pre-genesis data，现在state已经初始化完成
 	s.cfg.ChainStartFetcher.ClearPreGenesisData()
 
 	// Update committee shuffled indices for genesis epoch.
+	// 更新committee shuffled indices，对于genesis epoch
 	if err := helpers.UpdateCommitteeCache(ctx, genesisState, 0); err != nil {
 		return nil, err
 	}
@@ -417,6 +438,7 @@ func (s *Service) initializeBeaconChain(
 }
 
 // This gets called when beacon chain is first initialized to save genesis data (state, block, and more) in db.
+// 这在beacon chain第一次被初始化的时候调用，来保存genesis data（state, block以及更多）
 func (s *Service) saveGenesisData(ctx context.Context, genesisState state.BeaconState) error {
 	if err := s.cfg.BeaconDB.SaveGenesisData(ctx, genesisState); err != nil {
 		return errors.Wrap(err, "could not save genesis data")
@@ -431,9 +453,11 @@ func (s *Service) saveGenesisData(ctx context.Context, genesisState state.Beacon
 	}
 
 	s.originBlockRoot = genesisBlkRoot
+	// 设置finalized state
 	s.cfg.StateGen.SaveFinalizedState(0 /*slot*/, genesisBlkRoot, genesisState)
 
 	if err := s.cfg.ForkChoiceStore.InsertNode(ctx, genesisState, genesisBlkRoot); err != nil {
+		// 不能对fork choice处理genesis block
 		log.WithError(err).Fatal("Could not process genesis block for fork choice")
 	}
 	s.cfg.ForkChoiceStore.SetOriginRoot(genesisBlkRoot)
@@ -444,6 +468,7 @@ func (s *Service) saveGenesisData(ctx context.Context, genesisState state.Beacon
 	s.cfg.ForkChoiceStore.SetGenesisTime(uint64(s.genesisTime.Unix()))
 
 	if err := s.setHead(genesisBlkRoot, genesisBlk, genesisState); err != nil {
+		// 设置head
 		log.WithError(err).Fatal("Could not set head")
 	}
 	return nil

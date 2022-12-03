@@ -28,6 +28,7 @@ type WeakSubjectivityVerifier struct {
 }
 
 // NewWeakSubjectivityVerifier validates a checkpoint, and if valid, uses it to initialize a weak subjectivity verifier.
+// NewWeakSubjectivityVerifier校验一个checkpoint，并且如果是合法的话，使用它来初始化一个weak subjectivity verifier
 func NewWeakSubjectivityVerifier(wsc *ethpb.Checkpoint, db weakSubjectivityDB) (*WeakSubjectivityVerifier, error) {
 	if wsc == nil || len(wsc.Root) == 0 || wsc.Epoch == 0 {
 		log.Debug("--weak-subjectivity-checkpoint not provided")

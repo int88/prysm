@@ -103,6 +103,7 @@ func setupBeaconChain(t *testing.T, beaconDB db.Database) *Service {
 		DepositContainers: []*ethpb.DepositContainer{},
 	})
 	require.NoError(t, err)
+	// 构建execution service
 	web3Service, err = execution.NewService(
 		ctx,
 		execution.WithDatabase(beaconDB),
@@ -111,13 +112,17 @@ func setupBeaconChain(t *testing.T, beaconDB db.Database) *Service {
 	)
 	require.NoError(t, err, "Unable to set up web3 service")
 
+	// 构建attestation service
 	attService, err := attestations.NewService(ctx, &attestations.Config{Pool: attestations.NewPool()})
 	require.NoError(t, err)
 
+	// 构建deposit cache
 	depositCache, err := depositcache.New()
 	require.NoError(t, err)
 
+	// 构建一个fork choice
 	fc := doublylinkedtree.New()
+	// 构建一个state gen
 	stateGen := stategen.New(beaconDB, fc)
 	// Safe a state in stategen to purposes of testing a service stop / shutdown.
 	require.NoError(t, stateGen.SaveState(ctx, bytesutil.ToBytes32(bState.FinalizedCheckpoint().Root), bState))
@@ -167,6 +172,7 @@ func TestChainStartStop_Initialized(t *testing.T) {
 	require.NoError(t, beaconDB.SaveStateSummary(ctx, ss))
 	chainService.cfg.FinalizedStateAtStartUp = s
 	// Test the start function.
+	// 测试start函数
 	chainService.Start()
 
 	require.NoError(t, chainService.Stop(), "Unable to stop chain service")

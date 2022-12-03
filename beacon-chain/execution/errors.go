@@ -27,6 +27,7 @@ var (
 	// terminal block hash received via the API mismatches Prysm's configuration value.
 	ErrConfigMismatch = errors.New("execution client configuration mismatch")
 	// ErrAcceptedSyncingPayloadStatus when the status of the payload is syncing or accepted.
+	// ErrAcceptedSyncingPayloadStatus当payload的状态是syncing或者accepted
 	ErrAcceptedSyncingPayloadStatus = errors.New("payload status is SYNCING or ACCEPTED")
 	// ErrInvalidPayloadStatus when the status of the payload is invalid.
 	ErrInvalidPayloadStatus = errors.New("payload status is INVALID")

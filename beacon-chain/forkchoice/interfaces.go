@@ -15,16 +15,24 @@ import (
 type BalancesByRooter func(context.Context, [32]byte) ([]uint64, error)
 
 // ForkChoicer represents the full fork choice interface composed of all the sub-interfaces.
+// ForkChoicer代表一个完整的fork choice接口，由许多子接口组成
 type ForkChoicer interface {
-	HeadRetriever        // to compute head.
-	BlockProcessor       // to track new block for fork choice.
+	// 计算head
+	HeadRetriever // to compute head.
+	// 追踪fork choice的新的block
+	BlockProcessor // to track new block for fork choice.
+	// 追踪fork choice的新的attestation
 	AttestationProcessor // to track new attestation for fork choice.
-	Getter               // to retrieve fork choice information.
-	Setter               // to set fork choice information.
-	ProposerBooster      // ability to boost timely-proposed block roots.
+	// 获取fork choice的信息
+	Getter // to retrieve fork choice information.
+	// 设置fork choice的信息
+	Setter // to set fork choice information.
+	// 及时提出block roots的能力
+	ProposerBooster // ability to boost timely-proposed block roots.
 }
 
 // HeadRetriever retrieves head root and optimistic info of the current chain.
+// HeadRetriever获取head root以及当前chain的optimistic信息
 type HeadRetriever interface {
 	Head(context.Context, []uint64) ([32]byte, error)
 	CachedHeadRoot() [32]byte
@@ -46,6 +54,7 @@ type AttestationProcessor interface {
 }
 
 // ProposerBooster is able to boost the proposer's root score during fork choice.
+// ProposerBooster能够在fork choice的时候，提出proposer的root score
 type ProposerBooster interface {
 	ResetBoostedProposerRoot(ctx context.Context) error
 }

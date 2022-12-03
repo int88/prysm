@@ -1,6 +1,8 @@
 // Package attestations defines an attestation pool
 // service implementation which is used to manage the lifecycle
 // of aggregated, unaggregated, and fork-choice attestations.
+// attestations包定义了一个attestation pool服务的实现，用于追踪aggregated, unaggregated
+// 以及fork-choice attestations的生命周期
 package attestations
 
 import (
@@ -15,6 +17,7 @@ import (
 var forkChoiceProcessedRootsSize = 1 << 16
 
 // Service of attestation pool operations.
+// 关于attestation pool的操作的服务
 type Service struct {
 	cfg                      *Config
 	ctx                      context.Context

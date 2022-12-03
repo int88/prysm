@@ -60,6 +60,7 @@ type ReadOnlyDatabase interface {
 }
 
 // NoHeadAccessDatabase defines a struct without access to chain head data.
+// NoHeadAccessDatabase定义了一个结构，没有对chain head data的访问
 type NoHeadAccessDatabase interface {
 	ReadOnlyDatabase
 
@@ -80,6 +81,7 @@ type NoHeadAccessDatabase interface {
 	SaveFinalizedCheckpoint(ctx context.Context, checkpoint *ethpb.Checkpoint) error
 	SaveLastValidatedCheckpoint(ctx context.Context, checkpoint *ethpb.Checkpoint) error
 	// Deposit contract related handlers.
+	// Deposit相关的操作
 	SaveDepositContractAddress(ctx context.Context, addr common.Address) error
 	// SaveExecutionChainData operations.
 	SaveExecutionChainData(ctx context.Context, data *ethpb.ETH1ChainData) error
@@ -93,6 +95,7 @@ type NoHeadAccessDatabase interface {
 }
 
 // HeadAccessDatabase defines a struct with access to reading chain head data.
+// HeadAccessDatabase定义了一个结构用于读取chain head data
 type HeadAccessDatabase interface {
 	NoHeadAccessDatabase
 
@@ -101,6 +104,7 @@ type HeadAccessDatabase interface {
 	SaveHeadBlockRoot(ctx context.Context, blockRoot [32]byte) error
 
 	// Genesis operations.
+	// Genesis的相关操作
 	LoadGenesis(ctx context.Context, stateBytes []byte) error
 	SaveGenesisData(ctx context.Context, state state.BeaconState) error
 	EnsureEmbeddedGenesis(ctx context.Context) error

@@ -12,6 +12,7 @@ import (
 )
 
 // SaveExecutionChainData saves the execution chain data.
+// SaveExecutionChainData保存execution chain data
 func (s *Store) SaveExecutionChainData(ctx context.Context, data *v2.ETH1ChainData) error {
 	ctx, span := trace.StartSpan(ctx, "BeaconDB.SaveExecutionChainData")
 	defer span.End()
@@ -28,6 +29,7 @@ func (s *Store) SaveExecutionChainData(ctx context.Context, data *v2.ETH1ChainDa
 		if err != nil {
 			return err
 		}
+		// 更新powchain-data
 		return bkt.Put(powchainDataKey, enc)
 	})
 	tracing.AnnotateError(span, err)

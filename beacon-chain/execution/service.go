@@ -67,6 +67,7 @@ var (
 
 // ChainStartFetcher retrieves information pertaining to the chain start event
 // of the beacon chain for usage across various services.
+// ChainStartFetcher获取chain start event相关的信息，用于各种服务的使用
 type ChainStartFetcher interface {
 	ChainStartEth1Data() *ethpb.Eth1Data
 	PreGenesisState() state.BeaconState
@@ -157,6 +158,7 @@ type Service struct {
 }
 
 // NewService sets up a new instance with an ethclient when given a web3 endpoint as a string in the config.
+// NewService用一个ethclient构建一个新的实例，给定一个web3 endpoint，作为config中的一个string
 func NewService(ctx context.Context, opts ...Option) (*Service, error) {
 	ctx, cancel := context.WithCancel(ctx)
 	_ = cancel // govet fix for lost cancel. Cancel is handled in service.Stop()
@@ -258,6 +260,7 @@ func (s *Service) Stop() error {
 }
 
 // ClearPreGenesisData clears out the stored chainstart deposits and beacon state.
+// ClearPreGenesisData清理存储的chainstart deposits以及beacon state
 func (s *Service) ClearPreGenesisData() {
 	s.chainStartData.ChainstartDeposits = []*ethpb.Deposit{}
 	s.preGenesisState = &native.BeaconState{}

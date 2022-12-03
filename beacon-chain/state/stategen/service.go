@@ -1,6 +1,8 @@
 // Package stategen defines functions to regenerate beacon chain states
 // by replaying blocks from a stored state checkpoint, useful for
 // optimization and reducing a beacon node's resource consumption.
+// stategen定义了函数用于重新生成beacon chain states，通过从一个存储的state checkpoint
+// 重放blocks，对于优化以及降低一个beacon node的资源占用是有用的
 package stategen
 
 import (
@@ -22,6 +24,7 @@ var defaultHotStateDBInterval types.Slot = 128
 
 // StateManager represents a management object that handles the internal
 // logic of maintaining both hot and cold states in DB.
+// StateManager代表一个管理对象，处理内部逻辑，关于维护DB中的hot以及cold states
 type StateManager interface {
 	Resume(ctx context.Context, fState state.BeaconState) (state.BeaconState, error)
 	DisableSaveHotStateToDB(ctx context.Context) error
@@ -39,6 +42,7 @@ type StateManager interface {
 }
 
 // State is a concrete implementation of StateManager.
+// State是StateManager的一个具体实现
 type State struct {
 	beaconDB                db.NoHeadAccessDatabase
 	slotsPerArchivedPoint   types.Slot
@@ -134,6 +138,7 @@ func (s *State) Resume(ctx context.Context, fState state.BeaconState) (state.Bea
 // SaveFinalizedState saves the finalized slot, root and state into memory to be used by state gen service.
 // This used for migration at the correct start slot and used for hot state play back to ensure
 // lower bound to start is always at the last finalized state.
+// SaveFinalizedState保存finalized slot，root以及state到内存中，由state gen service使用
 func (s *State) SaveFinalizedState(fSlot types.Slot, fRoot [32]byte, fState state.BeaconState) {
 	s.finalizedInfo.lock.Lock()
 	defer s.finalizedInfo.lock.Unlock()

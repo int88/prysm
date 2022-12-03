@@ -77,6 +77,7 @@ func GenesisBeaconState(ctx context.Context, deposits []*ethpb.Deposit, genesisT
 
 // OptimizedGenesisBeaconState is used to create a state that has already processed deposits. This is to efficiently
 // create a mainnet state at chainstart.
+// OptimizedGenesisBeaconState用于创建一个state，它已经处理了deposits，它对于在chainstart创建一个mainnet state是非常有效的
 func OptimizedGenesisBeaconState(genesisTime uint64, preState state.BeaconState, eth1Data *ethpb.Eth1Data) (state.BeaconState, error) {
 	if eth1Data == nil {
 		return nil, errors.New("no eth1data provided for genesis state")
@@ -110,6 +111,7 @@ func OptimizedGenesisBeaconState(genesisTime uint64, preState state.BeaconState,
 
 	genesisValidatorsRoot, err := stateutil.ValidatorRegistryRoot(preState.Validators())
 	if err != nil {
+		// 不能获取genesis validators的tree root
 		return nil, errors.Wrapf(err, "could not hash tree root genesis validators %v", err)
 	}
 
@@ -126,10 +128,12 @@ func OptimizedGenesisBeaconState(genesisTime uint64, preState state.BeaconState,
 		},
 
 		// Validator registry fields.
+		// Validator registry字段
 		Validators: preState.Validators(),
 		Balances:   preState.Balances(),
 
 		// Randomness and committees.
+		// 随机数以及committees
 		RandaoMixes: randaoMixes,
 
 		// Finality.

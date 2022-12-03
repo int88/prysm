@@ -36,6 +36,7 @@ type CheckpointStateCache struct {
 }
 
 // NewCheckpointStateCache creates a new checkpoint state cache for storing/accessing processed state.
+// NewCheckpointStateCache创建了一个新的checkpoint state chace，用于存储/访问处理后的state
 func NewCheckpointStateCache() *CheckpointStateCache {
 	return &CheckpointStateCache{
 		cache: lruwrpr.New(maxCheckpointStateSize),

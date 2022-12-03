@@ -1,5 +1,6 @@
 // Package testing allows for spinning up a real bolt-db
 // instance for unit tests throughout the Prysm repo.
+// testing包允许启动一个真正的bolt-db实例，允许在Prysm repo进行单元测试
 package testing
 
 import (
@@ -13,6 +14,7 @@ import (
 )
 
 // SetupDB instantiates and returns database backed by key value store.
+// SetupDB实例化并且返回database，后端是键值存储
 func SetupDB(t testing.TB) db.Database {
 	s, err := kv.NewKVStore(context.Background(), t.TempDir())
 	if err != nil {

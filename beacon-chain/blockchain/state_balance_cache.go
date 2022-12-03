@@ -24,6 +24,8 @@ type stateByRooter interface {
 
 // newStateBalanceCache exists to remind us that stateBalanceCache needs a state gen
 // to avoid nil pointer bugs when updating the cache in the read path (get())
+// newStateBalanceCache的存在用于提示我们，stateBalanceCache需要一个state gen来避免nil pointers
+// 的bugs，当在读路径更新cache时
 func newStateBalanceCache(sg *stategen.State) (*stateBalanceCache, error) {
 	if sg == nil {
 		return nil, errors.New("can't initialize state balance cache without stategen")

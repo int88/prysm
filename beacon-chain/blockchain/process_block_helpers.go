@@ -22,6 +22,7 @@ import (
 )
 
 // CurrentSlot returns the current slot based on time.
+// CurrentSlot返回当前的slot，基于时间
 func (s *Service) CurrentSlot() types.Slot {
 	return slots.CurrentSlot(uint64(s.genesisTime.Unix()))
 }
@@ -336,6 +337,7 @@ func (s *Service) deletePoolAtts(atts []*ethpb.Attestation) error {
 
 // This ensures that the input root defaults to using genesis root instead of zero hashes. This is needed for handling
 // fork choice justification routine.
+// 这个确保输入的root默认使用genesis root，而不是zero hashes，这在处理fork choice justification的时候很有用
 func (s *Service) ensureRootNotZeros(root [32]byte) [32]byte {
 	if root == params.BeaconConfig().ZeroHash {
 		return s.originBlockRoot

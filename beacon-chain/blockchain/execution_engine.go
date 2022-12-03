@@ -33,8 +33,11 @@ type notifyForkchoiceUpdateArg struct {
 }
 
 // notifyForkchoiceUpdate signals execution engine the fork choice updates. Execution engine should:
+// notifyForkchoiceUpdate通知execution engine，关于fork choice updatess，执行引擎需要：
+// 1. reorg execution payload chain以及相应的state
 // 1. Re-organizes the execution payload chain and corresponding state to make head_block_hash the head.
 // 2. Applies finality to the execution state: it irreversibly persists the chain of all execution payloads and corresponding state, up to and including finalized_block_hash.
+// 2. 应用finality到execution state：它不可逆地持久化chain关于所有execution payloads以及对应的状态，直到包括finalized_block_hash
 func (s *Service) notifyForkchoiceUpdate(ctx context.Context, arg *notifyForkchoiceUpdateArg) (*enginev1.PayloadIDBytes, error) {
 	ctx, span := trace.StartSpan(ctx, "blockChain.notifyForkchoiceUpdate")
 	defer span.End()
@@ -66,6 +69,7 @@ func (s *Service) notifyForkchoiceUpdate(ctx context.Context, arg *notifyForkcho
 		FinalizedBlockHash: finalizedHash[:],
 	}
 
+	// 缓存payload ID用于下一个slot proposer
 	nextSlot := s.CurrentSlot() + 1 // Cache payload ID for next slot proposer.
 	hasAttr, attr, proposerId, err := s.getPayloadAttribute(ctx, arg.headState, nextSlot)
 	if err != nil {

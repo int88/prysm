@@ -88,8 +88,10 @@ func (s *Service) VerifyFinalizedConsistency(ctx context.Context, root []byte) e
 }
 
 // This routine processes fork choice attestations from the pool to account for validator votes and fork choice.
+// 这个routine处理来自pool的fork choice attestations来统计validator votes以及fork choice
 func (s *Service) spawnProcessAttestationsRoutine(stateFeed *event.Feed) {
 	// Wait for state to be initialized.
+	// 等待state初始化
 	stateChannel := make(chan *feed.Event, 1)
 	stateSub := stateFeed.Subscribe(stateChannel)
 	go func() {
@@ -104,6 +106,7 @@ func (s *Service) spawnProcessAttestationsRoutine(stateFeed *event.Feed) {
 
 		if s.genesisTime.IsZero() {
 			log.Warn("ProcessAttestations routine waiting for genesis time")
+			// 等待genesis time
 			for s.genesisTime.IsZero() {
 				if err := s.ctx.Err(); err != nil {
 					log.WithError(err).Error("Giving up waiting for genesis time")
@@ -111,6 +114,7 @@ func (s *Service) spawnProcessAttestationsRoutine(stateFeed *event.Feed) {
 				}
 				time.Sleep(1 * time.Second)
 			}
+			// 收到了genesis time，现在能处理attestations
 			log.Warn("Genesis time received, now available to process attestations")
 		}
 
@@ -120,10 +124,12 @@ func (s *Service) spawnProcessAttestationsRoutine(stateFeed *event.Feed) {
 			case <-s.ctx.Done():
 				return
 			case <-st.C():
+				// 开始处理新的slot
 				if err := s.ForkChoicer().NewSlot(s.ctx, s.CurrentSlot()); err != nil {
 					log.WithError(err).Error("Could not process new slot")
 				}
 
+				// 不能处理attestations更新head
 				if err := s.UpdateHead(s.ctx); err != nil {
 					log.WithError(err).Error("Could not process attestations and update head")
 				}
@@ -134,21 +140,27 @@ func (s *Service) spawnProcessAttestationsRoutine(stateFeed *event.Feed) {
 
 // UpdateHead updates the canonical head of the chain based on information from fork-choice attestations and votes.
 // It requires no external inputs.
+// UpdateHead更新chain的canonical head，基于fork-choice attestations以及votes的信息
+// 它不需要外部的输入
 func (s *Service) UpdateHead(ctx context.Context) error {
 	// Only one process can process attestations and update head at a time.
+	// 一次只有一个进程可用处理attestations以及更新head
 	s.processAttestationsLock.Lock()
 	defer s.processAttestationsLock.Unlock()
 
 	start := time.Now()
+	// 处理attestations
 	s.processAttestations(ctx)
 	processAttsElapsedTime.Observe(float64(time.Since(start).Milliseconds()))
 
+	// 获取justified checkpoint
 	justified := s.ForkChoicer().JustifiedCheckpoint()
 	balances, err := s.justifiedBalances.get(ctx, justified.Root)
 	if err != nil {
 		return err
 	}
 	start = time.Now()
+	// 获取head root
 	newHeadRoot, err := s.cfg.ForkChoiceStore.Head(ctx, balances)
 	if err != nil {
 		log.WithError(err).Error("Could not compute head from new attestations")
@@ -160,6 +172,7 @@ func (s *Service) UpdateHead(ctx context.Context) error {
 		log.WithFields(logrus.Fields{
 			"oldHeadRoot": fmt.Sprintf("%#x", s.headRoot()),
 			"newHeadRoot": fmt.Sprintf("%#x", newHeadRoot),
+			// 因为attestations，head发生了变更
 		}).Debug("Head changed due to attestations")
 	}
 	s.headLock.RUnlock()
@@ -170,6 +183,7 @@ func (s *Service) UpdateHead(ctx context.Context) error {
 }
 
 // This calls notify Forkchoice Update in the event that the head has changed
+// 当head发生变更的时候，通知Forkchoice Update
 func (s *Service) notifyEngineIfChangedHead(ctx context.Context, newHeadRoot [32]byte) error {
 	s.headLock.RLock()
 	if newHeadRoot == [32]byte{} || s.headRoot() == newHeadRoot {
@@ -179,6 +193,7 @@ func (s *Service) notifyEngineIfChangedHead(ctx context.Context, newHeadRoot [32
 	s.headLock.RUnlock()
 
 	if !s.hasBlockInInitSyncOrDB(ctx, newHeadRoot) {
+		// 新的head不存在，什么都不做，我们没有block，不要通知engine并且更新head
 		log.Debug("New head does not exist in DB. Do nothing")
 		return nil // We don't have the block, don't notify the engine and update head.
 	}
@@ -188,6 +203,7 @@ func (s *Service) notifyEngineIfChangedHead(ctx context.Context, newHeadRoot [32
 		log.WithError(err).Error("Could not get new head block")
 		return nil
 	}
+	// 构建state
 	headState, err := s.cfg.StateGen.StateByRoot(ctx, newHeadRoot)
 	if err != nil {
 		log.WithError(err).Error("Could not get state from db")
@@ -198,10 +214,12 @@ func (s *Service) notifyEngineIfChangedHead(ctx context.Context, newHeadRoot [32
 		headRoot:  newHeadRoot,
 		headBlock: newHeadBlock.Block(),
 	}
+	// 通知forkchoice update
 	_, err = s.notifyForkchoiceUpdate(s.ctx, arg)
 	if err != nil {
 		return err
 	}
+	// 保存head
 	if err := s.saveHead(ctx, newHeadRoot, newHeadBlock, headState); err != nil {
 		log.WithError(err).Error("could not save head")
 	}

@@ -59,6 +59,7 @@ type head struct {
 
 // This saves head info to the local service cache, it also saves the
 // new head root to the DB.
+// 保存head info到本地的service cache，它同时保存新的head root到DB中
 func (s *Service) saveHead(ctx context.Context, newHeadRoot [32]byte, headBlock interfaces.SignedBeaconBlock, headState state.BeaconState) error {
 	ctx, span := trace.StartSpan(ctx, "blockChain.saveHead")
 	defer span.End()
@@ -84,6 +85,7 @@ func (s *Service) saveHead(ctx context.Context, newHeadRoot [32]byte, headBlock 
 
 	// If the head state is not available, just return nil.
 	// There's nothing to cache
+	// 如果head state不可用，就返回nil，没有什么需要缓存
 	if !s.cfg.BeaconDB.HasStateSummary(ctx, newHeadRoot) {
 		return nil
 	}
@@ -101,6 +103,7 @@ func (s *Service) saveHead(ctx context.Context, newHeadRoot [32]byte, headBlock 
 	newStateRoot := headBlock.Block().StateRoot()
 
 	// A chain re-org occurred, so we fire an event notifying the rest of the services.
+	// 发生了一个chain re-org，因此我们触发一个event，通知其余的services
 	if headBlock.Block().ParentRoot() != oldHeadRoot {
 		commonRoot, forkSlot, err := s.ForkChoicer().CommonAncestor(ctx, oldHeadRoot, newHeadRoot)
 		if err != nil {
@@ -126,6 +129,7 @@ func (s *Service) saveHead(ctx context.Context, newHeadRoot [32]byte, headBlock 
 			return errors.Wrap(err, "could not check if node is optimistically synced")
 		}
 		s.cfg.StateNotifier.StateFeed().Send(&feed.Event{
+			// 发送Reorg事件
 			Type: statefeed.Reorg,
 			Data: &ethpbv1.EventChainReorg{
 				Slot:                newHeadSlot,
@@ -146,11 +150,13 @@ func (s *Service) saveHead(ctx context.Context, newHeadRoot [32]byte, headBlock 
 	}
 
 	// Cache the new head info.
+	// 缓存新的head info
 	if err := s.setHead(newHeadRoot, headBlock, headState); err != nil {
 		return errors.Wrap(err, "could not set head")
 	}
 
 	// Save the new head root to DB.
+	// 保存新的head root到DB
 	if err := s.cfg.BeaconDB.SaveHeadBlockRoot(ctx, newHeadRoot); err != nil {
 		return errors.Wrap(err, "could not save head root in DB")
 	}
@@ -159,6 +165,7 @@ func (s *Service) saveHead(ctx context.Context, newHeadRoot [32]byte, headBlock 
 	// done in a goroutine to avoid blocking the critical runtime main routine.
 	go func() {
 		if err := s.notifyNewHeadEvent(ctx, newHeadSlot, headState, newStateRoot[:], newHeadRoot[:]); err != nil {
+			// 不能通知event feed，关于新的chain head
 			log.WithError(err).Error("Could not notify event feed of new chain head")
 		}
 	}()
@@ -192,6 +199,7 @@ func (s *Service) saveHeadNoDB(ctx context.Context, b interfaces.SignedBeaconBlo
 }
 
 // This sets head view object which is used to track the head slot, root, block and state.
+// 设置head view对象，它用于追踪head slot，root，block以及state
 func (s *Service) setHead(root [32]byte, block interfaces.SignedBeaconBlock, state state.BeaconState) error {
 	s.headLock.Lock()
 	defer s.headLock.Unlock()
@@ -350,9 +358,11 @@ func (s *Service) notifyNewHeadEvent(
 // This saves the attestations between `orphanedRoot` and the common ancestor root that is derived using `newHeadRoot`.
 // It also filters out the attestations that is one epoch older as a defense so invalid attestations don't flow into the attestation pool.
 func (s *Service) saveOrphanedAtts(ctx context.Context, orphanedRoot [32]byte, newHeadRoot [32]byte) error {
+	// 找到common ancestor
 	commonAncestorRoot, _, err := s.ForkChoicer().CommonAncestor(ctx, newHeadRoot, orphanedRoot)
 	switch {
 	// Exit early if there's no common ancestor and root doesn't exist, there would be nothing to save.
+	// 尽早退出，如果没有common ancestor并且root不存在，没有什么需要保存的
 	case errors.Is(err, forkchoice.ErrUnknownCommonAncestor):
 		return nil
 	case err != nil:

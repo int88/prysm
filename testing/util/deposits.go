@@ -255,6 +255,7 @@ func DeterministicEth1Data(size int) (*ethpb.Eth1Data, error) {
 }
 
 // DeterministicGenesisState returns a genesis state made using the deterministic deposits.
+// DeterministicGenesisState返回一个genesis state，由确定性的deposits构建而成
 func DeterministicGenesisState(t testing.TB, numValidators uint64) (state.BeaconState, []bls.SecretKey) {
 	deposits, privKeys, err := DeterministicDepositsAndKeys(numValidators)
 	if err != nil {
