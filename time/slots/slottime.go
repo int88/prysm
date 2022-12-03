@@ -184,6 +184,7 @@ func ValidateClock(slot types.Slot, genesisTimeSec uint64) error {
 	maxPossibleSlot := CurrentSlot(genesisTimeSec).Add(MaxSlotBuffer)
 	// Defensive check to ensure that we only process slots up to a hard limit
 	// from our local clock.
+	// 防御性检测来确保我们只处理达到hard limit的slots，从我们的local clock开始算
 	if slot > maxPossibleSlot {
 		return fmt.Errorf("slot %d > %d which exceeds max allowed value relative to the local clock", slot, maxPossibleSlot)
 	}

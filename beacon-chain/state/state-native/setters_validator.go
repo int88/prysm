@@ -138,6 +138,8 @@ func (b *BeaconState) SetSlashings(val []uint64) error {
 
 // UpdateSlashingsAtIndex for the beacon state. Updates the slashings
 // at a specific index to a new value.
+// UpdateSlashingsAtIndex为beacon state更新slashings，更新特定的index的slashings到
+// 一个新的值
 func (b *BeaconState) UpdateSlashingsAtIndex(idx, val uint64) error {
 	if uint64(len(b.slashings)) <= idx {
 		return errors.Errorf("invalid index provided %d", idx)

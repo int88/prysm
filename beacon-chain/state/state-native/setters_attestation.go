@@ -12,14 +12,17 @@ import (
 
 // RotateAttestations sets the previous epoch attestations to the current epoch attestations and
 // then clears the current epoch attestations.
+// RotateAttestations设置之前的epoch attestations到当前的epoch attestations并且清理当前的epoch attestations
 func (b *BeaconState) RotateAttestations() error {
 	b.lock.Lock()
 	defer b.lock.Unlock()
 
 	if b.version != version.Phase0 {
+		// 只有phase0支持
 		return errNotSupported("RotateAttestations", b.version)
 	}
 
+	// 将当前的epoch attestations设置为previous attestations
 	b.setPreviousEpochAttestations(b.currentEpochAttestationsVal())
 	b.setCurrentEpochAttestations([]*ethpb.PendingAttestation{})
 	return nil

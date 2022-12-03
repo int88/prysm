@@ -267,6 +267,7 @@ func ProcessEffectiveBalanceUpdates(state state.BeaconState) (state.BeaconState,
 	bals := state.Balances()
 
 	// Update effective balances with hysteresis.
+	// 使用迟滞更新有效余额
 	validatorFunc := func(idx int, val *ethpb.Validator) (bool, *ethpb.Validator, error) {
 		if val == nil {
 			return false, nil, fmt.Errorf("validator %d is nil in state", idx)
@@ -299,11 +300,13 @@ func ProcessEffectiveBalanceUpdates(state state.BeaconState) (state.BeaconState,
 }
 
 // ProcessSlashingsReset processes the total slashing balances updates during epoch processing.
+// ProcessSlashingsReset处理在epoch processing期间的total slashing balances的更新
 //
 // Spec pseudocode definition:
 //  def process_slashings_reset(state: BeaconState) -> None:
 //    next_epoch = Epoch(get_current_epoch(state) + 1)
 //    # Reset slashings
+//    # 重置slashings
 //    state.slashings[next_epoch % EPOCHS_PER_SLASHINGS_VECTOR] = Gwei(0)
 func ProcessSlashingsReset(state state.BeaconState) (state.BeaconState, error) {
 	currentEpoch := time.CurrentEpoch(state)
@@ -328,12 +331,14 @@ func ProcessSlashingsReset(state state.BeaconState) (state.BeaconState, error) {
 }
 
 // ProcessRandaoMixesReset processes the final updates to RANDAO mix during epoch processing.
+// ProcessRandaoMixesReset在epoch processing期间处理final updates，更新RANDAO mix
 //
 // Spec pseudocode definition:
 //  def process_randao_mixes_reset(state: BeaconState) -> None:
 //    current_epoch = get_current_epoch(state)
 //    next_epoch = Epoch(current_epoch + 1)
 //    # Set randao mix
+//    # 设置randao mix
 //    state.randao_mixes[next_epoch % EPOCHS_PER_HISTORICAL_VECTOR] = get_randao_mix(state, current_epoch)
 func ProcessRandaoMixesReset(state state.BeaconState) (state.BeaconState, error) {
 	currentEpoch := time.CurrentEpoch(state)
@@ -348,6 +353,7 @@ func ProcessRandaoMixesReset(state state.BeaconState) (state.BeaconState, error)
 			randaoMixLength,
 		)
 	}
+	// 获取当前的randao mix
 	mix, err := helpers.RandaoMix(state, currentEpoch)
 	if err != nil {
 		return nil, err
@@ -360,6 +366,7 @@ func ProcessRandaoMixesReset(state state.BeaconState) (state.BeaconState, error)
 }
 
 // ProcessHistoricalRootsUpdate processes the updates to historical root accumulator during epoch processing.
+// ProcessHistoricalRootsUpdate处理historical root accumulator的更新，在epoch processing的时候
 //
 // Spec pseudocode definition:
 //  def process_historical_roots_update(state: BeaconState) -> None:
@@ -381,6 +388,7 @@ func ProcessHistoricalRootsUpdate(state state.BeaconState) (state.BeaconState, e
 		}
 		batchRoot, err := historicalBatch.HashTreeRoot()
 		if err != nil {
+			// 不能计算historical batch
 			return nil, errors.Wrap(err, "could not hash historical batch")
 		}
 		if err := state.AppendHistoricalRoots(batchRoot); err != nil {
@@ -392,10 +400,12 @@ func ProcessHistoricalRootsUpdate(state state.BeaconState) (state.BeaconState, e
 }
 
 // ProcessParticipationRecordUpdates rotates current/previous epoch attestations during epoch processing.
+// ProcessParticipationRecordUpdates在epoch processing的时候轮转当前以及之前的epoch attestations
 //
 // Spec pseudocode definition:
 //  def process_participation_record_updates(state: BeaconState) -> None:
 //    # Rotate current/previous epoch attestations
+//    # 轮转current/previous的epoch attestations
 //    state.previous_epoch_attestations = state.current_epoch_attestations
 //    state.current_epoch_attestations = []
 func ProcessParticipationRecordUpdates(state state.BeaconState) (state.BeaconState, error) {
@@ -438,6 +448,7 @@ func ProcessFinalUpdates(state state.BeaconState) (state.BeaconState, error) {
 	}
 
 	// Set historical root accumulator.
+	// 设置historical root accumulator
 	state, err = ProcessHistoricalRootsUpdate(state)
 	if err != nil {
 		return nil, err
