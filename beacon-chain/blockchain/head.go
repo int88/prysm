@@ -194,6 +194,8 @@ func (s *Service) setHead(root [32]byte, block interfaces.SignedBeaconBlock, sta
 // This sets head view object which is used to track the head slot, root, block and state. The method
 // assumes that state being passed into the method will not be modified by any other alternate
 // caller which holds the state's reference.
+// 这个设置head view对象，它可以用于追踪head slot，root，block以及state，这个方法假设传入的state不会被任何
+// 其他的alternate caller，它维护state的引用
 func (s *Service) setHeadInitialSync(root [32]byte, block interfaces.SignedBeaconBlock, state state.BeaconState) {
 	s.headLock.Lock()
 	defer s.headLock.Unlock()

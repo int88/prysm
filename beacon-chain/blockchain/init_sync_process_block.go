@@ -81,6 +81,7 @@ func (s *Service) getInitSyncBlocks() []interfaces.SignedBeaconBlock {
 }
 
 // This clears out the initial sync blocks cache.
+// 这个函数清理初始的sync block cache
 func (s *Service) clearInitSyncBlocks() {
 	s.initSyncBlocksLock.Lock()
 	defer s.initSyncBlocksLock.Unlock()

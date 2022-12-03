@@ -62,10 +62,11 @@ type Service struct {
 	head        *head
 	headLock    sync.RWMutex
 	// genesis root，或者weak subjective checkpoint root，取决于node是如何初始化的
-	originBlockRoot         [32]byte // genesis root, or weak subjectivity checkpoint root, depending on how the node is initialized
-	nextEpochBoundarySlot   types.Slot
-	boundaryRoots           [][32]byte
-	checkpointStateCache    *cache.CheckpointStateCache
+	originBlockRoot       [32]byte // genesis root, or weak subjectivity checkpoint root, depending on how the node is initialized
+	nextEpochBoundarySlot types.Slot
+	boundaryRoots         [][32]byte
+	checkpointStateCache  *cache.CheckpointStateCache
+	// 初始的sync blocks
 	initSyncBlocks          map[[32]byte]interfaces.SignedBeaconBlock
 	initSyncBlocksLock      sync.RWMutex
 	justifiedBalances       *stateBalanceCache
