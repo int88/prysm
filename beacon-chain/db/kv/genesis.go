@@ -16,6 +16,7 @@ import (
 )
 
 // SaveGenesisData bootstraps the beaconDB with a given genesis state.
+// SaveGenesisData用一个给定的genesis state初始化beaconDB
 func (s *Store) SaveGenesisData(ctx context.Context, genesisState state.BeaconState) error {
 	stateRoot, err := genesisState.HashTreeRoot(ctx)
 	if err != nil {
@@ -43,9 +44,11 @@ func (s *Store) SaveGenesisData(ctx context.Context, genesisState state.BeaconSt
 		return err
 	}
 
+	// 保存head block root
 	if err := s.SaveHeadBlockRoot(ctx, genesisBlkRoot); err != nil {
 		return errors.Wrap(err, "could not save head block root")
 	}
+	// 保存genesis block root
 	if err := s.SaveGenesisBlockRoot(ctx, genesisBlkRoot); err != nil {
 		return errors.Wrap(err, "could not save genesis block root")
 	}

@@ -84,6 +84,7 @@ func WithBackfillStatus(bfs *backfill.Status) StateGenOption {
 }
 
 // New returns a new state management object.
+// New返回一个新的state management对象
 func New(beaconDB db.NoHeadAccessDatabase, fc forkchoice.ForkChoicer, opts ...StateGenOption) *State {
 	s := &State{
 		beaconDB:                beaconDB,

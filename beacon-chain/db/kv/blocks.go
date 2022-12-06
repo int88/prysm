@@ -379,6 +379,7 @@ func (s *Store) GenesisBlockRoot(ctx context.Context) ([32]byte, error) {
 }
 
 // SaveGenesisBlockRoot to the db.
+// SaveGenesisBlockRoot保存genesis block到DB
 func (s *Store) SaveGenesisBlockRoot(ctx context.Context, blockRoot [32]byte) error {
 	ctx, span := trace.StartSpan(ctx, "BeaconDB.SaveGenesisBlockRoot")
 	defer span.End()

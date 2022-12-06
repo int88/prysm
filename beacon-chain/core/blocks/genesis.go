@@ -1,5 +1,6 @@
 // Package blocks contains block processing libraries according to
 // the Ethereum beacon chain spec.
+// blocks包含了处理block的库，根据Ethereum beacon chain spec
 package blocks
 
 import (
@@ -10,6 +11,7 @@ import (
 )
 
 // NewGenesisBlock returns the canonical, genesis block for the beacon chain protocol.
+// NewGenesisBlock为beacon chain protocol返回canonical, genesis block
 func NewGenesisBlock(stateRoot []byte) *ethpb.SignedBeaconBlock {
 	zeroHash := params.BeaconConfig().ZeroHash[:]
 	block := &ethpb.SignedBeaconBlock{

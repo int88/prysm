@@ -14,6 +14,7 @@ import (
 )
 
 // SaveState saves the state in the cache and/or DB.
+// SaveState保存state到cache或者DB中
 func (s *State) SaveState(ctx context.Context, blockRoot [32]byte, st state.BeaconState) error {
 	ctx, span := trace.StartSpan(ctx, "stateGen.SaveState")
 	defer span.End()
@@ -47,6 +48,8 @@ func (s *State) ForceCheckpoint(ctx context.Context, blockRoot []byte) error {
 // This saves a post beacon state. On the epoch boundary,
 // it saves a full state. On an intermediate slot, it saves a back pointer to the
 // nearest epoch boundary state.
+// 保存一个post beacon state，在epoch boundary，它保存一个full state，在中间的slot
+// 它保存一个对于最近的epoch boundary state的引用
 func (s *State) saveStateByRoot(ctx context.Context, blockRoot [32]byte, st state.BeaconState) error {
 	ctx, span := trace.StartSpan(ctx, "stateGen.saveStateByRoot")
 	defer span.End()

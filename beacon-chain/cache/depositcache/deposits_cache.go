@@ -41,6 +41,7 @@ type DepositFetcher interface {
 
 // FinalizedDeposits stores the trie of deposits that have been included
 // in the beacon state up to the latest finalized checkpoint.
+// FinalizedDeposits存储已经包含在beacon state中的trie of deposits，直到最后的finalized checkpoint
 type FinalizedDeposits struct {
 	Deposits        *trie.SparseMerkleTrie
 	MerkleTrieIndex int64
@@ -264,6 +265,7 @@ func (dc *DepositCache) DepositByPubkey(ctx context.Context, pubKey []byte) (*et
 }
 
 // FinalizedDeposits returns the finalized deposits trie.
+// FinalizedDeposits返回finalized deposits trie
 func (dc *DepositCache) FinalizedDeposits(ctx context.Context) *FinalizedDeposits {
 	ctx, span := trace.StartSpan(ctx, "DepositsCache.FinalizedDeposits")
 	defer span.End()
@@ -278,6 +280,8 @@ func (dc *DepositCache) FinalizedDeposits(ctx context.Context) *FinalizedDeposit
 
 // NonFinalizedDeposits returns the list of non-finalized deposits until the given block number (inclusive).
 // If no block is specified then this method returns all non-finalized deposits.
+// NonFinalizedDeposits返回一系列non-finalized deposits，直到给定的block number（包含在内）
+// 如果没有指定block，之后这个方法返回所有的non-finalized deposits
 func (dc *DepositCache) NonFinalizedDeposits(ctx context.Context, lastFinalizedIndex int64, untilBlk *big.Int) []*ethpb.Deposit {
 	ctx, span := trace.StartSpan(ctx, "DepositsCache.NonFinalizedDeposits")
 	defer span.End()

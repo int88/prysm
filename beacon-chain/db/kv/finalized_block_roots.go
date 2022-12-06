@@ -27,6 +27,10 @@ var containerFinalizedButNotCanonical = []byte("recent block needs reindexing to
 // root where block.slot <= start_slot(epoch). As a result, we cannot index the finalized canonical
 // beacon block chain using the finalized root alone as this would exclude all other blocks in the
 // finalized epoch from being indexed as "final and canonical".
+// finalized block roots index追踪在canonical chain中finalized beacon blocks，finalized checkpoint
+// 包含已经finalized epoch以及最高的beacon block root，其中block.slot <= start_slot(epoch)，作为结果
+// 我们不能索引finalized canonical beacon block chain，只使用finalized root，因为它会排除finalized epoch
+// 中所有其他的blocks，被标记为"final以及canonical"
 //
 // The algorithm for building the index works as follows:
 //   - De-index all finalized beacon block roots from previous_finalized_epoch to

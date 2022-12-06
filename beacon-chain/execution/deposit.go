@@ -11,6 +11,7 @@ import (
 )
 
 // DepositContractAddress returns the deposit contract address for the given chain.
+// DepositContractAddress返回给定chain的deposit contract地址
 func DepositContractAddress() (string, error) {
 	address := params.BeaconConfig().DepositContractAddress
 	if address == "" {
@@ -28,6 +29,7 @@ func (s *Service) processDeposit(ctx context.Context, eth1Data *ethpb.Eth1Data, 
 	if err := s.preGenesisState.SetEth1Data(eth1Data); err != nil {
 		return err
 	}
+	// 处理pre genesis deposits
 	beaconState, err := blocks.ProcessPreGenesisDeposits(ctx, s.preGenesisState, []*ethpb.Deposit{deposit})
 	if err != nil {
 		return errors.Wrap(err, "could not process pre-genesis deposits")

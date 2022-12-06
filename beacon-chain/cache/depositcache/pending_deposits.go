@@ -28,6 +28,7 @@ type PendingDepositsFetcher interface {
 
 // InsertPendingDeposit into the database. If deposit or block number are nil
 // then this method does nothing.
+// InsertPendingDeposit插入pending deposit到db，如果deposit或者block number为nil，则这个方法什么都不做
 func (dc *DepositCache) InsertPendingDeposit(ctx context.Context, d *ethpb.Deposit, blockNum uint64, index int64, depositRoot [32]byte) {
 	ctx, span := trace.StartSpan(ctx, "DepositsCache.InsertPendingDeposit")
 	defer span.End()

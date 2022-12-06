@@ -72,6 +72,7 @@ func (s *Service) ProcessETH1Block(ctx context.Context, blkNum *big.Int) error {
 	}
 	for _, filterLog := range logs {
 		// ignore logs that are not of the required block number
+		// 如果logs不属于请求的block number，则忽略
 		if filterLog.BlockNumber != blkNum.Uint64() {
 			continue
 		}
@@ -80,6 +81,7 @@ func (s *Service) ProcessETH1Block(ctx context.Context, blkNum *big.Int) error {
 		}
 	}
 	if !s.chainStartData.Chainstarted {
+		// 如果chain还没有启动，则还需要处理ChainStart
 		if err := s.processChainStartFromBlockNum(ctx, blkNum); err != nil {
 			return err
 		}
@@ -89,10 +91,12 @@ func (s *Service) ProcessETH1Block(ctx context.Context, blkNum *big.Int) error {
 
 // ProcessLog is the main method which handles the processing of all
 // logs from the deposit contract on the eth1 chain.
+// ProcessLog是主要的方法用于处理所有来自deposit contract的logs
 func (s *Service) ProcessLog(ctx context.Context, depositLog gethtypes.Log) error {
 	s.processingLock.RLock()
 	defer s.processingLock.RUnlock()
 	// Process logs according to their event signature.
+	// 根据event signature对logs进行处理
 	if depositLog.Topics[0] == depositEventSignature {
 		if err := s.ProcessDepositLog(ctx, depositLog); err != nil {
 			return errors.Wrap(err, "Could not process deposit log")
@@ -109,7 +113,9 @@ func (s *Service) ProcessLog(ctx context.Context, depositLog gethtypes.Log) erro
 // ProcessDepositLog processes the log which had been received from
 // the eth1 chain by trying to ascertain which participant deposited
 // in the contract.
+// ProcessDepositLog处理从eth1中接收到的log，通过试着确定合约的参与者
 func (s *Service) ProcessDepositLog(ctx context.Context, depositLog gethtypes.Log) error {
+	// 对deposit log进行解码，获取pubkey, withdrawal credentials，amount, signature，以及merkleTreeIndex
 	pubkey, withdrawalCredentials, amount, signature, merkleTreeIndex, err := contracts.UnpackDepositLogData(depositLog.Data)
 	if err != nil {
 		return errors.Wrap(err, "Could not unpack log")
@@ -131,6 +137,7 @@ func (s *Service) ProcessDepositLog(ctx context.Context, depositLog gethtypes.Lo
 
 	// We then decode the deposit input in order to create a deposit object
 	// we can store in our persistent DB.
+	// 创建一个deposit对象，我们可以存储在我们的DB中
 	depositData := &ethpb.Deposit_Data{
 		Amount:                bytesutil.FromBytes8(amount),
 		PublicKey:             pubkey,
@@ -168,6 +175,7 @@ func (s *Service) ProcessDepositLog(ctx context.Context, depositLog gethtypes.Lo
 	if err != nil {
 		return errors.Wrap(err, "unable to determine root of deposit trie")
 	}
+	// 插入deposit
 	err = s.cfg.depositCache.InsertDeposit(ctx, deposit, depositLog.BlockNumber, index, root)
 	if err != nil {
 		return errors.Wrap(err, "unable to insert deposit into cache")
@@ -468,7 +476,7 @@ func (s *Service) requestBatchedHeadersAndLogs(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
-		// 处理eth1 block
+		// 处理eth1 block，获取deposit log，加入deposit等等
 		err = s.ProcessETH1Block(ctx, big.NewInt(0).SetUint64(i))
 		if err != nil {
 			return err

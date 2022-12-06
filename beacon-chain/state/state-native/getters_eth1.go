@@ -56,6 +56,7 @@ func (b *BeaconState) eth1DataVotesVal() []*ethpb.Eth1Data {
 
 // Eth1DepositIndex corresponds to the index of the deposit made to the
 // validator deposit contract at the time of this state's eth1 data.
+// Eth1DepositIndex对应deposit的索引，指向validator deposit contract，在这个state的eth1 data中
 func (b *BeaconState) Eth1DepositIndex() uint64 {
 	b.lock.RLock()
 	defer b.lock.RUnlock()

@@ -18,16 +18,19 @@ import (
 )
 
 // ProcessPreGenesisDeposits processes a deposit for the beacon state before chainstart.
+// ProcessPreGenesisDeposits处理一个deposit，对于beacon state，在chain start之前
 func ProcessPreGenesisDeposits(
 	ctx context.Context,
 	beaconState state.BeaconState,
 	deposits []*ethpb.Deposit,
 ) (state.BeaconState, error) {
 	var err error
+	// 处理deposits
 	beaconState, err = ProcessDeposits(ctx, beaconState, deposits)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not process deposit")
 	}
+	// 更新validator的effective balance，并且如果它超过了MaxEffectiveBalance，validator在genesis中变为active
 	beaconState, err = ActivateValidatorWithEffectiveBalance(beaconState, deposits)
 	if err != nil {
 		return nil, err
@@ -39,6 +42,7 @@ func ProcessPreGenesisDeposits(
 func ActivateValidatorWithEffectiveBalance(beaconState state.BeaconState, deposits []*ethpb.Deposit) (state.BeaconState, error) {
 	for _, d := range deposits {
 		pubkey := d.Data.PublicKey
+		// 根据public key获取索引
 		index, ok := beaconState.ValidatorIndexByPubkey(bytesutil.ToBytes48(pubkey))
 		// In the event of the pubkey not existing, we continue processing the other
 		// deposits.
@@ -69,6 +73,8 @@ func ActivateValidatorWithEffectiveBalance(beaconState state.BeaconState, deposi
 // ProcessDeposits is one of the operations performed on each processed
 // beacon block to verify queued validators from the Ethereum 1.0 Deposit Contract
 // into the beacon chain.
+// ProcessDeposits是执行在每个beacon block上的操作，用来校验来自Ethereum 1.0 Deposit Contract的
+// queued validators能进入beacon chain
 //
 // Spec pseudocode definition:
 //
@@ -116,6 +122,7 @@ func BatchVerifyDepositsSignatures(ctx context.Context, deposits []*ethpb.Deposi
 
 // ProcessDeposit takes in a deposit object and inserts it
 // into the registry as a new validator or balance change.
+// ProcessDeposit获取一个deposit对象并且插入到registry作为一个新的validtor或者为balance change
 // Returns the resulting state, a boolean to indicate whether or not the deposit
 // resulted in a new validator entry into the beacon state, and any error.
 //

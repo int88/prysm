@@ -439,13 +439,17 @@ func TestInitDepositCacheWithFinalization_OK(t *testing.T) {
 	require.NoError(t, s.cfg.beaconDB.SaveState(context.Background(), emptyState, headRoot))
 	require.NoError(t, stateGen.SaveState(context.Background(), headRoot, emptyState))
 	s.cfg.stateGen = stateGen
+	// 设置eth1 deposit index
 	require.NoError(t, emptyState.SetEth1DepositIndex(3))
 
 	ctx := context.Background()
+	// 保存finalized checkpoint
 	require.NoError(t, beaconDB.SaveFinalizedCheckpoint(ctx, &ethpb.Checkpoint{Epoch: slots.ToEpoch(0), Root: headRoot[:]}))
 	s.cfg.finalizedStateAtStartup = emptyState
 
+	// 标记chain启动
 	s.chainStartData.Chainstarted = true
+	// 初始化deposit caches
 	require.NoError(t, s.initDepositCaches(context.Background(), ctrs))
 	fDeposits := s.cfg.depositCache.FinalizedDeposits(ctx)
 	deps := s.cfg.depositCache.NonFinalizedDeposits(context.Background(), fDeposits.MerkleTrieIndex, nil)
@@ -469,6 +473,7 @@ func TestNewService_EarliestVotingBlock(t *testing.T) {
 	require.NoError(t, err, "unable to setup web3 ETH1.0 chain service")
 	// simulated backend sets eth1 block
 	// time as 10 seconds
+	// 模拟bakcend，设置eth1 block time为10s
 	params.SetupTestConfigCleanup(t)
 	conf := params.BeaconConfig().Copy()
 	conf.SecondsPerETH1Block = 10
@@ -476,15 +481,18 @@ func TestNewService_EarliestVotingBlock(t *testing.T) {
 	params.OverrideBeaconConfig(conf)
 
 	// Genesis not set
+	// Genesis没有设置
 	followBlock := uint64(2000)
 	blk, err := web3Service.determineEarliestVotingBlock(context.Background(), followBlock)
 	require.NoError(t, err)
 	assert.Equal(t, followBlock-conf.Eth1FollowDistance, blk, "unexpected earliest voting block")
 
 	// Genesis is set.
+	// Genesis设置了
 
 	numToForward := 1500
 	// forward 1500 blocks
+	// 前进1500个blocks
 	for i := 0; i < numToForward; i++ {
 		testAcc.Backend.Commit()
 	}
@@ -500,6 +508,7 @@ func TestNewService_EarliestVotingBlock(t *testing.T) {
 	web3Service.chainStartData.GenesisTime = currTime
 
 	// With a current slot of zero, only request follow_blocks behind.
+	// 当前的slot为0，只请求之后的follow_blocks
 	blk, err = web3Service.determineEarliestVotingBlock(context.Background(), followBlock)
 	require.NoError(t, err)
 	assert.Equal(t, followBlock-conf.Eth1FollowDistance, blk, "unexpected earliest voting block")
@@ -527,6 +536,7 @@ func TestNewService_Eth1HeaderRequLimit(t *testing.T) {
 		WithHttpEndpoint(endpoint),
 		WithDepositContractAddress(testAcc.ContractAddr),
 		WithDatabase(beaconDB),
+		// 设置header request limit
 		WithEth1HeaderRequestLimit(uint64(150)),
 	)
 	require.NoError(t, err, "unable to setup web3 ETH1.0 chain service")
@@ -619,6 +629,7 @@ func TestService_InitializeCorrectly(t *testing.T) {
 	assert.NoError(t, err)
 
 	assert.NoError(t, s1.initializeEth1Data(context.Background(), eth1Data))
+	// 接收到不正确的last received merkel index
 	assert.Equal(t, int64(-1), s1.lastReceivedMerkleIndex, "received incorrect last received merkle index")
 }
 

@@ -85,6 +85,7 @@ func WithStateGen(gen *stategen.State) Option {
 }
 
 // WithEth1HeaderRequestLimit to set the upper limit of eth1 header requests.
+// WithEth1HeaderRequestLimit设置eth1 header requests的upper limit
 func WithEth1HeaderRequestLimit(limit uint64) Option {
 	return func(s *Service) error {
 		s.cfg.eth1HeaderReqLimit = limit

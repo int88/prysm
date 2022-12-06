@@ -155,7 +155,8 @@ type Service struct {
 	httpLogger         bind.ContractFilterer
 	rpcClient          RPCClient
 	// 用于block hash/block height的缓存
-	headerCache             *headerCache // cache to store block hash/block height.
+	headerCache *headerCache // cache to store block hash/block height.
+	// 最后一个eth1 block data
 	latestEth1Data          *ethpb.LatestETH1Data
 	depositContractCaller   *contracts.DepositContractCaller
 	depositTrie             *trie.SparseMerkleTrie
@@ -331,6 +332,8 @@ func (s *Service) updateConnectedETH1(state bool) {
 
 // refers to the latest eth1 block which follows the condition: eth1_timestamp +
 // SECONDS_PER_ETH1_BLOCK * ETH1_FOLLOW_DISTANCE <= current_unix_time
+// 引用最后一个满足条件的eth1 block：eth1_timestamp + SECONDS_PER_ETH1_BLOCK * ETH1_FOLLOW_DISTANCE
+// 小于current_unix_time
 func (s *Service) followedBlockHeight(ctx context.Context) (uint64, error) {
 	followTime := params.BeaconConfig().Eth1FollowDistance * params.BeaconConfig().SecondsPerETH1Block
 	latestBlockTime := uint64(0)
@@ -388,6 +391,7 @@ func (s *Service) initDepositCaches(ctx context.Context, ctrs []*ethpb.DepositCo
 		s.cfg.depositCache.InsertFinalizedDeposits(ctx, actualIndex)
 
 		// Deposit proofs are only used during state transition and can be safely removed to save space.
+		// Deposit proofs只在state transition的时候使用并且可以安全地降低空间使用
 		if err = s.cfg.depositCache.PruneProofs(ctx, actualIndex); err != nil {
 			return errors.Wrap(err, "could not prune deposit proofs")
 		}
@@ -395,6 +399,7 @@ func (s *Service) initDepositCaches(ctx context.Context, ctrs []*ethpb.DepositCo
 	validDepositsCount.Add(float64(currIndex))
 	// Only add pending deposits if the container slice length
 	// is more than the current index in state.
+	// 只增加pending deposits，如果container slice的长度大于当前state中的index
 	if uint64(len(ctrs)) > currIndex {
 		for _, c := range ctrs[currIndex:] {
 			s.cfg.depositCache.InsertPendingDeposit(ctx, c.Deposit, c.Eth1BlockHeight, c.Index, bytesutil.ToBytes32(c.DepositRoot))
@@ -423,6 +428,8 @@ func (s *Service) processBlockHeader(header *types.HeaderInfo) {
 
 // batchRequestHeaders requests the block range specified in the arguments. Instead of requesting
 // each block in one call, it batches all requests into a single rpc call.
+// batchRequestHeaders请求在参数中指定的block range，而不是每次调用请求一个block，它将所有的请求放入
+// 一次rpc调用
 func (s *Service) batchRequestHeaders(startBlock, endBlock uint64) ([]*types.HeaderInfo, error) {
 	if startBlock > endBlock {
 		return nil, fmt.Errorf("start block height %d cannot be > end block height %d", startBlock, endBlock)
@@ -457,6 +464,7 @@ func (s *Service) batchRequestHeaders(startBlock, endBlock uint64) ([]*types.Hea
 	}
 	for _, h := range headers {
 		if h != nil {
+			// 将header加入header cache
 			if err := s.headerCache.AddHeader(h); err != nil {
 				return nil, err
 			}
@@ -505,6 +513,7 @@ func (s *Service) handleETH1FollowDistance() {
 		log.Error("Beacon node is not respecting the follow distance")
 		return
 	}
+	// 批量请求headers以及logs并进行处理
 	if err := s.requestBatchedHeadersAndLogs(ctx); err != nil {
 		s.runError = err
 		log.Error(err)
@@ -680,6 +689,7 @@ func (s *Service) cacheHeadersForEth1DataVote(ctx context.Context) error {
 }
 
 // Caches block headers from the desired range.
+// 缓存期望范围的block headers
 func (s *Service) cacheBlockHeaders(start, end uint64) error {
 	batchSize := s.cfg.eth1HeaderReqLimit
 	for i := start; i < end; i += batchSize {
@@ -713,11 +723,13 @@ func (s *Service) cacheBlockHeaders(start, end uint64) error {
 }
 
 // Determines the earliest voting block from which to start caching all our previous headers from.
+// 决定最早的voting block，从这开始缓存所有之前的headers
 func (s *Service) determineEarliestVotingBlock(ctx context.Context, followBlock uint64) (uint64, error) {
 	genesisTime := s.chainStartData.GenesisTime
 	currSlot := slots.CurrentSlot(genesisTime)
 
 	// In the event genesis has not occurred yet, we just request to go back follow_distance blocks.
+	// 如果event genesis没有发生，我们只是请求回到follow_distance blocks
 	if genesisTime == 0 || currSlot == 0 {
 		earliestBlk := uint64(0)
 		if followBlock > params.BeaconConfig().Eth1FollowDistance {
@@ -767,6 +779,7 @@ func (s *Service) initializeEth1Data(ctx context.Context, eth1DataInDB *ethpb.ET
 	s.lastReceivedMerkleIndex = int64(numOfItems - 1)
 	// 初始化deposit caches
 	if err := s.initDepositCaches(ctx, eth1DataInDB.DepositContainers); err != nil {
+		// 不能初始化cache
 		return errors.Wrap(err, "could not initialize caches")
 	}
 	return nil
@@ -774,6 +787,7 @@ func (s *Service) initializeEth1Data(ctx context.Context, eth1DataInDB *ethpb.ET
 
 // Validates that all deposit containers are valid and have their relevant indices
 // in order.
+// 校验所有的deposit containers是合法的并且它们相关的索引是有序的
 func validateDepositContainers(ctrs []*ethpb.DepositContainer) bool {
 	ctrLen := len(ctrs)
 	// Exit for empty containers.
