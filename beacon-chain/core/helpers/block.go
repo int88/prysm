@@ -33,6 +33,7 @@ func BlockRootAtSlot(state state.ReadOnlyBeaconState, slot types.Slot) ([]byte, 
 
 // StateRootAtSlot returns the cached state root at that particular slot. If no state
 // root has been cached it will return a zero-hash.
+// StateRootAtSlot返回特定slot的，缓存的state root，如果没有state root被缓存，它会返回一个zero-hash
 func StateRootAtSlot(state state.ReadOnlyBeaconState, slot types.Slot) ([]byte, error) {
 	if slot >= state.Slot() || state.Slot() > slot+params.BeaconConfig().SlotsPerHistoricalRoot {
 		return []byte{}, errors.Errorf("slot %d out of bounds", slot)

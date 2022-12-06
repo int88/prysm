@@ -74,6 +74,7 @@ func checkValidatorSlashable(activationEpoch, withdrawableEpoch types.Epoch, sla
 
 // ActiveValidatorIndices filters out active validators based on validator status
 // and returns their indices in a list.
+// ActiveValidatorIndices过滤出active validators，基于validator status并且返回它们的indices
 //
 // WARNING: This method allocates a new copy of the validator index set and is
 // considered to be very memory expensive. Avoid using this unless you really

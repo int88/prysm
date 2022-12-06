@@ -701,6 +701,7 @@ func (s *Service) fillMissingPayloadIDRoutine(ctx context.Context, stateFeed *ev
 }
 
 // Returns true if time `t` is halfway through the slot in sec.
+// 返回true，如果time `t`是slot，在sec的一半
 func atHalfSlot(t time.Time) bool {
 	s := params.BeaconConfig().SecondsPerSlot
 	return uint64(t.Second())%s == s/2
@@ -718,6 +719,7 @@ func (s *Service) fillMissingBlockPayloadId(ctx context.Context, ti time.Time) e
 	// Head root应该为空，当为下一个slot获取proposer index
 	_, id, has := s.cfg.ProposerSlotIndexCache.GetProposerPayloadIDs(s.CurrentSlot()+1, [32]byte{} /* head root */)
 	// There exists proposer for next slot, but we haven't called fcu w/ payload attribute yet.
+	// 对于下一个slot存在一个proposer，但是我们还没有调用payload attribute
 	if has && id == [8]byte{} {
 		missedPayloadIDFilledCount.Inc()
 		headBlock, err := s.headBlock()
@@ -725,6 +727,7 @@ func (s *Service) fillMissingBlockPayloadId(ctx context.Context, ti time.Time) e
 			return err
 		} else {
 			if _, err := s.notifyForkchoiceUpdate(ctx, &notifyForkchoiceUpdateArg{
+				// 获取head state，head block以及head root，
 				headState: s.headState(ctx),
 				headRoot:  s.headRoot(),
 				headBlock: headBlock.Block(),

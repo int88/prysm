@@ -106,6 +106,7 @@ func New(beaconDB db.NoHeadAccessDatabase, fc forkchoice.ForkChoicer, opts ...St
 }
 
 // Resume resumes a new state management object from previously saved finalized checkpoint in DB.
+// Resume继续从DB中保存的finalized checkpoint到一个新的state management对象
 func (s *State) Resume(ctx context.Context, fState state.BeaconState) (state.BeaconState, error) {
 	ctx, span := trace.StartSpan(ctx, "stateGen.Resume")
 	defer span.End()
@@ -116,6 +117,7 @@ func (s *State) Resume(ctx context.Context, fState state.BeaconState) (state.Bea
 	}
 	fRoot := bytesutil.ToBytes32(c.Root)
 	// Resume as genesis state if last finalized root is zero hashes.
+	// 继续作为genesis state，如果最后的finalized root是zero
 	if fRoot == params.BeaconConfig().ZeroHash {
 		return s.beaconDB.GenesisState(ctx)
 	}

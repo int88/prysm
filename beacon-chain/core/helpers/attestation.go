@@ -195,6 +195,8 @@ func ValidateAttestationTime(attSlot types.Slot, genesisTime time.Time, clockDis
 
 // VerifyCheckpointEpoch is within current epoch and previous epoch
 // with respect to current time. Returns true if it's within, false if it's not.
+// VerifyCheckpointEpoch是位于当前的epoch以及之前的epoch，同时尊重current time
+// 返回true，如果在之内，否则返回false
 func VerifyCheckpointEpoch(c *ethpb.Checkpoint, genesis time.Time) bool {
 	now := uint64(prysmTime.Now().Unix())
 	genesisTime := uint64(genesis.Unix())

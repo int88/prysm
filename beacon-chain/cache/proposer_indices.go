@@ -65,6 +65,7 @@ func (c *ProposerIndicesCache) AddProposerIndices(p *ProposerIndices) error {
 }
 
 // HasProposerIndices returns the proposer indices of a block root seed.
+// HasProposerIndices返回一个block root seed的proposer indices
 func (c *ProposerIndicesCache) HasProposerIndices(r [32]byte) (bool, error) {
 	c.lock.RLock()
 	defer c.lock.RUnlock()

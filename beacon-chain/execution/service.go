@@ -1,6 +1,8 @@
 // Package execution defines a runtime service which is tasked with
 // communicating with an eth1 endpoint, processing logs from a deposit
 // contract, and the latest eth1 data headers for usage in the beacon node.
+// execution包定义了一个runtime service，用于和一个eth1 endpoint进行交互，处理来自
+// deposti contract的日志，以及最新的eth1 data headers，用于beacon node
 package execution
 
 import (
@@ -62,6 +64,7 @@ var (
 	// amount of times before we log the status of the eth1 dial attempt.
 	logThreshold = 8
 	// period to log chainstart related information
+	// 用于记录chainstart相关的信息
 	logPeriod = 1 * time.Minute
 )
 
@@ -117,6 +120,7 @@ func (RPCClientEmpty) CallContext(context.Context, interface{}, string, ...inter
 }
 
 // config defines a config struct for dependencies into the service.
+// config定义一个config结构用于service中的dependencies
 type config struct {
 	depositContractAddr     common.Address
 	beaconDB                db.HeadAccessDatabase
@@ -132,21 +136,25 @@ type config struct {
 
 // Service fetches important information about the canonical
 // eth1 chain via a web3 endpoint using an ethclient.
+// Service获取canonical eth1 chain的关键信息，通过web3 endpoint，使用一个ethclient
 // The beacon chain requires synchronization with the eth1 chain's current
 // block hash, block number, and access to logs within the
 // Validator Registration Contract on the eth1 chain to kick off the beacon
 // chain's validator registration process.
+// beacon chain需要和eth1 chain当前的block hash, block number的同步以及对于Validator
+// Registration Contract的日志的访问，来开始beacon chain的validator的注册过程
 type Service struct {
-	connectedETH1           bool
-	isRunning               bool
-	processingLock          sync.RWMutex
-	latestEth1DataLock      sync.RWMutex
-	cfg                     *config
-	ctx                     context.Context
-	cancel                  context.CancelFunc
-	eth1HeadTicker          *time.Ticker
-	httpLogger              bind.ContractFilterer
-	rpcClient               RPCClient
+	connectedETH1      bool
+	isRunning          bool
+	processingLock     sync.RWMutex
+	latestEth1DataLock sync.RWMutex
+	cfg                *config
+	ctx                context.Context
+	cancel             context.CancelFunc
+	eth1HeadTicker     *time.Ticker
+	httpLogger         bind.ContractFilterer
+	rpcClient          RPCClient
+	// 用于block hash/block height的缓存
 	headerCache             *headerCache // cache to store block hash/block height.
 	latestEth1Data          *ethpb.LatestETH1Data
 	depositContractCaller   *contracts.DepositContractCaller
@@ -219,15 +227,19 @@ func NewService(ctx context.Context, opts ...Option) (*Service, error) {
 }
 
 // Start the powchain service's main event loop.
+// 启动powchain service的主循环
 func (s *Service) Start() {
 	if err := s.setupExecutionClientConnections(s.ctx, s.cfg.currHttpEndpoint); err != nil {
+		// 不能连接到execution endpoint
 		log.WithError(err).Error("Could not connect to execution endpoint")
 	}
 	// If the chain has not started already and we don't have access to eth1 nodes, we will not be
 	// able to generate the genesis state.
+	// 如果chain没有启动并且我们不能访问eth1 nodes，我们不能生成genesis state
 	if !s.chainStartData.Chainstarted && s.cfg.currHttpEndpoint.Url == "" {
 		// check for genesis state before shutting down the node,
 		// if a genesis state exists, we can continue on.
+		// 检查genesis state，在关闭node之前，如果一个genesis state存在，我们可以继续
 		genState, err := s.cfg.beaconDB.GenesisState(s.ctx)
 		if err != nil {
 			log.Fatal(err)
@@ -240,9 +252,11 @@ func (s *Service) Start() {
 	s.isRunning = true
 
 	// Poll the execution client connection and fallback if errors occur.
+	// 轮询execuiont client connection，如果发生错误就回退
 	s.pollConnectionStatus(s.ctx)
 
 	// Check transition configuration for the engine API client in the background.
+	// 检查transtion配置，对于engine API client，在后台
 	go s.checkTransitionConfiguration(s.ctx, make(chan *feed.Event, 1))
 
 	go s.run(s.ctx.Done())
@@ -334,9 +348,11 @@ func (s *Service) initDepositCaches(ctx context.Context, ctrs []*ethpb.DepositCo
 	if len(ctrs) == 0 {
 		return nil
 	}
+	// 插入deposit containers
 	s.cfg.depositCache.InsertDepositContainers(ctx, ctrs)
 	if !s.chainStartData.Chainstarted {
 		// Do not add to pending cache if no genesis state exists.
+		// 不要加入到pending cache，如果没有genesis state存在
 		validDepositsCount.Add(float64(s.preGenesisState.Eth1DepositIndex()))
 		return nil
 	}
@@ -346,6 +362,7 @@ func (s *Service) initDepositCaches(ctx context.Context, ctrs []*ethpb.DepositCo
 	}
 	// Default to all post-genesis deposits in
 	// the event we cannot find a finalized state.
+	// 默认事件中所有的post-genesis deposits，我们不能找到一个finalized state
 	currIndex := genesisState.Eth1DepositIndex()
 	chkPt, err := s.cfg.beaconDB.FinalizedCheckpoint(ctx)
 	if err != nil {
@@ -388,6 +405,8 @@ func (s *Service) initDepositCaches(ctx context.Context, ctrs []*ethpb.DepositCo
 
 // processBlockHeader adds a newly observed eth1 block to the block cache and
 // updates the latest blockHeight, blockHash, and blockTime properties of the service.
+// processBlockHeader添加一个新发现的eth1 block到block cache并且更新最新的blockHeight，blockHash
+// 以及blockTime，对于一个service
 func (s *Service) processBlockHeader(header *types.HeaderInfo) {
 	defer safelyHandlePanic()
 	blockNumberGauge.Set(float64(header.Number.Int64()))
@@ -479,7 +498,10 @@ func (s *Service) handleETH1FollowDistance() {
 	// we do not request batched logs as this means there are no new
 	// logs for the powchain service to process. Also it is a potential
 	// failure condition as would mean we have not respected the protocol threshold.
+	// 如果请求的block没有改变，我们不请求batched logs，因为这意味着没有新的logs需要powchain service
+	// 去处理，同时这是一个潜在的失败条件，因为这意味着我们没有尊重protocol threshold
 	if s.latestEth1Data.LastRequestedBlock == s.latestEth1Data.BlockHeight {
+		// beacon node不遵守follow distance
 		log.Error("Beacon node is not respecting the follow distance")
 		return
 	}
@@ -572,6 +594,7 @@ func (s *Service) initPOWService() {
 }
 
 // run subscribes to all the services for the eth1 chain.
+// run订阅eth1 chain中的所有services
 func (s *Service) run(done <-chan struct{}) {
 	s.runError = nil
 
@@ -596,6 +619,7 @@ func (s *Service) run(done <-chan struct{}) {
 				log.WithError(err).Debug("Could not fetch latest eth1 header")
 				continue
 			}
+			// 处理block header
 			s.processBlockHeader(head)
 			s.handleETH1FollowDistance()
 		case <-chainstartTicker.C:
@@ -609,6 +633,7 @@ func (s *Service) run(done <-chan struct{}) {
 }
 
 // logs the current thresholds required to hit chainstart every minute.
+// 记录当前的thresholds，需要到达chain start，每分钟一次
 func (s *Service) logTillChainStart(ctx context.Context) {
 	if s.chainStartData.Chainstarted {
 		return
@@ -635,6 +660,7 @@ func (s *Service) logTillChainStart(ctx context.Context) {
 		fields["Generating genesis state in"] = time.Duration(secondsLeft) * time.Second
 	}
 
+	// 等待chain start
 	log.WithFields(fields).Info("Currently waiting for chainstart")
 }
 
@@ -714,17 +740,21 @@ func (s *Service) determineEarliestVotingBlock(ctx context.Context, followBlock 
 
 // initializes our service from the provided eth1data object by initializing all the relevant
 // fields and data.
+// 初始化我们的service，从提供的eth1data对象，通过初始化所有相关的字段以及数据
 func (s *Service) initializeEth1Data(ctx context.Context, eth1DataInDB *ethpb.ETH1ChainData) error {
 	// The node has no eth1data persisted on disk, so we exit and instead
 	// request from contract logs.
+	// node没有eth1data持久化在磁盘中，因此我们退出并且从contract logs初始化
 	if eth1DataInDB == nil {
 		return nil
 	}
 	var err error
+	// 构建deposit trie
 	s.depositTrie, err = trie.CreateTrieFromProto(eth1DataInDB.Trie)
 	if err != nil {
 		return err
 	}
+	// 初始化chain start data
 	s.chainStartData = eth1DataInDB.ChainstartData
 	if !reflect.ValueOf(eth1DataInDB.BeaconState).IsZero() {
 		s.preGenesisState, err = native.InitializeFromProtoPhase0(eth1DataInDB.BeaconState)
@@ -735,6 +765,7 @@ func (s *Service) initializeEth1Data(ctx context.Context, eth1DataInDB *ethpb.ET
 	s.latestEth1Data = eth1DataInDB.CurrentEth1Data
 	numOfItems := s.depositTrie.NumOfItems()
 	s.lastReceivedMerkleIndex = int64(numOfItems - 1)
+	// 初始化deposit caches
 	if err := s.initDepositCaches(ctx, eth1DataInDB.DepositContainers); err != nil {
 		return errors.Wrap(err, "could not initialize caches")
 	}
@@ -766,17 +797,20 @@ func validateDepositContainers(ctrs []*ethpb.DepositContainer) bool {
 
 // Validates the current powchain data is saved and makes sure that any
 // embedded genesis state is correctly accounted for.
+// 校验当前的powchain数据已经被保存了并且确保任何嵌入的genesis state被正确解释了
 func (s *Service) ensureValidPowchainData(ctx context.Context) error {
 	genState, err := s.cfg.beaconDB.GenesisState(ctx)
 	if err != nil {
 		return err
 	}
 	// Exit early if no genesis state is saved.
+	// 如果没有保存genesis state，尽早退出
 	if genState == nil || genState.IsNil() {
 		return nil
 	}
 	eth1Data, err := s.cfg.beaconDB.ExecutionChainData(ctx)
 	if err != nil {
+		// 不能获取eth1 data
 		return errors.Wrap(err, "unable to retrieve eth1 data")
 	}
 	if eth1Data == nil || !eth1Data.ChainstartData.Chainstarted || !validateDepositContainers(eth1Data.DepositContainers) {
@@ -784,6 +818,7 @@ func (s *Service) ensureValidPowchainData(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
+		// 构建新的eth1Data
 		s.chainStartData = &ethpb.ChainStartData{
 			Chainstarted:       true,
 			GenesisTime:        genState.GenesisTime(),
@@ -792,10 +827,11 @@ func (s *Service) ensureValidPowchainData(ctx context.Context) error {
 			ChainstartDeposits: make([]*ethpb.Deposit, 0),
 		}
 		eth1Data = &ethpb.ETH1ChainData{
-			CurrentEth1Data:   s.latestEth1Data,
-			ChainstartData:    s.chainStartData,
-			BeaconState:       pbState,
-			Trie:              s.depositTrie.ToProto(),
+			CurrentEth1Data: s.latestEth1Data,
+			ChainstartData:  s.chainStartData,
+			BeaconState:     pbState,
+			Trie:            s.depositTrie.ToProto(),
+			// 获取所有的deposit
 			DepositContainers: s.cfg.depositCache.AllDepositContainers(ctx),
 		}
 		return s.cfg.beaconDB.SaveExecutionChainData(ctx, eth1Data)

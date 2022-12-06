@@ -41,6 +41,7 @@ type StateProver interface {
 }
 
 // ReadOnlyBeaconState defines a struct which only has read access to beacon state methods.
+// ReadOnlyBeaconState定义了一个结构，对于beacon state方法只有读权限
 type ReadOnlyBeaconState interface {
 	ReadOnlyBlockRoots
 	ReadOnlyStateRoots

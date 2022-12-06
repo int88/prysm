@@ -591,6 +591,7 @@ func (f *ForkChoice) CachedHeadRoot() [32]byte {
 }
 
 // FinalizedPayloadBlockHash returns the hash of the payload at the finalized checkpoint
+// FinalizedPayloadBlockHash返回finalized checkpoint的payload的哈希值
 func (f *ForkChoice) FinalizedPayloadBlockHash() [32]byte {
 	f.store.nodesLock.RLock()
 	defer f.store.nodesLock.RUnlock()
@@ -604,6 +605,7 @@ func (f *ForkChoice) FinalizedPayloadBlockHash() [32]byte {
 }
 
 // JustifiedPayloadBlockHash returns the hash of the payload at the justified checkpoint
+// JustifiedPayloadBlockHash返回justified checkpoint的payload的哈希值
 func (f *ForkChoice) JustifiedPayloadBlockHash() [32]byte {
 	f.store.nodesLock.RLock()
 	defer f.store.nodesLock.RUnlock()

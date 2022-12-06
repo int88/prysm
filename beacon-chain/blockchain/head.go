@@ -205,6 +205,7 @@ func (s *Service) setHead(root [32]byte, block interfaces.SignedBeaconBlock, sta
 	defer s.headLock.Unlock()
 
 	// This does a full copy of the block and state.
+	// 对block以及state做一次全拷贝
 	bCp, err := block.Copy()
 	if err != nil {
 		return err
@@ -259,6 +260,7 @@ func (s *Service) headRoot() [32]byte {
 // This returns the head block.
 // It does a full copy on head block for immutability.
 // This is a lock free version.
+// 返回head block，为了不变性会做一个全拷贝 ，这是一个无锁版本
 func (s *Service) headBlock() (interfaces.SignedBeaconBlock, error) {
 	return s.head.block.Copy()
 }
@@ -356,6 +358,7 @@ func (s *Service) notifyNewHeadEvent(
 }
 
 // This saves the attestations between `orphanedRoot` and the common ancestor root that is derived using `newHeadRoot`.
+// 保存`orphanedRoot`到common ancestor root之间的attestations进行保存，派生自`newHeadRoot`
 // It also filters out the attestations that is one epoch older as a defense so invalid attestations don't flow into the attestation pool.
 func (s *Service) saveOrphanedAtts(ctx context.Context, orphanedRoot [32]byte, newHeadRoot [32]byte) error {
 	// 找到common ancestor
@@ -384,6 +387,7 @@ func (s *Service) saveOrphanedAtts(ctx context.Context, orphanedRoot [32]byte, n
 		}
 		for _, a := range orphanedBlk.Block().Body().Attestations() {
 			// if the attestation is one epoch older, it wouldn't been useful to save it.
+			// 如果attestation比一个epoch older，保存它无效
 			if a.Data.Slot+params.BeaconConfig().SlotsPerEpoch < s.CurrentSlot() {
 				continue
 			}
@@ -399,6 +403,7 @@ func (s *Service) saveOrphanedAtts(ctx context.Context, orphanedRoot [32]byte, n
 			saveOrphanedAttCount.Inc()
 		}
 		parentRoot := orphanedBlk.Block().ParentRoot()
+		// 重置orphaned root
 		orphanedRoot = bytesutil.ToBytes32(parentRoot[:])
 	}
 	return nil

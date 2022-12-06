@@ -92,8 +92,11 @@ func TestStart_OK(t *testing.T) {
 		server.Stop()
 	})
 	web3Service, err := NewService(context.Background(),
+		// 指定HTTP Endpoint
 		WithHttpEndpoint(endpoint),
+		// 指定Deposit Contract地址
 		WithDepositContractAddress(testAcc.ContractAddr),
+		// 指定数据库
 		WithDatabase(beaconDB),
 	)
 	require.NoError(t, err, "unable to setup execution service")
@@ -203,6 +206,7 @@ func TestFollowBlock_OK(t *testing.T) {
 
 	// simulated backend sets eth1 block
 	// time as 10 seconds
+	// 模拟backend，将eth1 block time设置为10s
 	params.SetupTestConfigCleanup(t)
 	conf := params.BeaconConfig().Copy()
 	conf.SecondsPerETH1Block = 10
@@ -212,10 +216,12 @@ func TestFollowBlock_OK(t *testing.T) {
 	web3Service.rpcClient = &mockExecution.RPCClient{Backend: testAcc.Backend}
 	baseHeight := testAcc.Backend.Blockchain().CurrentBlock().NumberU64()
 	// process follow_distance blocks
+	// 处理follow distance blocks
 	for i := 0; i < int(params.BeaconConfig().Eth1FollowDistance); i++ {
 		testAcc.Backend.Commit()
 	}
 	// set current height
+	// 设置当前的height
 	web3Service.latestEth1Data.BlockHeight = testAcc.Backend.Blockchain().CurrentBlock().NumberU64()
 	web3Service.latestEth1Data.BlockTime = testAcc.Backend.Blockchain().CurrentBlock().Time()
 
@@ -225,10 +231,12 @@ func TestFollowBlock_OK(t *testing.T) {
 	numToForward := uint64(2)
 	expectedHeight := numToForward + baseHeight
 	// forward 2 blocks
+	// 向前移动两个blocks
 	for i := uint64(0); i < numToForward; i++ {
 		testAcc.Backend.Commit()
 	}
 	// set current height
+	// 设置当前的height
 	web3Service.latestEth1Data.BlockHeight = testAcc.Backend.Blockchain().CurrentBlock().NumberU64()
 	web3Service.latestEth1Data.BlockTime = testAcc.Backend.Blockchain().CurrentBlock().Time()
 
@@ -325,9 +333,11 @@ func TestLogTillGenesis_OK(t *testing.T) {
 	}
 	web3Service.latestEth1Data = &ethpb.LatestETH1Data{LastRequestedBlock: 0}
 	// Spin off to a separate routine
+	// 启动一个单独的routine
 	go web3Service.run(web3Service.ctx.Done())
 	// Wait for 2 seconds so that the
 	// info is logged.
+	// 等待2s，这样info就被记录了
 	time.Sleep(2 * time.Second)
 	web3Service.cancel()
 	assert.LogsContain(t, hook, "Currently waiting for chainstart")
@@ -335,6 +345,7 @@ func TestLogTillGenesis_OK(t *testing.T) {
 
 func TestInitDepositCache_OK(t *testing.T) {
 	ctrs := []*ethpb.DepositContainer{
+		// 设置index，eth1 block height
 		{Index: 0, Eth1BlockHeight: 2, Deposit: &ethpb.Deposit{Proof: [][]byte{[]byte("A")}, Data: &ethpb.Deposit_Data{PublicKey: []byte{}}}},
 		{Index: 1, Eth1BlockHeight: 4, Deposit: &ethpb.Deposit{Proof: [][]byte{[]byte("B")}, Data: &ethpb.Deposit_Data{PublicKey: []byte{}}}},
 		{Index: 2, Eth1BlockHeight: 6, Deposit: &ethpb.Deposit{Proof: [][]byte{[]byte("c")}, Data: &ethpb.Deposit_Data{PublicKey: []byte{}}}},
@@ -349,6 +360,7 @@ func TestInitDepositCache_OK(t *testing.T) {
 	var err error
 	s.cfg.depositCache, err = depositcache.New()
 	require.NoError(t, err)
+	// 初始化deposit caches
 	require.NoError(t, s.initDepositCaches(context.Background(), ctrs))
 
 	require.Equal(t, 0, len(s.cfg.depositCache.PendingContainers(context.Background(), nil)))
@@ -360,7 +372,9 @@ func TestInitDepositCache_OK(t *testing.T) {
 	require.NoError(t, s.cfg.beaconDB.SaveGenesisBlockRoot(context.Background(), blockRootA))
 	require.NoError(t, s.cfg.beaconDB.SaveState(context.Background(), emptyState, blockRootA))
 	s.chainStartData.Chainstarted = true
+	// 初始化deposit caches
 	require.NoError(t, s.initDepositCaches(context.Background(), ctrs))
+	// 获取pending containers
 	require.Equal(t, 3, len(s.cfg.depositCache.PendingContainers(context.Background(), nil)))
 }
 

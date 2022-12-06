@@ -50,11 +50,13 @@ func (s *State) StateByRootIfCachedNoCopy(blockRoot [32]byte) state.BeaconState 
 }
 
 // StateByRoot retrieves the state using input block root.
+// StateByRoot使用输入的block root获取state
 func (s *State) StateByRoot(ctx context.Context, blockRoot [32]byte) (state.BeaconState, error) {
 	ctx, span := trace.StartSpan(ctx, "stateGen.StateByRoot")
 	defer span.End()
 
 	// Genesis case. If block root is zero hash, short circuit to use genesis state stored in DB.
+	// 如果block root为zero hash，直接使用DB中存储的genesis state
 	if blockRoot == params.BeaconConfig().ZeroHash {
 		return s.beaconDB.GenesisState(ctx)
 	}
@@ -182,17 +184,20 @@ func (s *State) DeleteStateFromCaches(_ context.Context, blockRoot [32]byte) err
 }
 
 // This loads a beacon state from either the cache or DB, then replays blocks up the slot of the requested block root.
+// 从cache或者DB中加载一个beacon state，之后重放blocks到请求的block root的slot
 func (s *State) loadStateByRoot(ctx context.Context, blockRoot [32]byte) (state.BeaconState, error) {
 	ctx, span := trace.StartSpan(ctx, "stateGen.loadStateByRoot")
 	defer span.End()
 
 	// First, it checks if the state exists in hot state cache.
+	// 首先，检查是否state已经在hot state cache中存在
 	cachedState := s.hotStateCache.get(blockRoot)
 	if cachedState != nil && !cachedState.IsNil() {
 		return cachedState, nil
 	}
 
 	// Second, it checks if the state exists in epoch boundary state cache.
+	// 之后，检查state是否在epoch boundary state cache中存在
 	cachedInfo, ok, err := s.epochBoundaryStateCache.getByBlockRoot(blockRoot)
 	if err != nil {
 		return nil, err
@@ -202,6 +207,7 @@ func (s *State) loadStateByRoot(ctx context.Context, blockRoot [32]byte) (state.
 	}
 
 	// Short circuit if the state is already in the DB.
+	// 短路，如果state已经在DB中
 	if s.beaconDB.HasState(ctx, blockRoot) {
 		return s.beaconDB.State(ctx, blockRoot)
 	}
@@ -214,6 +220,8 @@ func (s *State) loadStateByRoot(ctx context.Context, blockRoot [32]byte) (state.
 
 	// Since the requested state is not in caches or DB, start replaying using the last
 	// available ancestor state which is retrieved using input block's root.
+	// 因为请求的state不再caches或者DB中，开始重放，使用最新可用的ancestor state，它使用输入的block的root
+	// 来进行获取
 	startState, err := s.latestAncestor(ctx, blockRoot)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not get ancestor state")

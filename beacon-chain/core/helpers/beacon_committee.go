@@ -343,20 +343,24 @@ func UpdateProposerIndicesInCache(ctx context.Context, state state.ReadOnlyBeaco
 	}
 
 	// Use state root from (current_epoch - 1))
+	// 使用来自（current_epoch - 1）的state root
 	wantedEpoch := time.PrevEpoch(state)
 	s, err := slots.EpochEnd(wantedEpoch)
 	if err != nil {
 		return err
 	}
+	// 获取在slot的state root
 	r, err := StateRootAtSlot(state, s)
 	if err != nil {
 		return err
 	}
 	// Skip cache update if we have an invalid key
+	// 跳过cache update，如果我们有一个非法的key
 	if r == nil || bytes.Equal(r, params.BeaconConfig().ZeroHash[:]) {
 		return nil
 	}
 	// Skip cache update if the key already exists
+	// 跳过cache update，如果key已经存在
 	exists, err := proposerIndicesCache.HasProposerIndices(bytesutil.ToBytes32(r))
 	if err != nil {
 		return err
@@ -433,6 +437,7 @@ func computeCommittee(
 
 // This computes proposer indices of the current epoch and returns a list of proposer indices,
 // the index of the list represents the slot number.
+// 计算当前epoch的proposer indices并且返回一系列的proposer indices，list的索引代表slot number
 func precomputeProposerIndices(state state.ReadOnlyBeaconState, activeIndices []types.ValidatorIndex) ([]types.ValidatorIndex, error) {
 	hashFunc := hash.CustomSHA256Hasher()
 	proposerIndices := make([]types.ValidatorIndex, params.BeaconConfig().SlotsPerEpoch)

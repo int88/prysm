@@ -57,6 +57,7 @@ func (s *Service) GenesisExecutionChainInfo() (uint64, *big.Int) {
 }
 
 // ProcessETH1Block processes logs from the provided eth1 block.
+// ProcessETH1Block处理提供的eth1 block的logs
 func (s *Service) ProcessETH1Block(ctx context.Context, blkNum *big.Int) error {
 	query := ethereum.FilterQuery{
 		Addresses: []common.Address{
@@ -445,9 +446,11 @@ func (s *Service) processBlockInBatch(ctx context.Context, currentBlockNum uint6
 
 // requestBatchedHeadersAndLogs requests and processes all the headers and
 // logs from the period last polled to now.
+// requestBatchedHeadersAndLogs请求以及处理所有的headers以及logs，从上次拉取的到现在
 func (s *Service) requestBatchedHeadersAndLogs(ctx context.Context) error {
 	// We request for the nth block behind the current head, in order to have
 	// stabilized logs when we retrieve it from the eth1 chain.
+	// 我们请求当前head之前的第n个block，为了有稳定的blocks，当我们从eth1 chain获取的时候
 
 	requestedBlock, err := s.followedBlockHeight(ctx)
 	if err != nil {
@@ -460,10 +463,12 @@ func (s *Service) requestBatchedHeadersAndLogs(ctx context.Context) error {
 	}
 	for i := s.latestEth1Data.LastRequestedBlock + 1; i <= requestedBlock; i++ {
 		// Cache eth1 block header here.
+		// 缓存eth1 block header
 		_, err := s.BlockHashByHeight(ctx, big.NewInt(0).SetUint64(i))
 		if err != nil {
 			return err
 		}
+		// 处理eth1 block
 		err = s.ProcessETH1Block(ctx, big.NewInt(0).SetUint64(i))
 		if err != nil {
 			return err
@@ -525,12 +530,14 @@ func (s *Service) checkHeaderRange(ctx context.Context, start, end uint64, heade
 
 // retrieves the current active validator count and genesis time from
 // the provided block time.
+// 获取当前的active validator count以及genesis time，从提供的block time
 func (s *Service) currentCountAndTime(ctx context.Context, blockTime uint64) (uint64, uint64) {
 	if s.preGenesisState.NumValidators() == 0 {
 		return 0, 0
 	}
 	valCount, err := helpers.ActiveValidatorCount(ctx, s.preGenesisState, 0)
 	if err != nil {
+		// 从pre genesis state不能决定active validator
 		log.WithError(err).Error("Could not determine active validator count from pre genesis state")
 		return 0, 0
 	}

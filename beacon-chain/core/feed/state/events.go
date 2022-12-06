@@ -1,6 +1,8 @@
 // Package state contains types for state operation-specific events fired
 // during the runtime of a beacon node such state initialization, state updates,
 // and chain start.
+// state包包含了state操作特定的事件，在一个beacon node的运行时发出，例如state初始化，state
+// 更新以及chain start
 package state
 
 import (
@@ -14,6 +16,7 @@ const (
 	// BlockProcessed is sent after a block has been processed and updated the state database.
 	BlockProcessed = iota + 1
 	// ChainStarted is sent when enough validators are active to start proposing blocks.
+	// 当有足够多的validators处于active状态来开始proposing blocks
 	ChainStarted
 	// Initialized is sent when the internal beacon node's state is ready to be accessed.
 	Initialized

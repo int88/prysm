@@ -43,10 +43,12 @@ func (s *Service) hasBlockInInitSyncOrDB(ctx context.Context, r [32]byte) bool {
 
 // Returns block for a given root `r` from either the initial sync blocks cache or the DB.
 // Error is returned if the block is not found in either cache or DB.
+// 返回一个给定的root，即`r`的block，从initial sync blocks cache或者DB，返回Error，如果block找不到
 func (s *Service) getBlock(ctx context.Context, r [32]byte) (interfaces.SignedBeaconBlock, error) {
 	s.initSyncBlocksLock.RLock()
 
 	// Check cache first because it's faster.
+	// 首先检查cache，因为它更快
 	b, ok := s.initSyncBlocks[r]
 	s.initSyncBlocksLock.RUnlock()
 	var err error
@@ -64,6 +66,7 @@ func (s *Service) getBlock(ctx context.Context, r [32]byte) (interfaces.SignedBe
 
 // This retrieves all the beacon blocks from the initial sync blocks cache, the returned
 // blocks are unordered.
+// 从initial sync blocks cache获取所有的beacon blocks，返回的blocks是无序的
 func (s *Service) getInitSyncBlocks() []interfaces.SignedBeaconBlock {
 	s.initSyncBlocksLock.RLock()
 	defer s.initSyncBlocksLock.RUnlock()

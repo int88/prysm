@@ -33,6 +33,7 @@ func (s *Store) JustifiedCheckpoint(ctx context.Context) (*ethpb.Checkpoint, err
 }
 
 // FinalizedCheckpoint returns the latest finalized checkpoint in beacon chain.
+// FinalizedCheckpoint返回beacon chain中的latest finalized checkpoint
 func (s *Store) FinalizedCheckpoint(ctx context.Context) (*ethpb.Checkpoint, error) {
 	ctx, span := trace.StartSpan(ctx, "BeaconDB.FinalizedCheckpoint")
 	defer span.End()

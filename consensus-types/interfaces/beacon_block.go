@@ -73,6 +73,7 @@ type BeaconBlockBody interface {
 
 // ExecutionData represents execution layer information that is contained
 // within post-Bellatrix beacon block bodies.
+// ExecutionData代表execution layer的信息，包含在post-Bellatrix的beacon block bodies中
 type ExecutionData interface {
 	ssz.Marshaler
 	ssz.Unmarshaler

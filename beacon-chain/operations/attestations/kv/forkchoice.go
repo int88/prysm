@@ -48,6 +48,7 @@ func (c *AttCaches) ForkchoiceAttestations() []*ethpb.Attestation {
 }
 
 // DeleteForkchoiceAttestation deletes a forkchoice attestation in cache.
+// DeleteForkchoiceAttestation移除缓存中的forkchoice attestation
 func (c *AttCaches) DeleteForkchoiceAttestation(att *ethpb.Attestation) error {
 	if att == nil {
 		return nil

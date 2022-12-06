@@ -63,6 +63,7 @@ type ExecutionPayloadReconstructor interface {
 
 // EngineCaller defines a client that can interact with an Ethereum
 // execution node's engine service via JSON-RPC.
+// EngineCaller定义了一个client用于和Ethereum的执行节点进行交互，通过JSON-RPC
 type EngineCaller interface {
 	NewPayload(ctx context.Context, payload interfaces.ExecutionData) ([]byte, error)
 	ForkchoiceUpdated(
@@ -368,6 +369,7 @@ func (s *Service) HeaderByHash(ctx context.Context, hash common.Hash) (*types.He
 }
 
 // HeaderByNumber returns the relevant header details for the provided block number.
+// HeaderByNumber返回提供的block number相关的header的details
 func (s *Service) HeaderByNumber(ctx context.Context, number *big.Int) (*types.HeaderInfo, error) {
 	var hdr *types.HeaderInfo
 	err := s.rpcClient.CallContext(ctx, &hdr, ExecutionBlockByNumberMethod, toBlockNumArg(number), false /* no transactions */)

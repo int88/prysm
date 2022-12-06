@@ -95,6 +95,7 @@ func EpochStart(epoch types.Epoch) (types.Slot, error) {
 
 // EpochEnd returns the last slot number of the
 // current epoch.
+// EpochEnd返回当前的epoch的最后一个slot number
 func EpochEnd(epoch types.Epoch) (types.Slot, error) {
 	if epoch == math.MaxUint64 {
 		return 0, errors.New("start slot calculation overflows")
@@ -124,6 +125,7 @@ func SinceEpochStarts(slot types.Slot) types.Slot {
 }
 
 // VerifyTime validates the input slot is not from the future.
+// VerifyTime校验输入的slot不是来自未来
 func VerifyTime(genesisTime uint64, slot types.Slot, timeTolerance time.Duration) error {
 	slotTime, err := ToTime(genesisTime, slot)
 	if err != nil {
@@ -140,6 +142,7 @@ func VerifyTime(genesisTime uint64, slot types.Slot, timeTolerance time.Duration
 	diff := slotTime.Sub(currentTime)
 
 	if diff > timeTolerance {
+		// 不能处理来自未来的slot，如果超过了timeTolerance
 		return fmt.Errorf("could not process slot from the future, slot time %s > current time %s", slotTime, currentTime)
 	}
 	return nil

@@ -23,6 +23,7 @@ import (
 )
 
 // ReplayBlocks replays the input blocks on the input state until the target slot is reached.
+// ReplayBlocks重放输入的blocks，基于input state，直到到达target slot
 //
 // WARNING Blocks passed to the function must be in decreasing slots order.
 func (_ *State) replayBlocks(

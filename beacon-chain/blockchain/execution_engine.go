@@ -26,6 +26,7 @@ import (
 var defaultLatestValidHash = bytesutil.PadTo([]byte{0xff}, 32)
 
 // notifyForkchoiceUpdateArg is the argument for the forkchoice update notification `notifyForkchoiceUpdate`.
+// notifyForkchoiceUpdateArg是对于forkchoice update通知，即`notifyForkchoiceUpdate`的参数
 type notifyForkchoiceUpdateArg struct {
 	headState state.BeaconState
 	headRoot  [32]byte
@@ -48,6 +49,7 @@ func (s *Service) notifyForkchoiceUpdate(ctx context.Context, arg *notifyForkcho
 		return nil, nil
 	}
 	// Must not call fork choice updated until the transition conditions are met on the Pow network.
+	// 一定不要调用fork choice更新，直到Pow network中满足transition conditions
 	isExecutionBlk, err := blocks.IsExecutionBlock(headBlk.Body())
 	if err != nil {
 		log.WithError(err).Error("Could not determine if head block is execution block")
@@ -58,9 +60,11 @@ func (s *Service) notifyForkchoiceUpdate(ctx context.Context, arg *notifyForkcho
 	}
 	headPayload, err := headBlk.Body().Execution()
 	if err != nil {
+		// 获取head block的execution payload
 		log.WithError(err).Error("Could not get execution payload for head block")
 		return nil, nil
 	}
+	// 获取finalized和justified payload的block hash
 	finalizedHash := s.ForkChoicer().FinalizedPayloadBlockHash()
 	justifiedHash := s.ForkChoicer().JustifiedPayloadBlockHash()
 	fcs := &enginev1.ForkchoiceState{
@@ -156,6 +160,7 @@ func (s *Service) notifyForkchoiceUpdate(ctx context.Context, arg *notifyForkcho
 	if hasAttr && payloadID != nil { // If the forkchoice update call has an attribute, update the proposer payload ID cache.
 		var pId [8]byte
 		copy(pId[:], payloadID[:])
+		// 设置proposer以及payload ID
 		s.cfg.ProposerSlotIndexCache.SetProposerAndPayloadIDs(nextSlot, proposerId, pId, arg.headRoot)
 	} else if hasAttr && payloadID == nil {
 		log.WithFields(logrus.Fields{
@@ -253,15 +258,19 @@ func (s *Service) notifyNewPayload(ctx context.Context, postStateVersion int,
 }
 
 // getPayloadAttributes returns the payload attributes for the given state and slot.
+// getPayloadAttributes返回payload attributes，对于给定的state以及slot
 // The attribute is required to initiate a payload build process in the context of an `engine_forkchoiceUpdated` call.
+// attribute需要用于初始化一个payload build process，在`engine_forkchoiceUpdated`调用的上下文中
 func (s *Service) getPayloadAttribute(ctx context.Context, st state.BeaconState, slot types.Slot) (bool, *enginev1.PayloadAttributes, types.ValidatorIndex, error) {
 	// Root is `[32]byte{}` since we are retrieving proposer ID of a given slot. During insertion at assignment the root was not known.
+	// Root是`[32]byte{}`，因为我们正在获取一个给定的slot的proposer ID，在插入期间，root未知
 	proposerID, _, ok := s.cfg.ProposerSlotIndexCache.GetProposerPayloadIDs(slot, [32]byte{} /* root */)
 	if !ok { // There's no need to build attribute if there is no proposer for slot.
 		return false, nil, 0, nil
 	}
 
 	// Get previous randao.
+	// 获取之前的randao
 	st = st.Copy()
 	st, err := transition.ProcessSlotsIfPossible(ctx, st, slot)
 	if err != nil {
@@ -273,7 +282,9 @@ func (s *Service) getPayloadAttribute(ctx context.Context, st state.BeaconState,
 	}
 
 	// Get fee recipient.
+	// 获取fee recipient
 	feeRecipient := params.BeaconConfig().DefaultFeeRecipient
+	// 通过proposerID获取recipient
 	recipient, err := s.cfg.BeaconDB.FeeRecipientByValidatorID(ctx, proposerID)
 	switch {
 	case errors.Is(err, kv.ErrNotFoundFeeRecipient):

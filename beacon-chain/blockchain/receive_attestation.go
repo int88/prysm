@@ -163,6 +163,7 @@ func (s *Service) UpdateHead(ctx context.Context) error {
 	// 获取head root
 	newHeadRoot, err := s.cfg.ForkChoiceStore.Head(ctx, balances)
 	if err != nil {
+		// 不能从新的attestations计算head
 		log.WithError(err).Error("Could not compute head from new attestations")
 	}
 	newAttHeadElapsedTime.Observe(float64(time.Since(start).Milliseconds()))
@@ -176,6 +177,7 @@ func (s *Service) UpdateHead(ctx context.Context) error {
 		}).Debug("Head changed due to attestations")
 	}
 	s.headLock.RUnlock()
+	// 如果head发生了变化，通知Engine
 	if err := s.notifyEngineIfChangedHead(ctx, newHeadRoot); err != nil {
 		return err
 	}
@@ -195,6 +197,7 @@ func (s *Service) notifyEngineIfChangedHead(ctx context.Context, newHeadRoot [32
 	if !s.hasBlockInInitSyncOrDB(ctx, newHeadRoot) {
 		// 新的head不存在，什么都不做，我们没有block，不要通知engine并且更新head
 		log.Debug("New head does not exist in DB. Do nothing")
+		// 我们没有block，不要通知engine并且更新head
 		return nil // We don't have the block, don't notify the engine and update head.
 	}
 
@@ -227,10 +230,12 @@ func (s *Service) notifyEngineIfChangedHead(ctx context.Context, newHeadRoot [32
 }
 
 // This processes fork choice attestations from the pool to account for validator votes and fork choice.
+// 处理来自pool的fork choice attestations，来统计validator votes以及fork choice
 func (s *Service) processAttestations(ctx context.Context) {
 	atts := s.cfg.AttPool.ForkchoiceAttestations()
 	for _, a := range atts {
 		// Based on the spec, don't process the attestation until the subsequent slot.
+		// 基于spec，不要处理attestations，直到后续的slot
 		// This delays consideration in the fork choice until their slot is in the past.
 		// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/fork-choice.md#validate_on_attestation
 		nextSlot := a.Data.Slot + 1
@@ -238,12 +243,14 @@ func (s *Service) processAttestations(ctx context.Context) {
 			continue
 		}
 
+		// 确保state和block都有
 		hasState := s.cfg.BeaconDB.HasStateSummary(ctx, bytesutil.ToBytes32(a.Data.BeaconBlockRoot))
 		hasBlock := s.hasBlock(ctx, bytesutil.ToBytes32(a.Data.BeaconBlockRoot))
 		if !(hasState && hasBlock) {
 			continue
 		}
 
+		// 删除forkchoice attestation
 		if err := s.cfg.AttPool.DeleteForkchoiceAttestation(a); err != nil {
 			log.WithError(err).Error("Could not delete fork choice attestation in pool")
 		}
@@ -269,6 +276,12 @@ func (s *Service) processAttestations(ctx context.Context) {
 //  1. Validate attestation, update validator's latest vote
 //  2. Apply fork choice to the processed attestation
 //  3. Save latest head info
+//
+// receiveAttestationNoPubsub是一个函数，定义了可以在通过正常的sync获取的attestation进行的操作
+// 操作包括：
+// 1. 校验attestation，更新validator最新的vote
+// 2. 应用fork choice到处理的attestation
+// 3. 保存最新的head info
 func (s *Service) receiveAttestationNoPubsub(ctx context.Context, att *ethpb.Attestation) error {
 	ctx, span := trace.StartSpan(ctx, "beacon-chain.blockchain.receiveAttestationNoPubsub")
 	defer span.End()

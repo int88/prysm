@@ -23,10 +23,12 @@ func (s *Service) setupExecutionClientConnections(ctx context.Context, currEndpo
 		return errors.Wrap(err, "could not dial execution node")
 	}
 	// Attach the clients to the service struct.
+	// 关联clients到service结构
 	fetcher := ethclient.NewClient(client)
 	s.rpcClient = client
 	s.httpLogger = fetcher
 
+	// 构建deposit contract caller
 	depositContractCaller, err := contracts.NewDepositContractCaller(s.cfg.depositContractAddr, fetcher)
 	if err != nil {
 		client.Close()
@@ -35,6 +37,7 @@ func (s *Service) setupExecutionClientConnections(ctx context.Context, currEndpo
 	s.depositContractCaller = depositContractCaller
 
 	// Ensure we have the correct chain and deposit IDs.
+	// 确保我们有正确的chain以及deposit IDs
 	if err := ensureCorrectExecutionChain(ctx, fetcher); err != nil {
 		client.Close()
 		errStr := err.Error()
@@ -149,6 +152,7 @@ func (s *Service) newRPCClientWithAuth(ctx context.Context, endpoint network.End
 
 // Checks the chain ID of the execution client to ensure
 // it matches local parameters of what Prysm expects.
+// 检查execution client的chain ID来确保它匹配Prysm期望的本地参数
 func ensureCorrectExecutionChain(ctx context.Context, client *ethclient.Client) error {
 	cID, err := client.ChainID(ctx)
 	if err != nil {

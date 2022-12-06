@@ -1,6 +1,8 @@
 // Package kv includes a key-value store implementation
 // of an attestation cache used to satisfy important use-cases
 // such as aggregation in a beacon node runtime.
+// kv包包含了一个键值存储的实现，对于一个attestation cache，用于满足重要的使用场景
+// 例如在beacon node runtime中的aggregation
 package kv
 
 import (
@@ -18,6 +20,8 @@ var hashFn = hash.HashProto
 // AttCaches defines the caches used to satisfy attestation pool interface.
 // These caches are KV store for various attestations
 // such are unaggregated, aggregated or attestations within a block.
+// AttCaches定义了缓存用于满足attestation pool接口，这些caches是键值对，用于各种attestations
+// 例如aggregated, unaggregated或者一个block内的attestations
 type AttCaches struct {
 	aggregatedAttLock  sync.RWMutex
 	aggregatedAtt      map[[32]byte][]*ethpb.Attestation
