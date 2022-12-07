@@ -52,6 +52,8 @@ type ForkchoiceUpdatedResponse struct {
 // ExecutionPayloadReconstructor defines a service that can reconstruct a full beacon
 // block with an execution payload from a signed beacon block and a connection
 // to an execution client's engine API.
+// ExecutionPayloadReconstructor定义了一个service，可以重新构造一个完整的beacon block，用
+// 来自signed beacon block和一个连接到execution client的engine API的execution payload
 type ExecutionPayloadReconstructor interface {
 	ReconstructFullBellatrixBlock(
 		ctx context.Context, blindedBlock interfaces.SignedBeaconBlock,
@@ -372,6 +374,7 @@ func (s *Service) HeaderByHash(ctx context.Context, hash common.Hash) (*types.He
 // HeaderByNumber返回提供的block number相关的header的details
 func (s *Service) HeaderByNumber(ctx context.Context, number *big.Int) (*types.HeaderInfo, error) {
 	var hdr *types.HeaderInfo
+	// 没有指定nil，则返回最新的block
 	err := s.rpcClient.CallContext(ctx, &hdr, ExecutionBlockByNumberMethod, toBlockNumArg(number), false /* no transactions */)
 	if err == nil && hdr == nil {
 		err = ethereum.NotFound
@@ -638,6 +641,7 @@ func buildEmptyExecutionPayload() *pb.ExecutionPayload {
 
 func toBlockNumArg(number *big.Int) string {
 	if number == nil {
+		// 获取最新的block number
 		return "latest"
 	}
 	pending := big.NewInt(-1)

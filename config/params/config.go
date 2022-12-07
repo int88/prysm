@@ -54,9 +54,10 @@ type BeaconChainConfig struct {
 	SecondsPerSlot               uint64      `yaml:"SECONDS_PER_SLOT" spec:"true"`                // SecondsPerSlot is how many seconds are in a single slot.
 	SlotsPerEpoch                types.Slot  `yaml:"SLOTS_PER_EPOCH" spec:"true"`                 // SlotsPerEpoch is the number of slots in an epoch.
 	SqrRootSlotsPerEpoch         types.Slot  // SqrRootSlotsPerEpoch is a hard coded value where we take the square root of `SlotsPerEpoch` and round down.
-	MinSeedLookahead             types.Epoch `yaml:"MIN_SEED_LOOKAHEAD" spec:"true"`            // MinSeedLookahead is the duration of randao look ahead seed.
-	MaxSeedLookahead             types.Epoch `yaml:"MAX_SEED_LOOKAHEAD" spec:"true"`            // MaxSeedLookahead is the duration a validator has to wait for entry and exit in epoch.
-	EpochsPerEth1VotingPeriod    types.Epoch `yaml:"EPOCHS_PER_ETH1_VOTING_PERIOD" spec:"true"` // EpochsPerEth1VotingPeriod defines how often the merkle root of deposit receipts get updated in beacon node on per epoch basis.
+	MinSeedLookahead             types.Epoch `yaml:"MIN_SEED_LOOKAHEAD" spec:"true"` // MinSeedLookahead is the duration of randao look ahead seed.
+	MaxSeedLookahead             types.Epoch `yaml:"MAX_SEED_LOOKAHEAD" spec:"true"` // MaxSeedLookahead is the duration a validator has to wait for entry and exit in epoch.
+	// EpochsPerEth1VotingPeriod定义了deposit receipts的merkle root的更新频率，在beacon node中，在每个epoch的基础上
+	EpochsPerEth1VotingPeriod types.Epoch `yaml:"EPOCHS_PER_ETH1_VOTING_PERIOD" spec:"true"` // EpochsPerEth1VotingPeriod defines how often the merkle root of deposit receipts get updated in beacon node on per epoch basis.
 	// SlotsPerHistoricalRoot定义了historical root保存的频率
 	SlotsPerHistoricalRoot           types.Slot  `yaml:"SLOTS_PER_HISTORICAL_ROOT" spec:"true"`           // SlotsPerHistoricalRoot defines how often the historical root is saved.
 	MinValidatorWithdrawabilityDelay types.Epoch `yaml:"MIN_VALIDATOR_WITHDRAWABILITY_DELAY" spec:"true"` // MinValidatorWithdrawabilityDelay is the shortest amount of time a validator has to wait to withdraw.

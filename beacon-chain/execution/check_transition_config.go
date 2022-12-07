@@ -35,8 +35,11 @@ var (
 
 // Checks the transition configuration between Prysm and the connected execution node to ensure
 // there are no differences in terminal block difficulty and block hash.
+// 检查prysm和连接的execution node之间的transition configuration来确保在terminal block difficulty和block
+// hash之间没有分歧
 // If there are any discrepancies, we must log errors to ensure users can resolve
 // the problem and be ready for the merge transition.
+// 如果有任何的差异，我们必须记录错误来确保用户可以解决问题并且准备好merge transition
 func (s *Service) checkTransitionConfiguration(
 	ctx context.Context, blockNotifications chan *feed.Event,
 ) {
@@ -68,6 +71,8 @@ func (s *Service) checkTransitionConfiguration(
 	// We poll the execution client to see if the transition configuration has changed.
 	// This serves as a heartbeat to ensure the execution client and Prysm are ready for the
 	// Bellatrix hard-fork transition.
+	// 轮询execution client，查看transition configuration是否发生改变，这是作为一个心跳，来确保
+	// execution client以及Prysm准备好Bellatrix hard-fork transition
 	ticker := time.NewTicker(checkTransitionPollingInterval)
 	logTtdTicker := time.NewTicker(logTtdInterval)
 	hasTtdReached := false

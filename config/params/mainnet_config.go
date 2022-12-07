@@ -128,6 +128,7 @@ var mainnetBeaconConfig = &BeaconChainConfig{
 
 	// While eth1 mainnet block times are closer to 13s, we must conform with other clients in
 	// order to vote on the correct eth1 blocks.
+	// eth1 mainnet的block times接近13s，我们必须和其他clients同步，为了投票在正确的eth1 blocks上
 	//
 	// Additional context: https://github.com/ethereum/consensus-specs/issues/2132
 	// Bug prompting this change: https://github.com/prysmaticlabs/prysm/issues/7856

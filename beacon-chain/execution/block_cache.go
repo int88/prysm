@@ -104,6 +104,8 @@ func (c *headerCache) HeaderInfoByHash(hash common.Hash) (bool, *types.HeaderInf
 
 // HeaderInfoByHeight fetches headerInfo by its header number. Returns true with a
 // reference to the header info, if exists. Otherwise returns false, nil.
+// HeaderInfoByHeight通过header number获取headerInfo，返回true，随着一个到header info的引用
+// 如果存在的话，否则返回false
 func (c *headerCache) HeaderInfoByHeight(height *big.Int) (bool, *types.HeaderInfo, error) {
 	c.lock.RLock()
 	defer c.lock.RUnlock()

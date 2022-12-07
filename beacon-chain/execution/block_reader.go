@@ -48,6 +48,7 @@ func (s *Service) BlockExists(ctx context.Context, hash common.Hash) (bool, *big
 }
 
 // BlockHashByHeight returns the block hash of the block at the given height.
+// BlockHashByHeight返回给定高度的block的hash
 func (s *Service) BlockHashByHeight(ctx context.Context, height *big.Int) (common.Hash, error) {
 	ctx, span := trace.StartSpan(ctx, "powchain.BlockHashByHeight")
 	defer span.End()
@@ -97,6 +98,7 @@ func (s *Service) BlockTimeByHeight(ctx context.Context, height *big.Int) (uint6
 // BlockByTimestamp returns the most recent block number up to a given timestamp.
 // This is an optimized version with the worst case being O(2*repeatedSearches) number of calls
 // while in best case search for the block is performed in O(1).
+// BlockByTimestamp返回最新的block number，直到一个给定的时间戳
 func (s *Service) BlockByTimestamp(ctx context.Context, time uint64) (*types.HeaderInfo, error) {
 	ctx, span := trace.StartSpan(ctx, "powchain.BlockByTimestamp")
 	defer span.End()
@@ -110,6 +112,7 @@ func (s *Service) BlockByTimestamp(ctx context.Context, time uint64) (*types.Hea
 		return nil, errors.Wrap(errBlockTimeTooLate, fmt.Sprintf("(%d > %d)", time, latestBlkTime))
 	}
 	// Initialize a pointer to eth1 chain's history to start our search from.
+	// 初始化一个到eth1 chain的history的指针，来开始我们的搜索
 	cursorNum := big.NewInt(0).SetUint64(latestBlkHeight)
 	cursorTime := latestBlkTime
 
@@ -118,6 +121,7 @@ func (s *Service) BlockByTimestamp(ctx context.Context, time uint64) (*types.Hea
 	maxTimeBuffer := searchThreshold * params.BeaconConfig().SecondsPerETH1Block
 	// Terminate if we can't find an acceptable block after
 	// repeated searches.
+	// 在重复的搜索之后终止，如果我们不能找到一个可以接受的block
 	for i := 0; i < repeatedSearches; i++ {
 		if ctx.Err() != nil {
 			return nil, ctx.Err()
@@ -163,6 +167,7 @@ func (s *Service) BlockByTimestamp(ctx context.Context, time uint64) (*types.Hea
 
 // Performs a search to find a target eth1 block which is earlier than or equal to the
 // target time. This method is used when head.time > targetTime
+// 执行一次查找，找到一个target eth1 block，早于或者等于target time，这个方法在head.time > targetTime的时候使用
 func (s *Service) findMaxTargetEth1Block(ctx context.Context, upperBoundBlk *big.Int, targetTime uint64) (*types.HeaderInfo, error) {
 	for bn := upperBoundBlk; ; bn = big.NewInt(0).Sub(bn, big.NewInt(1)) {
 		if ctx.Err() != nil {

@@ -182,6 +182,7 @@ func (dc *DepositCache) InsertFinalizedDeposits(ctx context.Context, eth1Deposit
 }
 
 // AllDepositContainers returns all historical deposit containers.
+// AllDepositContainers返回所有历史上的deposit containers
 func (dc *DepositCache) AllDepositContainers(ctx context.Context) []*ethpb.DepositContainer {
 	ctx, span := trace.StartSpan(ctx, "DepositsCache.AllDepositContainers")
 	defer span.End()

@@ -90,6 +90,7 @@ func (s *Service) pollConnectionStatus(ctx context.Context) {
 }
 
 // Forces to retry an execution client connection.
+// 强制重试一个execution client
 func (s *Service) retryExecutionClientConnection(ctx context.Context, err error) {
 	s.runError = err
 	s.updateConnectedETH1(false)

@@ -124,6 +124,8 @@ func (s *Service) ProcessDepositLog(ctx context.Context, depositLog gethtypes.Lo
 	// This can happen sometimes when we receive the same log twice from the
 	// ETH1.0 network, and prevents us from updating our trie
 	// with the same log twice, causing an inconsistent state root.
+	// 如果我们已经见过这个Merkle index，跳过处理这个log，这有时候会发生，当我们从ETH1.0 network
+	// 收到同一个log两次，防止用同样的log更新我们的trie两次，导致不一致的state root
 	index := int64(binary.LittleEndian.Uint64(merkleTreeIndex)) // lint:ignore uintcast -- MerkleTreeIndex should not exceed int64 in your lifetime.
 	if index <= s.lastReceivedMerkleIndex {
 		return nil
@@ -151,9 +153,11 @@ func (s *Service) ProcessDepositLog(ctx context.Context, depositLog gethtypes.Lo
 	}
 
 	// Defensive check to validate incoming index.
+	// 防御性检查，对于incoming index
 	if s.depositTrie.NumOfItems() != int(index) {
 		return errors.Errorf("invalid deposit index received: wanted %d but got %d", s.depositTrie.NumOfItems(), index)
 	}
+	// 插入deposit trie
 	if err = s.depositTrie.Insert(depositHash[:], int(index)); err != nil {
 		return err
 	}
@@ -162,6 +166,7 @@ func (s *Service) ProcessDepositLog(ctx context.Context, depositLog gethtypes.Lo
 		Data: depositData,
 	}
 	// Only generate the proofs during pre-genesis.
+	// 只有在pre-genesis的时候生成proofs
 	if !s.chainStartData.Chainstarted {
 		proof, err := s.depositTrie.MerkleProof(int(index))
 		if err != nil {
@@ -171,11 +176,12 @@ func (s *Service) ProcessDepositLog(ctx context.Context, depositLog gethtypes.Lo
 	}
 
 	// We always store all historical deposits in the DB.
+	// 我们总是存储所有的historical deposits到DB中
 	root, err := s.depositTrie.HashTreeRoot()
 	if err != nil {
 		return errors.Wrap(err, "unable to determine root of deposit trie")
 	}
-	// 插入deposit
+	// 在depositCache中插入deposit
 	err = s.cfg.depositCache.InsertDeposit(ctx, deposit, depositLog.BlockNumber, index, root)
 	if err != nil {
 		return errors.Wrap(err, "unable to insert deposit into cache")
@@ -210,6 +216,7 @@ func (s *Service) ProcessDepositLog(ctx context.Context, depositLog gethtypes.Lo
 		}).Debug("Deposit registered from deposit contract")
 		validDepositsCount.Inc()
 		// Notify users what is going on, from time to time.
+		// 不时地通知用户发生了什么
 		if !s.chainStartData.Chainstarted {
 			deposits := len(s.chainStartData.ChainstartDeposits)
 			if deposits%512 == 0 {
@@ -235,6 +242,7 @@ func (s *Service) ProcessDepositLog(ctx context.Context, depositLog gethtypes.Lo
 
 // ProcessChainStart processes the log which had been received from
 // the eth1 chain by trying to determine when to start the beacon chain.
+// ProcessChainStart处理获取自eth1 chain的log，通过试着决定什么时候开始beacon chain
 func (s *Service) ProcessChainStart(genesisTime uint64, eth1BlockHash [32]byte, blockNumber *big.Int) {
 	s.chainStartData.Chainstarted = true
 	s.chainStartData.GenesisBlock = blockNumber.Uint64()
@@ -242,6 +250,7 @@ func (s *Service) ProcessChainStart(genesisTime uint64, eth1BlockHash [32]byte, 
 	chainStartTime := time.Unix(int64(genesisTime), 0) // lint:ignore uintcast -- Genesis time wont exceed int64 in your lifetime.
 
 	for i := range s.chainStartData.ChainstartDeposits {
+		// 获取deposit的proof
 		proof, err := s.depositTrie.MerkleProof(i)
 		if err != nil {
 			log.WithError(err).Error("unable to generate deposit proof")
@@ -255,6 +264,7 @@ func (s *Service) ProcessChainStart(genesisTime uint64, eth1BlockHash [32]byte, 
 		return
 	}
 	s.chainStartData.Eth1Data = &ethpb.Eth1Data{
+		// 保存eth1 data
 		DepositCount: uint64(len(s.chainStartData.ChainstartDeposits)),
 		DepositRoot:  root[:],
 		BlockHash:    eth1BlockHash[:],
@@ -263,15 +273,19 @@ func (s *Service) ProcessChainStart(genesisTime uint64, eth1BlockHash [32]byte, 
 	log.WithFields(logrus.Fields{
 		"ChainStartTime": chainStartTime,
 	}).Info("Minimum number of validators reached for beacon-chain to start")
+	// 达到了最少数目的validators来启动beacon-chain
 	s.cfg.stateNotifier.StateFeed().Send(&feed.Event{
+		// 发送ChainStarted事件
 		Type: statefeed.ChainStarted,
 		Data: &statefeed.ChainStartedData{
 			StartTime: chainStartTime,
 		},
 	})
+	// 保存powchain data
 	if err := s.savePowchainData(s.ctx); err != nil {
 		// continue on if the save fails as this will get re-saved
 		// in the next interval.
+		// 继续，如果保存失败的话，这会在下一个interval导致re-saved
 		log.Error(err)
 	}
 }
@@ -284,16 +298,21 @@ func createGenesisTime(timeStamp uint64) uint64 {
 
 // processPastLogs processes all the past logs from the deposit contract and
 // updates the deposit trie with the data from each individual log.
+// processPastLogs处理来自deposit contract的所有past logs并且更新deposit trie，用来自
+// 单个log的data
 func (s *Service) processPastLogs(ctx context.Context) error {
 	currentBlockNum := s.latestEth1Data.LastRequestedBlock
 	deploymentBlock := params.BeaconNetworkConfig().ContractDeploymentBlock
 	// Start from the deployment block if our last requested block
 	// is behind it. This is as the deposit logs can only start from the
 	// block of the deployment of the deposit contract.
+	// 从deployment block开始，如果我们最后请求的block在它之后，因为deposit logs
+	// 只能从部署deposit contract的deployment之后开始
 	if deploymentBlock > currentBlockNum {
 		currentBlockNum = deploymentBlock
 	}
 	// To store all blocks.
+	// 存储所有的blocks
 	headersMap := make(map[uint64]*types.HeaderInfo)
 	rawLogCount, err := s.depositContractCaller.GetDepositCount(&bind.CallOpts{})
 	if err != nil {
@@ -310,6 +329,7 @@ func (s *Service) processPastLogs(ctx context.Context) error {
 	additiveFactor := uint64(float64(batchSize) * additiveFactorMultiplier)
 
 	for currentBlockNum < latestFollowHeight {
+		// 批量处理block
 		currentBlockNum, batchSize, err = s.processBlockInBatch(ctx, currentBlockNum, latestFollowHeight, batchSize, additiveFactor, logCount, headersMap)
 		if err != nil {
 			return err
@@ -317,6 +337,7 @@ func (s *Service) processPastLogs(ctx context.Context) error {
 	}
 
 	s.latestEth1DataLock.Lock()
+	// 设置当前的block number
 	s.latestEth1Data.LastRequestedBlock = currentBlockNum
 	s.latestEth1DataLock.Unlock()
 
@@ -326,6 +347,7 @@ func (s *Service) processPastLogs(ctx context.Context) error {
 	}
 	fRoot := bytesutil.ToBytes32(c.Root)
 	// Return if no checkpoint exists yet.
+	// 返回，如果没有checkpoint存在
 	if fRoot == params.BeaconConfig().ZeroHash {
 		return nil
 	}
@@ -339,6 +361,10 @@ func (s *Service) processPastLogs(ctx context.Context) error {
 	// The current code does ignore an edge case where the finalized
 	// block is in a different epoch from the checkpoint's epoch.
 	// This only happens in skipped slots, so pruning it is not an issue.
+	// 如果处理past logs花费很长时间，我们需要检查是否这是正确的finalized state
+	// 以及我们缓存的finalized state引用我们当前的finalized checkpoint
+	// 当前的代码确实忽略了一个边界条件，当finalized block在不同的epoch，对于checkpoint的epoch
+	// 这只会在skipped slots的时候发生，因此清理它不是一个问题
 	if isNil || slots.ToEpoch(fState.Slot()) != c.Epoch {
 		fState, err = s.cfg.stateGen.StateByRoot(ctx, fRoot)
 		if err != nil {
@@ -346,6 +372,7 @@ func (s *Service) processPastLogs(ctx context.Context) error {
 		}
 	}
 	if fState != nil && !fState.IsNil() && fState.Eth1DepositIndex() > 0 {
+		// 移除pending deposits?
 		s.cfg.depositCache.PrunePendingDeposits(ctx, int64(fState.Eth1DepositIndex())) // lint:ignore uintcast -- Deposit index should not exceed int64 in your lifetime.
 	}
 	return nil
@@ -565,16 +592,19 @@ func (s *Service) processChainStartIfReady(ctx context.Context, blockHash [32]by
 }
 
 // savePowchainData saves all powchain related metadata to disk.
+// savePowchainData保存所有powchain相关的元数据到磁盘
 func (s *Service) savePowchainData(ctx context.Context) error {
 	pbState, err := statenative.ProtobufBeaconStatePhase0(s.preGenesisState.ToProtoUnsafe())
 	if err != nil {
 		return err
 	}
 	eth1Data := &ethpb.ETH1ChainData{
-		CurrentEth1Data:   s.latestEth1Data,
-		ChainstartData:    s.chainStartData,
-		BeaconState:       pbState, // I promise not to mutate it!
-		Trie:              s.depositTrie.ToProto(),
+		CurrentEth1Data: s.latestEth1Data,
+		ChainstartData:  s.chainStartData,
+		BeaconState:     pbState, // I promise not to mutate it!
+		// 获取deposit trie
+		Trie: s.depositTrie.ToProto(),
+		// 获取所有的deposti containers
 		DepositContainers: s.cfg.depositCache.AllDepositContainers(ctx),
 	}
 	return s.cfg.beaconDB.SaveExecutionChainData(ctx, eth1Data)

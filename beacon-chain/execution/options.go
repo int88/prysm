@@ -102,6 +102,7 @@ func WithBeaconNodeStatsUpdater(updater BeaconNodeStatsUpdater) Option {
 }
 
 // WithFinalizedStateAtStartup to set the beacon node's finalized state at startup.
+// WithFinalizedStateAtStartup设置beacon node的finalized state，在启动的时候
 func WithFinalizedStateAtStartup(st state.BeaconState) Option {
 	return func(s *Service) error {
 		s.cfg.finalizedStateAtStartup = st

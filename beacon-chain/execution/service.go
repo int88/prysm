@@ -86,6 +86,7 @@ type ChainInfoFetcher interface {
 }
 
 // POWBlockFetcher defines a struct that can retrieve mainchain blocks.
+// POWBlockFetcher定义了一个结构可以获取mainchain blocks
 type POWBlockFetcher interface {
 	BlockTimeByHeight(ctx context.Context, height *big.Int) (uint64, error)
 	BlockByTimestamp(ctx context.Context, time uint64) (*types.HeaderInfo, error)
@@ -94,6 +95,7 @@ type POWBlockFetcher interface {
 }
 
 // Chain defines a standard interface for the powchain service in Prysm.
+// Chain定义了一个标准的接口用于Prysm的powchain service
 type Chain interface {
 	ChainStartFetcher
 	ChainInfoFetcher
@@ -156,11 +158,12 @@ type Service struct {
 	rpcClient          RPCClient
 	// 用于block hash/block height的缓存
 	headerCache *headerCache // cache to store block hash/block height.
-	// 最后一个eth1 block data
-	latestEth1Data          *ethpb.LatestETH1Data
-	depositContractCaller   *contracts.DepositContractCaller
-	depositTrie             *trie.SparseMerkleTrie
-	chainStartData          *ethpb.ChainStartData
+	// 最新的eth1 block data
+	latestEth1Data        *ethpb.LatestETH1Data
+	depositContractCaller *contracts.DepositContractCaller
+	depositTrie           *trie.SparseMerkleTrie
+	chainStartData        *ethpb.ChainStartData
+	// 追踪最新接收到的index，来防止log spam
 	lastReceivedMerkleIndex int64 // Keeps track of the last received index to prevent log spam.
 	runError                error
 	preGenesisState         state.BeaconState
@@ -203,7 +206,8 @@ func NewService(ctx context.Context, opts ...Option) (*Service, error) {
 		},
 		lastReceivedMerkleIndex: -1,
 		preGenesisState:         genState,
-		eth1HeadTicker:          time.NewTicker(time.Duration(params.BeaconConfig().SecondsPerETH1Block) * time.Second),
+		// SecondsPerETH1Block触发一次
+		eth1HeadTicker: time.NewTicker(time.Duration(params.BeaconConfig().SecondsPerETH1Block) * time.Second),
 	}
 
 	for _, opt := range opts {
@@ -264,6 +268,7 @@ func (s *Service) Start() {
 }
 
 // Stop the web3 service's main event loop and associated goroutines.
+// 停止web3 service的主事件循环以及相关的goroutines
 func (s *Service) Stop() error {
 	if s.cancel != nil {
 		defer s.cancel()
@@ -373,11 +378,13 @@ func (s *Service) initDepositCaches(ctx context.Context, ctrs []*ethpb.DepositCo
 	}
 	rt := bytesutil.ToBytes32(chkPt.Root)
 	if rt != [32]byte{} {
+		// 获取finalized state
 		fState := s.cfg.finalizedStateAtStartup
 		if fState == nil || fState.IsNil() {
 			return errors.Errorf("finalized state with root %#x is nil", rt)
 		}
 		// Set deposit index to the one in the current archived state.
+		// 将deposit index设置为当前archived state
 		currIndex = fState.Eth1DepositIndex()
 
 		// When a node pauses for some time and starts again, the deposits to finalize
@@ -387,6 +394,9 @@ func (s *Service) initDepositCaches(ctx context.Context, ctrs []*ethpb.DepositCo
 		// The deposit index in the state is always the index of the next deposit
 		// to be included (rather than the last one to be processed). This was most likely
 		// done as the state cannot represent signed integers.
+		// 当一个节点暂停一段时间之后再次启动，到finalize的deposits会累加，我们finalize它们，在准备好接收
+		// 一个block之前，否则，开始收到的一些blocks会计算地更慢，因为我们持有锁并且忙于finalizing deposits
+		// 在state中的deposit index总是下一个要包含的deposit
 		actualIndex := int64(currIndex) - 1 // lint:ignore uintcast -- deposit index will not exceed int64 in your lifetime.
 		s.cfg.depositCache.InsertFinalizedDeposits(ctx, actualIndex)
 
@@ -414,6 +424,7 @@ func (s *Service) initDepositCaches(ctx context.Context, ctrs []*ethpb.DepositCo
 // 以及blockTime，对于一个service
 func (s *Service) processBlockHeader(header *types.HeaderInfo) {
 	defer safelyHandlePanic()
+	// 最新的eth1 block
 	blockNumberGauge.Set(float64(header.Number.Int64()))
 	s.latestEth1DataLock.Lock()
 	s.latestEth1Data.BlockHeight = header.Number.Uint64()
@@ -490,8 +501,10 @@ func (s *Service) handleETH1FollowDistance() {
 
 	// use a 5 minutes timeout for block time, because the max mining time is 278 sec (block 7208027)
 	// (analyzed the time of the block from 2018-09-01 to 2019-02-13)
+	// 使用5分钟作为超时时间，因为最大的mining时间为278s，分析从2018-09-01到2019-02-13的block
 	fiveMinutesTimeout := prysmTime.Now().Add(-5 * time.Minute)
 	// check that web3 client is syncing
+	// 检查web3 client正在同步
 	if time.Unix(int64(s.latestEth1Data.BlockTime), 0).Before(fiveMinutesTimeout) {
 		log.Warn("Execution client is not syncing")
 	}
@@ -520,6 +533,7 @@ func (s *Service) handleETH1FollowDistance() {
 		return
 	}
 	// Reset the Status.
+	// 重置状态
 	if s.runError != nil {
 		s.runError = nil
 	}
@@ -537,6 +551,7 @@ func (s *Service) initPOWService() {
 	}
 
 	// Run in a select loop to retry in the event of any failures.
+	// 运行一个select loop，在发生failures的时候重试
 	for {
 		select {
 		case <-s.ctx.Done():
@@ -565,6 +580,7 @@ func (s *Service) initPOWService() {
 				continue
 			}
 			// Cache eth1 headers from our voting period.
+			// 在voting period，缓存eth1 headers
 			if err := s.cacheHeadersForEth1DataVote(ctx); err != nil {
 				s.retryExecutionClientConnection(ctx, err)
 				if errors.Is(err, errBlockTimeTooLate) {
@@ -576,11 +592,13 @@ func (s *Service) initPOWService() {
 			}
 			// Handle edge case with embedded genesis state by fetching genesis header to determine
 			// its height.
+			// 处理边界条件，用内嵌的genesis state，通过获取genesis header，来决定height
 			if s.chainStartData.Chainstarted && s.chainStartData.GenesisBlock == 0 {
 				genHash := common.BytesToHash(s.chainStartData.Eth1Data.BlockHash)
 				genBlock := s.chainStartData.GenesisBlock
 				// In the event our provided chainstart data references a non-existent block hash,
 				// we assume the genesis block to be 0.
+				// 我们之前的chainstart data引用一个不存在的block hash，我们假设genesis block为0
 				if genHash != [32]byte{} {
 					genHeader, err := s.HeaderByHash(ctx, genHash)
 					if err != nil {
@@ -675,16 +693,21 @@ func (s *Service) logTillChainStart(ctx context.Context) {
 
 // cacheHeadersForEth1DataVote makes sure that voting for eth1data after startup utilizes cached headers
 // instead of making multiple RPC requests to the eth1 endpoint.
+// cacheHeadersForEth1DataVote确保在启动之后，对于eth1data的投票使用缓存的headers
+// 而不是构造多个RPC requests，对于eth1 endpoint
 func (s *Service) cacheHeadersForEth1DataVote(ctx context.Context) error {
 	// Find the end block to request from.
+	// 找到最后请求的end block
 	end, err := s.followedBlockHeight(ctx)
 	if err != nil {
 		return err
 	}
+	// 确定最早的voting blocks
 	start, err := s.determineEarliestVotingBlock(ctx, end)
 	if err != nil {
 		return err
 	}
+	// 缓存block headers
 	return s.cacheBlockHeaders(start, end)
 }
 
@@ -699,6 +722,7 @@ func (s *Service) cacheBlockHeaders(start, end uint64) error {
 			endReq = end
 		}
 		// We call batchRequestHeaders for its header caching side-effect, so we don't need the return value.
+		// 我们调用batchRequestHeaders用于它的header caching的副作用，因为我们不需要返回值
 		_, err := s.batchRequestHeaders(startReq, endReq)
 		if err != nil {
 			if clientTimedOutError(err) {
@@ -848,6 +872,7 @@ func (s *Service) ensureValidPowchainData(ctx context.Context) error {
 			// 获取所有的deposit
 			DepositContainers: s.cfg.depositCache.AllDepositContainers(ctx),
 		}
+		// 保存execution chain data到db中
 		return s.cfg.beaconDB.SaveExecutionChainData(ctx, eth1Data)
 	}
 	return nil

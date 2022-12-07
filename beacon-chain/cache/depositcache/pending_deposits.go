@@ -128,6 +128,7 @@ func (dc *DepositCache) RemovePendingDeposit(ctx context.Context, d *ethpb.Depos
 }
 
 // PrunePendingDeposits removes any deposit which is older than the given deposit merkle tree index.
+// PrunePendingDeposits移除任何的deposit，它比给定的deposit merkle tree index更老
 func (dc *DepositCache) PrunePendingDeposits(ctx context.Context, merkleTreeIndex int64) {
 	ctx, span := trace.StartSpan(ctx, "DepositsCache.PrunePendingDeposits")
 	defer span.End()
@@ -142,6 +143,7 @@ func (dc *DepositCache) PrunePendingDeposits(ctx context.Context, merkleTreeInde
 
 	cleanDeposits := make([]*ethpb.DepositContainer, 0, len(dc.pendingDeposits))
 	for _, dp := range dc.pendingDeposits {
+		// 保留index大于merkleTreeIndex的deposit
 		if dp.Index >= merkleTreeIndex {
 			cleanDeposits = append(cleanDeposits, dp)
 		}

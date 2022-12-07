@@ -250,6 +250,7 @@ func (m *SparseMerkleTrie) Copy() *SparseMerkleTrie {
 // the sparse merkle trie. We handle a special case
 // where if there is only one item stored and it is a
 // empty 32-byte root.
+// NumOfItems返回存储在sparse merkel trie中的items的数目
 func (m *SparseMerkleTrie) NumOfItems() int {
 	var zeroBytes [32]byte
 	if len(m.originalItems) == 1 && bytes.Equal(m.originalItems[0], zeroBytes[:]) {
