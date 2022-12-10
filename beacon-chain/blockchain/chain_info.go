@@ -49,6 +49,7 @@ type GenesisFetcher interface {
 
 // HeadFetcher defines a common interface for methods in blockchain service which
 // directly retrieve head related data.
+// HeadFetcher定义了一个公共的接口，用于blockchain service中的方法，直接获取head相关的数据
 type HeadFetcher interface {
 	HeadSlot() types.Slot
 	HeadRoot(ctx context.Context) ([]byte, error)
@@ -94,6 +95,7 @@ type OptimisticModeFetcher interface {
 }
 
 // FinalizedCheckpt returns the latest finalized checkpoint from chain store.
+// FinalizedCheckpt返回chain store中最新的finalized checkpoint
 func (s *Service) FinalizedCheckpt() *ethpb.Checkpoint {
 	cp := s.ForkChoicer().FinalizedCheckpoint()
 	return &ethpb.Checkpoint{Epoch: cp.Epoch, Root: bytesutil.SafeCopyBytes(cp.Root[:])}

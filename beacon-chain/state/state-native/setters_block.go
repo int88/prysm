@@ -42,6 +42,7 @@ func (b *BeaconState) SetBlockRoots(val [][]byte) error {
 
 // UpdateBlockRootAtIndex for the beacon state. Updates the block root
 // at a specific index to a new value.
+// UpdateBlockRootAtIndex对于beacon state，更新block root，在一个特定的index到一个新的值
 func (b *BeaconState) UpdateBlockRootAtIndex(idx uint64, blockRoot [32]byte) error {
 	if uint64(len(b.blockRoots)) <= idx {
 		return fmt.Errorf("invalid index provided %d", idx)

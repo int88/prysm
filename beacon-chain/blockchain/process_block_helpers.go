@@ -30,6 +30,8 @@ func (s *Service) CurrentSlot() types.Slot {
 // getBlockPreState returns the pre state of an incoming block. It uses the parent root of the block
 // to retrieve the state in DB. It verifies the pre state's validity and the incoming block
 // is in the correct time window.
+// getBlockPreState返回一个incoming block的pre state，它使用block的parent root来获取DB中的state
+// 它校验pre state的合法性以及incoming block在正确的time window
 func (s *Service) getBlockPreState(ctx context.Context, b interfaces.BeaconBlock) (state.BeaconState, error) {
 	ctx, span := trace.StartSpan(ctx, "blockChain.getBlockPreState")
 	defer span.End()
@@ -39,6 +41,7 @@ func (s *Service) getBlockPreState(ctx context.Context, b interfaces.BeaconBlock
 		return nil, err
 	}
 
+	// 利用state gen获取pre state
 	preState, err := s.cfg.StateGen.StateByRoot(ctx, b.ParentRoot())
 	if err != nil {
 		return nil, errors.Wrapf(err, "could not get pre state for slot %d", b.Slot())
@@ -48,11 +51,13 @@ func (s *Service) getBlockPreState(ctx context.Context, b interfaces.BeaconBlock
 	}
 
 	// Verify block slot time is not from the future.
+	// 校验block的slot time不是来自未来
 	if err := slots.VerifyTime(uint64(s.genesisTime.Unix()), b.Slot(), params.BeaconNetworkConfig().MaximumGossipClockDisparity); err != nil {
 		return nil, err
 	}
 
 	// Verify block is later than the finalized epoch slot.
+	// 校验block比finalized epoch slot更晚
 	if err := s.verifyBlkFinalizedSlot(b); err != nil {
 		return nil, err
 	}
@@ -121,6 +126,7 @@ func (s *Service) VerifyFinalizedBlkDescendant(ctx context.Context, root [32]byt
 
 // verifyBlkFinalizedSlot validates input block is not less than or equal
 // to current finalized slot.
+// verifyBlkFinalizedSlot校验输入的block没有小于或者等于当前的finalized slot
 func (s *Service) verifyBlkFinalizedSlot(b interfaces.BeaconBlock) error {
 	finalized := s.ForkChoicer().FinalizedCheckpoint()
 	finalizedSlot, err := slots.EpochStart(finalized.Epoch)

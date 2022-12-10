@@ -43,55 +43,70 @@ var initialSyncBlockCacheSize = uint64(2 * params.BeaconConfig().SlotsPerEpoch)
 // onBlock is called when a gossip block is received. It runs regular state transition on the block.
 // The block's signing root should be computed before calling this method to avoid redundant
 // computation in this method and methods it calls into.
+// onBlock在收到一个gossip block的时候被调用，它运行常规的state transition，在block之上
 //
 // Spec pseudocode definition:
 //
-//	def on_block(store: Store, signed_block: SignedBeaconBlock) -> None:
-//	 block = signed_block.message
-//	 # Parent block must be known
-//	 assert block.parent_root in store.block_states
-//	 # Make a copy of the state to avoid mutability issues
-//	 pre_state = copy(store.block_states[block.parent_root])
-//	 # Blocks cannot be in the future. If they are, their consideration must be delayed until the are in the past.
-//	 assert get_current_slot(store) >= block.slot
+//		def on_block(store: Store, signed_block: SignedBeaconBlock) -> None:
+//		 block = signed_block.message
+//		 # Parent block must be known
+//	  # Parent block必须是已知的
+//		 assert block.parent_root in store.block_states
+//		 # Make a copy of the state to avoid mutability issues
+//	  # 对state进行拷贝来避免mutability issues
+//		 pre_state = copy(store.block_states[block.parent_root])
+//		 # Blocks cannot be in the future. If they are, their consideration must be delayed until the are in the past.
+//	  # Blocks不能来自未来，如果是的话，对它们的操作必须延后，直到他们位于past
+//		 assert get_current_slot(store) >= block.slot
 //
-//	 # Check that block is later than the finalized epoch slot (optimization to reduce calls to get_ancestor)
-//	 finalized_slot = compute_start_slot_at_epoch(store.finalized_checkpoint.epoch)
-//	 assert block.slot > finalized_slot
-//	 # Check block is a descendant of the finalized block at the checkpoint finalized slot
-//	 assert get_ancestor(store, block.parent_root, finalized_slot) == store.finalized_checkpoint.root
+//		 # Check that block is later than the finalized epoch slot (optimization to reduce calls to get_ancestor)
+//	  # 检查block比finalized epoch  slot更晚
+//		 finalized_slot = compute_start_slot_at_epoch(store.finalized_checkpoint.epoch)
+//		 assert block.slot > finalized_slot
+//		 # Check block is a descendant of the finalized block at the checkpoint finalized slot
+//	  # 检查block是finalized block的后代，位于checkpoint finalized slot
+//		 assert get_ancestor(store, block.parent_root, finalized_slot) == store.finalized_checkpoint.root
 //
-//	 # Check the block is valid and compute the post-state
-//	 state = pre_state.copy()
-//	 state_transition(state, signed_block, True)
-//	 # Add new block to the store
-//	 store.blocks[hash_tree_root(block)] = block
-//	 # Add new state for this block to the store
-//	 store.block_states[hash_tree_root(block)] = state
+//		 # Check the block is valid and compute the post-state
+//	  # 检查block是合法的并且计算post-state
+//		 state = pre_state.copy()
+//		 state_transition(state, signed_block, True)
+//		 # Add new block to the store
+//	  # 添加新的block到store
+//		 store.blocks[hash_tree_root(block)] = block
+//		 # Add new state for this block to the store
+//	  # 添加这个block的state到store
+//		 store.block_states[hash_tree_root(block)] = state
 //
-//	 # Update justified checkpoint
-//	 if state.current_justified_checkpoint.epoch > store.justified_checkpoint.epoch:
-//	     if state.current_justified_checkpoint.epoch > store.best_justified_checkpoint.epoch:
-//	         store.best_justified_checkpoint = state.current_justified_checkpoint
-//	     if should_update_justified_checkpoint(store, state.current_justified_checkpoint):
-//	         store.justified_checkpoint = state.current_justified_checkpoint
+//		 # Update justified checkpoint
+//	  # 更新justified checkpoint
+//		 if state.current_justified_checkpoint.epoch > store.justified_checkpoint.epoch:
+//		     if state.current_justified_checkpoint.epoch > store.best_justified_checkpoint.epoch:
+//	          # 设置的是best justified checkpoint
+//		         store.best_justified_checkpoint = state.current_justified_checkpoint
+//		     if should_update_justified_checkpoint(store, state.current_justified_checkpoint):
+//		         store.justified_checkpoint = state.current_justified_checkpoint
 //
-//	 # Update finalized checkpoint
-//	 if state.finalized_checkpoint.epoch > store.finalized_checkpoint.epoch:
-//	     store.finalized_checkpoint = state.finalized_checkpoint
+//		 # Update finalized checkpoint
+//	  # 更新finalized checkpoint
+//		 if state.finalized_checkpoint.epoch > store.finalized_checkpoint.epoch:
+//		     store.finalized_checkpoint = state.finalized_checkpoint
 //
-//	     # Potentially update justified if different from store
-//	     if store.justified_checkpoint != state.current_justified_checkpoint:
-//	         # Update justified if new justified is later than store justified
-//	         if state.current_justified_checkpoint.epoch > store.justified_checkpoint.epoch:
-//	             store.justified_checkpoint = state.current_justified_checkpoint
-//	             return
+//		     # Potentially update justified if different from store
+//	      # 潜在地更新justified，如果和store中不同
+//		     if store.justified_checkpoint != state.current_justified_checkpoint:
+//		         # Update justified if new justified is later than store justified
+//	          # 更新justified，如果新的justified比store justified更晚
+//		         if state.current_justified_checkpoint.epoch > store.justified_checkpoint.epoch:
+//		             store.justified_checkpoint = state.current_justified_checkpoint
+//		             return
 //
-//	         # Update justified if store justified is not in chain with finalized checkpoint
-//	         finalized_slot = compute_start_slot_at_epoch(store.finalized_checkpoint.epoch)
-//	         ancestor_at_finalized_slot = get_ancestor(store, store.justified_checkpoint.root, finalized_slot)
-//	         if ancestor_at_finalized_slot != store.finalized_checkpoint.root:
-//	             store.justified_checkpoint = state.current_justified_checkpoint
+//		         # Update justified if store justified is not in chain with finalized checkpoint
+//	          # 更新justified，如果存储的justified和finalized checkpoint不在一条链上
+//		         finalized_slot = compute_start_slot_at_epoch(store.finalized_checkpoint.epoch)
+//		         ancestor_at_finalized_slot = get_ancestor(store, store.justified_checkpoint.root, finalized_slot)
+//		         if ancestor_at_finalized_slot != store.finalized_checkpoint.root:
+//		             store.justified_checkpoint = state.current_justified_checkpoint
 func (s *Service) onBlock(ctx context.Context, signed interfaces.SignedBeaconBlock, blockRoot [32]byte) error {
 	ctx, span := trace.StartSpan(ctx, "blockChain.onBlock")
 	defer span.End()
@@ -107,8 +122,10 @@ func (s *Service) onBlock(ctx context.Context, signed interfaces.SignedBeaconBlo
 	}
 
 	// Save current justified and finalized epochs for future use.
+	// 保存当前的justified以及finalized epochs用于后续使用
 	currStoreJustifiedEpoch := s.ForkChoicer().JustifiedCheckpoint().Epoch
 	currStoreFinalizedEpoch := s.ForkChoicer().FinalizedCheckpoint().Epoch
+	// prestate的finalized以及justified epoch
 	preStateFinalizedEpoch := preState.FinalizedCheckpoint().Epoch
 	preStateJustifiedEpoch := preState.CurrentJustifiedCheckpoint().Epoch
 
@@ -117,6 +134,7 @@ func (s *Service) onBlock(ctx context.Context, signed interfaces.SignedBeaconBlo
 		return err
 	}
 	stateTransitionStartTime := time.Now()
+	// 运行state transition
 	postState, err := transition.ExecuteStateTransition(ctx, preState, signed)
 	if err != nil {
 		return invalidBlock{error: err}
@@ -127,6 +145,7 @@ func (s *Service) onBlock(ctx context.Context, signed interfaces.SignedBeaconBlo
 	if err != nil {
 		return err
 	}
+	// 校验payload
 	isValidPayload, err := s.notifyNewPayload(ctx, postStateVersion, postStateHeader, signed)
 	if err != nil {
 		return errors.Wrap(err, "could not validate new payload")
@@ -136,13 +155,16 @@ func (s *Service) onBlock(ctx context.Context, signed interfaces.SignedBeaconBlo
 			return err
 		}
 	}
+	// 保存post state info
 	if err := s.savePostStateInfo(ctx, blockRoot, signed, postState); err != nil {
 		return err
 	}
 
+	// 插入block到fork choice store
 	if err := s.insertBlockToForkchoiceStore(ctx, signed.Block(), blockRoot, postState); err != nil {
 		return errors.Wrapf(err, "could not insert block %d to fork choice store", signed.Block().Slot())
 	}
+	// 处理block attestations
 	if err := s.handleBlockAttestations(ctx, signed.Block(), postState); err != nil {
 		return errors.Wrap(err, "could not handle block's attestations")
 	}
@@ -150,15 +172,18 @@ func (s *Service) onBlock(ctx context.Context, signed interfaces.SignedBeaconBlo
 		return errors.Wrap(err, "could not handle block's BLSToExecutionChanges")
 	}
 
+	// 插入slashings到fork choice store
 	s.InsertSlashingsToForkChoiceStore(ctx, signed.Block().Body().AttesterSlashings())
 	if isValidPayload {
 		if err := s.cfg.ForkChoiceStore.SetOptimisticToValid(ctx, blockRoot); err != nil {
+			// 不能将optimistic block设置为valid
 			return errors.Wrap(err, "could not set optimistic block to valid")
 		}
 	}
 
 	// If slasher is configured, forward the attestations in the block via
 	// an event feed for processing.
+	// 如果配置了slasher，转发block中的attestations，通过一个event feed，用于处理
 	if features.Get().EnableSlasher {
 		// Feed the indexed attestation to slasher if enabled. This action
 		// is done in the background to avoid adding more load to this critical code path.
@@ -198,15 +223,18 @@ func (s *Service) onBlock(ctx context.Context, signed interfaces.SignedBeaconBlo
 	}
 	newBlockHeadElapsedTime.Observe(float64(time.Since(start).Milliseconds()))
 
+	// 通知engine，如果head发生了改变
 	if err := s.notifyEngineIfChangedHead(ctx, headRoot); err != nil {
 		return err
 	}
 
+	// 从pool中移除canonical attestations
 	if err := s.pruneCanonicalAttsFromPool(ctx, blockRoot, signed); err != nil {
 		return err
 	}
 
 	// Send notification of the processed block to the state feed.
+	// 发送processed block
 	s.cfg.StateNotifier.StateFeed().Send(&feed.Event{
 		Type: statefeed.BlockProcessed,
 		Data: &statefeed.BlockProcessedData{
@@ -218,6 +246,7 @@ func (s *Service) onBlock(ctx context.Context, signed interfaces.SignedBeaconBlo
 	})
 
 	// Updating next slot state cache can happen in the background. It shouldn't block rest of the process.
+	// 更新下一个slot state cache可以在后台发生，它不应该阻塞剩余的处理
 	go func() {
 		// Use a custom deadline here, since this method runs asynchronously.
 		// We ignore the parent method's context and instead create a new one
@@ -230,8 +259,10 @@ func (s *Service) onBlock(ctx context.Context, signed interfaces.SignedBeaconBlo
 	}()
 
 	// Save justified check point to db.
+	// 保存justified checkpoint到db
 	postStateJustifiedEpoch := postState.CurrentJustifiedCheckpoint().Epoch
 	if justified.Epoch > currStoreJustifiedEpoch || (justified.Epoch == postStateJustifiedEpoch && justified.Epoch > preStateJustifiedEpoch) {
+		// 在db中保存justified checkpoint
 		if err := s.cfg.BeaconDB.SaveJustifiedCheckpoint(ctx, &ethpb.Checkpoint{
 			Epoch: justified.Epoch, Root: justified.Root[:],
 		}); err != nil {
@@ -240,6 +271,7 @@ func (s *Service) onBlock(ctx context.Context, signed interfaces.SignedBeaconBlo
 	}
 
 	// Save finalized check point to db and more.
+	// 保存finalized checkpoint到db以及更多
 	postStateFinalizedEpoch := postState.FinalizedCheckpoint().Epoch
 	finalized := s.ForkChoicer().FinalizedCheckpoint()
 	if finalized.Epoch > currStoreFinalizedEpoch || (finalized.Epoch == postStateFinalizedEpoch && finalized.Epoch > preStateFinalizedEpoch) {
@@ -252,6 +284,7 @@ func (s *Service) onBlock(ctx context.Context, signed interfaces.SignedBeaconBlo
 		}
 		go func() {
 			// Send an event regarding the new finalized checkpoint over a common event feed.
+			// 发送一个event，关于新的finalized checkpoint，通过公共的event feed
 			stateRoot := signed.Block().StateRoot()
 			s.cfg.StateNotifier.StateFeed().Send(&feed.Event{
 				Type: statefeed.FinalizedCheckpoint,
@@ -275,6 +308,7 @@ func (s *Service) onBlock(ctx context.Context, signed interfaces.SignedBeaconBlo
 
 	}
 	defer reportAttestationInclusion(b)
+	// 处理epoch boundary
 	if err := s.handleEpochBoundary(ctx, postState); err != nil {
 		return err
 	}
@@ -471,6 +505,7 @@ func (s *Service) onBlockBatch(ctx context.Context, blks []interfaces.SignedBeac
 }
 
 // Epoch boundary bookkeeping such as logging epoch summaries.
+// Epoch boundary bookkeeping，例如记录epoch summaries
 func (s *Service) handleEpochBoundary(ctx context.Context, postState state.BeaconState) error {
 	ctx, span := trace.StartSpan(ctx, "blockChain.handleEpochBoundary")
 	defer span.End()
@@ -482,6 +517,7 @@ func (s *Service) handleEpochBoundary(ctx context.Context, postState state.Beaco
 			return err
 		}
 		// Update caches for the next epoch at epoch boundary slot - 1.
+		// 为下一个epoch更新caches，在epoch boundary slot - 1
 		if err := helpers.UpdateCommitteeCache(ctx, copied, coreTime.CurrentEpoch(copied)); err != nil {
 			return err
 		}

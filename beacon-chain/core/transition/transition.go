@@ -79,18 +79,23 @@ func ExecuteStateTransition(
 
 // ProcessSlot happens every slot and focuses on the slot counter and block roots record updates.
 // It happens regardless if there's an incoming block or not.
+// ProcessSlot发生在每个slot并且专注在slot counter以及block roots记录的更新，不管有没有incoming block
+// 它都会发生
 // Spec pseudocode definition:
 //
-//	def process_slot(state: BeaconState) -> None:
-//	  # Cache state root
-//	  previous_state_root = hash_tree_root(state)
-//	  state.state_roots[state.slot % SLOTS_PER_HISTORICAL_ROOT] = previous_state_root
-//	  # Cache latest block header state root
-//	  if state.latest_block_header.state_root == Bytes32():
-//	      state.latest_block_header.state_root = previous_state_root
-//	  # Cache block root
-//	  previous_block_root = hash_tree_root(state.latest_block_header)
-//	  state.block_roots[state.slot % SLOTS_PER_HISTORICAL_ROOT] = previous_block_root
+//				def process_slot(state: BeaconState) -> None:
+//				  # Cache state root
+//			   # 缓存state root
+//				  previous_state_root = hash_tree_root(state)
+//				  state.state_roots[state.slot % SLOTS_PER_HISTORICAL_ROOT] = previous_state_root
+//				  # Cache latest block header state root
+//		       # 缓存最新的block header state root
+//				  if state.latest_block_header.state_root == Bytes32():
+//				      state.latest_block_header.state_root = previous_state_root
+//				  # Cache block root
+//	           # 缓存block root
+//				  previous_block_root = hash_tree_root(state.latest_block_header)
+//				  state.block_roots[state.slot % SLOTS_PER_HISTORICAL_ROOT] = previous_block_root
 func ProcessSlot(ctx context.Context, state state.BeaconState) (state.BeaconState, error) {
 	ctx, span := trace.StartSpan(ctx, "core.state.ProcessSlot")
 	defer span.End()

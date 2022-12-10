@@ -19,6 +19,7 @@ import (
 var epochsSinceFinalitySaveHotStateDB = types.Epoch(100)
 
 // BlockReceiver interface defines the methods of chain service for receiving and processing new blocks.
+// BlockReceiver接口定义了chain service的方法用于获取以及处理新的blocks
 type BlockReceiver interface {
 	ReceiveBlock(ctx context.Context, block interfaces.SignedBeaconBlock, blockRoot [32]byte) error
 	ReceiveBlockBatch(ctx context.Context, blocks []interfaces.SignedBeaconBlock, blkRoots [][32]byte) error
@@ -26,15 +27,20 @@ type BlockReceiver interface {
 }
 
 // SlashingReceiver interface defines the methods of chain service for receiving validated slashing over the wire.
+// SlashingReceiver接口定义了chain service的方法，用于接收validated slashing
 type SlashingReceiver interface {
 	ReceiveAttesterSlashing(ctx context.Context, slashings *ethpb.AttesterSlashing)
 }
 
 // ReceiveBlock is a function that defines the operations (minus pubsub)
 // that are performed on a received block. The operations consist of:
+// ReceiveBlock是一个方法定义了在一个接收到的block上的操作，操作包括：
 //  1. Validate block, apply state transition and update checkpoints
 //  2. Apply fork choice to the processed block
 //  3. Save latest head info
+//  1. 校验block，应用state transition以及更新checkpoint
+//  2. 对于处理的block应用fork choice
+//  3. 保存最新的head info
 func (s *Service) ReceiveBlock(ctx context.Context, block interfaces.SignedBeaconBlock, blockRoot [32]byte) error {
 	ctx, span := trace.StartSpan(ctx, "blockChain.ReceiveBlock")
 	defer span.End()
@@ -45,6 +51,7 @@ func (s *Service) ReceiveBlock(ctx context.Context, block interfaces.SignedBeaco
 	}
 
 	// Apply state transition on the new block.
+	// 对新的block应用state transition
 	if err := s.onBlock(ctx, blockCopy, blockRoot); err != nil {
 		err := errors.Wrap(err, "could not process block")
 		tracing.AnnotateError(span, err)
@@ -52,29 +59,35 @@ func (s *Service) ReceiveBlock(ctx context.Context, block interfaces.SignedBeaco
 	}
 
 	// Handle post block operations such as attestations and exits.
+	// 处理post block operations，例如attestations以及exits
 	if err := s.handlePostBlockOperations(blockCopy.Block()); err != nil {
 		return err
 	}
 
 	// Have we been finalizing? Should we start saving hot states to db?
+	// 我们已经finalizing? 我们应该保存hot states到db么？
 	if err := s.checkSaveHotStateDB(ctx); err != nil {
 		return err
 	}
 
 	// Reports on block and fork choice metrics.
+	// 报告block以及fork choice metrics
 	finalized := s.FinalizedCheckpt()
 	reportSlotMetrics(blockCopy.Block().Slot(), s.HeadSlot(), s.CurrentSlot(), finalized)
 
 	// Log block sync status.
+	// 对block sync status进行日志
 	justified := s.CurrentJustifiedCheckpt()
 	if err := logBlockSyncStatus(blockCopy.Block(), blockRoot, justified, finalized, receivedTime, uint64(s.genesisTime.Unix())); err != nil {
 		log.WithError(err).Error("Unable to log block sync status")
 	}
 	// Log payload data
+	// 对payload data进行日志
 	if err := logPayload(blockCopy.Block()); err != nil {
 		log.WithError(err).Error("Unable to log debug block payload data")
 	}
 	// Log state transition data.
+	// 对state transition data进行日志
 	if err := logStateTransitionData(blockCopy.Block()); err != nil {
 		log.WithError(err).Error("Unable to log state transition data")
 	}
@@ -146,16 +159,19 @@ func (s *Service) ReceiveAttesterSlashing(ctx context.Context, slashing *ethpb.A
 
 func (s *Service) handlePostBlockOperations(b interfaces.BeaconBlock) error {
 	// Delete the processed block attestations from attestation pool.
+	// 从attestation pool中删除处理过的block attestations
 	if err := s.deletePoolAtts(b.Body().Attestations()); err != nil {
 		return err
 	}
 
 	// Mark block exits as seen so we don't include same ones in future blocks.
+	// 将block exits标记为已经看见过，因此我们不在未来的blocks包含同样的
 	for _, e := range b.Body().VoluntaryExits() {
 		s.cfg.ExitPool.MarkIncluded(e)
 	}
 
 	//  Mark attester slashings as seen so we don't include same ones in future blocks.
+	// 将attester slashings标记为已经看见过，因此我们不在未来的blocks中包含同样的
 	for _, as := range b.Body().AttesterSlashings() {
 		s.cfg.SlashingPool.MarkIncludedAttesterSlashing(as)
 	}
@@ -163,6 +179,7 @@ func (s *Service) handlePostBlockOperations(b interfaces.BeaconBlock) error {
 }
 
 // This checks whether it's time to start saving hot state to DB.
+// 检查是否是时机来开始保存hot state到DB中
 // It's time when there's `epochsSinceFinalitySaveHotStateDB` epochs of non-finality.
 func (s *Service) checkSaveHotStateDB(ctx context.Context) error {
 	currentEpoch := slots.ToEpoch(s.CurrentSlot())

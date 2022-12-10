@@ -146,6 +146,7 @@ func (s *State) StateByRootInitialSync(ctx context.Context, blockRoot [32]byte) 
 }
 
 // This returns the state summary object of a given block root. It first checks the cache, then checks the DB.
+// 返回一个给定block root的state summary对象，它首先检查缓存，之后再检查DB
 func (s *State) stateSummary(ctx context.Context, blockRoot [32]byte) (*ethpb.StateSummary, error) {
 	var summary *ethpb.StateSummary
 	var err error
@@ -234,6 +235,7 @@ func (s *State) loadStateByRoot(ctx context.Context, blockRoot [32]byte) (state.
 		return startState, nil
 	}
 
+	// 不能加载blocks，对于hot state，使用root
 	blks, err := s.loadBlocks(ctx, startState.Slot()+1, targetSlot, bytesutil.ToBytes32(summary.Root))
 	if err != nil {
 		return nil, errors.Wrap(err, "could not load blocks for hot state using root")
@@ -247,6 +249,8 @@ func (s *State) loadStateByRoot(ctx context.Context, blockRoot [32]byte) (state.
 // latestAncestor returns the highest available ancestor state of the input block root.
 // It recursively looks up block's parent until a corresponding state of the block root
 // is found in the caches or DB.
+// latestAncestor返回输入的block root的最高可用的ancestor state，它递归地查找block的parent
+// 直到一个对应的block root的state在caches或者DB中找到
 //
 // There's three ways to derive block parent state:
 // 1) block parent state is the last finalized state

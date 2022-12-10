@@ -33,6 +33,7 @@ func (MockClient) GetHeader(_ context.Context, _ types.Slot, _ [32]byte, _ [48]b
 func (m MockClient) RegisterValidator(_ context.Context, svr []*ethpb.SignedValidatorRegistrationV1) error {
 	for _, r := range svr {
 		b := bytesutil.ToBytes48(r.Message.Pubkey)
+		// 注册validator
 		m.RegisteredVals[b] = true
 	}
 	return nil

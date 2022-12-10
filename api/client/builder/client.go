@@ -80,6 +80,7 @@ func (*requestLogger) observe(r *http.Request) (e error) {
 var _ observer = &requestLogger{}
 
 // BuilderClient provides a collection of helper methods for calling Builder API endpoints.
+// BuilderClient提供了一系列帮助函数用于调用Builder API endpoints
 type BuilderClient interface {
 	NodeURL() string
 	GetHeader(ctx context.Context, slot types.Slot, parentHash [32]byte, pubkey [48]byte) (*ethpb.SignedBuilderBid, error)

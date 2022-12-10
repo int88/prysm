@@ -21,6 +21,7 @@ import (
 var ErrNoBuilder = errors.New("builder endpoint not configured")
 
 // BlockBuilder defines the interface for interacting with the block builder
+// BlockBuilder定义了接口用于和block builder进行交互
 type BlockBuilder interface {
 	SubmitBlindedBlock(ctx context.Context, block *ethpb.SignedBlindedBeaconBlockBellatrix) (*v1.ExecutionPayload, error)
 	GetHeader(ctx context.Context, slot types.Slot, parentHash [32]byte, pubKey [48]byte) (*ethpb.SignedBuilderBid, error)
@@ -29,6 +30,7 @@ type BlockBuilder interface {
 }
 
 // config defines a config struct for dependencies into the service.
+// config定义了一个config结构，用于service中的依赖
 type config struct {
 	builderClient builder.BuilderClient
 	beaconDB      db.HeadAccessDatabase
@@ -36,6 +38,7 @@ type config struct {
 }
 
 // Service defines a service that provides a client for interacting with the beacon chain and MEV relay network.
+// Service定义了一个service，提供了一个client用于和beacon chain以及MEV relay network进行交互
 type Service struct {
 	cfg    *config
 	c      builder.BuilderClient
@@ -57,6 +60,7 @@ func NewService(ctx context.Context, opts ...Option) (*Service, error) {
 		}
 	}
 	if s.cfg.builderClient != nil && !reflect.ValueOf(s.cfg.builderClient).IsNil() {
+		// 构建builderClient
 		s.c = s.cfg.builderClient
 
 		// Is the builder up?
@@ -149,6 +153,7 @@ func (s *Service) RegisterValidator(ctx context.Context, reg []*ethpb.SignedVali
 }
 
 // Configured returns true if the user has configured a builder client.
+// Configured返回true，如果user已经配置了一个builder client
 func (s *Service) Configured() bool {
 	return s.c != nil && !reflect.ValueOf(s.c).IsNil()
 }

@@ -135,6 +135,9 @@ func (c *headerCache) HeaderInfoByHeight(height *big.Int) (bool, *types.HeaderIn
 // size limit. This method should be called in sequential header number order if
 // the desired behavior is that the blocks with the highest header number should
 // be present in the cache.
+// AddHeader添加一个headerInfo对象到cache中，这个方法同时会修剪least recently添加的header info
+// 如果cache size已经到达了max cache size limit，这个方法应该以顺序的header number order
+// 被调用，如果期望的行为是有着最高的header number的blocks应该出现在cache中
 func (c *headerCache) AddHeader(hdr *types.HeaderInfo) error {
 	c.lock.Lock()
 	defer c.lock.Unlock()

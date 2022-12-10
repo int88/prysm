@@ -52,6 +52,7 @@ func (_ *State) replayBlocks(
 				break
 			}
 			// A node shouldn't process the block if the block slot is lower than the state slot.
+			// 一个node不应该处理block，如果block slot比state slot更小
 			if state.Slot() >= signed[i].Block().Slot() {
 				continue
 			}
@@ -63,6 +64,7 @@ func (_ *State) replayBlocks(
 	}
 
 	// If there are skip slots at the end.
+	// 如果最后有skip slots
 	if targetSlot > state.Slot() {
 		state, err = ReplayProcessSlots(ctx, state, targetSlot)
 		if err != nil {
@@ -135,6 +137,7 @@ func (s *State) loadBlocks(ctx context.Context, startSlot, endSlot types.Slot, e
 }
 
 // executeStateTransitionStateGen applies state transition on input historical state and block for state gen usages.
+// executeStateTransitionStateGen对输入的historical state应用state transition以及block用于state gen
 // There's no signature verification involved given state gen only works with stored block and state in DB.
 // If the objects are already in stored in DB, one can omit redundant signature checks and ssz hashing calculations.
 //
@@ -155,7 +158,9 @@ func executeStateTransitionStateGen(
 	var err error
 
 	// Execute per slots transition.
+	// 执行每个slots的transition
 	// Given this is for state gen, a node uses the version of process slots without skip slots cache.
+	// 考虑到这是为了state gen，一个node使用version of process slots，而没有跳过slots cache
 	state, err = ReplayProcessSlots(ctx, state, signed.Block().Slot())
 	if err != nil {
 		return nil, errors.Wrap(err, "could not process slot")
@@ -164,6 +169,8 @@ func executeStateTransitionStateGen(
 	// Execute per block transition.
 	// Given this is for state gen, a node only cares about the post state without proposer
 	// and randao signature verifications.
+	// 执行每个block的transition，给定这个用于state gen，一个节点只关心post state，没有proposer
+	// 以及randao signature verification
 	state, err = transition.ProcessBlockForStateRoot(ctx, state, signed)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not process block")
@@ -172,6 +179,7 @@ func executeStateTransitionStateGen(
 }
 
 // ReplayProcessSlots to process old slots for state gen usages.
+// ReplayProcessSlots用于处理old slots，用于state gen的使用
 // There's no skip slot cache involved given state gen only works with already stored block and state in DB.
 //
 // WARNING: This method should not be used for future slot.

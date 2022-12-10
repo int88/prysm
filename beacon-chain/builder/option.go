@@ -28,6 +28,7 @@ func FlagOptions(c *cli.Context) ([]Option, error) {
 }
 
 // WithBuilderClient sets the builder client for the beacon chain builder service.
+// WithBuilderClient为beacon chain builder service设置buidler client
 func WithBuilderClient(client builder.BuilderClient) Option {
 	return func(s *Service) error {
 		s.cfg.builderClient = client
@@ -44,6 +45,7 @@ func WithHeadFetcher(svc blockchain.HeadFetcher) Option {
 }
 
 // WithDatabase for head access.
+// WithDatabase用于head访问
 func WithDatabase(beaconDB db.HeadAccessDatabase) Option {
 	return func(s *Service) error {
 		s.cfg.beaconDB = beaconDB
