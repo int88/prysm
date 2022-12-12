@@ -151,6 +151,7 @@ func (s *Service) onBlock(ctx context.Context, signed interfaces.SignedBeaconBlo
 		return errors.Wrap(err, "could not validate new payload")
 	}
 	if isValidPayload {
+		// 如果payload是合法的
 		if err := s.validateMergeTransitionBlock(ctx, preStateVersion, preStateHeader, signed); err != nil {
 			return err
 		}
@@ -187,6 +188,8 @@ func (s *Service) onBlock(ctx context.Context, signed interfaces.SignedBeaconBlo
 	if features.Get().EnableSlasher {
 		// Feed the indexed attestation to slasher if enabled. This action
 		// is done in the background to avoid adding more load to this critical code path.
+		// 提供indexed attestation到slasher，如果它使能的话，这个动作在后台进行，来避免给关键路径
+		// 增加额外的负担
 		go func() {
 			// Using a different context to prevent timeouts as this operation can be expensive
 			// and we want to avoid affecting the critical code path.
@@ -212,11 +215,13 @@ func (s *Service) onBlock(ctx context.Context, signed interfaces.SignedBeaconBlo
 	justified := s.ForkChoicer().JustifiedCheckpoint()
 	balances, err := s.justifiedBalances.get(ctx, justified.Root)
 	if err != nil {
+		// 读取balance
 		msg := fmt.Sprintf("could not read balances for state w/ justified checkpoint %#x", justified.Root)
 		return errors.Wrap(err, msg)
 	}
 
 	start := time.Now()
+	// 更新head
 	headRoot, err := s.cfg.ForkChoiceStore.Head(ctx, balances)
 	if err != nil {
 		log.WithError(err).Warn("Could not update head")
@@ -254,6 +259,7 @@ func (s *Service) onBlock(ctx context.Context, signed interfaces.SignedBeaconBlo
 		slotCtx, cancel := context.WithTimeout(context.Background(), slotDeadline)
 		defer cancel()
 		if err := transition.UpdateNextSlotCache(slotCtx, blockRoot[:], postState); err != nil {
+			// 不能更新下一个
 			log.WithError(err).Debug("could not update next slot state cache")
 		}
 	}()
@@ -264,6 +270,7 @@ func (s *Service) onBlock(ctx context.Context, signed interfaces.SignedBeaconBlo
 	if justified.Epoch > currStoreJustifiedEpoch || (justified.Epoch == postStateJustifiedEpoch && justified.Epoch > preStateJustifiedEpoch) {
 		// 在db中保存justified checkpoint
 		if err := s.cfg.BeaconDB.SaveJustifiedCheckpoint(ctx, &ethpb.Checkpoint{
+			// 保存justified epoch
 			Epoch: justified.Epoch, Root: justified.Root[:],
 		}); err != nil {
 			return err
@@ -301,6 +308,7 @@ func (s *Service) onBlock(ctx context.Context, signed interfaces.SignedBeaconBlo
 			// with a custom deadline, therefore using the background context instead.
 			depCtx, cancel := context.WithTimeout(context.Background(), depositDeadline)
 			defer cancel()
+			// 不能插入finalized deposits
 			if err := s.insertFinalizedDeposits(depCtx, finalized.Root); err != nil {
 				log.WithError(err).Error("Could not insert finalized deposits.")
 			}
@@ -326,6 +334,7 @@ func getStateVersionAndPayload(st state.BeaconState) (int, interfaces.ExecutionD
 	switch preStateVersion {
 	case version.Phase0, version.Altair:
 	default:
+		// 获取最新的execution payload header，只在Phase0和Altair之后有效
 		preStateHeader, err = st.LatestExecutionPayloadHeader()
 		if err != nil {
 			return 0, nil, err
@@ -512,6 +521,7 @@ func (s *Service) handleEpochBoundary(ctx context.Context, postState state.Beaco
 
 	if postState.Slot()+1 == s.nextEpochBoundarySlot {
 		copied := postState.Copy()
+		// 对slot进行处理
 		copied, err := transition.ProcessSlots(ctx, copied, copied.Slot()+1)
 		if err != nil {
 			return err
@@ -533,6 +543,7 @@ func (s *Service) handleEpochBoundary(ctx context.Context, postState state.Beaco
 		}
 
 		var err error
+		// 获取下一个epoch boundary
 		s.nextEpochBoundarySlot, err = slots.EpochStart(coreTime.NextEpoch(postState))
 		if err != nil {
 			return err
@@ -540,6 +551,7 @@ func (s *Service) handleEpochBoundary(ctx context.Context, postState state.Beaco
 
 		// Update caches at epoch boundary slot.
 		// The following updates have short cut to return nil cheaply if fulfilled during boundary slot - 1.
+		// 更新epoch boundary slot的缓存，下面的更新有short cut去返回nil，如果在boundary slot - 1进行了填充
 		if err := helpers.UpdateCommitteeCache(ctx, postState, coreTime.CurrentEpoch(postState)); err != nil {
 			return err
 		}
@@ -553,11 +565,13 @@ func (s *Service) handleEpochBoundary(ctx context.Context, postState state.Beaco
 
 // This feeds in the block to fork choice store. It's allows fork choice store
 // to gain information on the most current chain.
+// 填入block到fork choice store，它允许fork choice store获取当前最新的chain的信息
 func (s *Service) insertBlockToForkchoiceStore(ctx context.Context, blk interfaces.BeaconBlock, root [32]byte, st state.BeaconState) error {
 	ctx, span := trace.StartSpan(ctx, "blockChain.insertBlockToForkchoiceStore")
 	defer span.End()
 
 	if !s.cfg.ForkChoiceStore.HasNode(blk.ParentRoot()) {
+		// 如果parent block在fork choice store中不存在
 		fCheckpoint := st.FinalizedCheckpoint()
 		jCheckpoint := st.CurrentJustifiedCheckpoint()
 		if err := s.fillInForkChoiceMissingBlocks(ctx, blk, fCheckpoint, jCheckpoint); err != nil {
@@ -565,6 +579,7 @@ func (s *Service) insertBlockToForkchoiceStore(ctx context.Context, blk interfac
 		}
 	}
 
+	// 直接插入node
 	if err := s.cfg.ForkChoiceStore.InsertNode(ctx, st, root); err != nil {
 		return err
 	}
@@ -574,21 +589,27 @@ func (s *Service) insertBlockToForkchoiceStore(ctx context.Context, blk interfac
 
 // This feeds in the attestations included in the block to fork choice store. It's allows fork choice store
 // to gain information on the most current chain.
+// 将block中包含的attestations填充到fork choice store，它允许fork choice store获取最近的chain的信息
 func (s *Service) handleBlockAttestations(ctx context.Context, blk interfaces.BeaconBlock, st state.BeaconState) error {
 	// Feed in block's attestations to fork choice store.
+	// 填充block的attestations到fork choice store
 	for _, a := range blk.Body().Attestations() {
+		// 基于attestation中的数据获取committee
 		committee, err := helpers.BeaconCommitteeFromState(ctx, st, a.Data.Slot, a.Data.CommitteeIndex)
 		if err != nil {
 			return err
 		}
+		// 基于aggregationBits和committee获取索引
 		indices, err := attestation.AttestingIndices(a.AggregationBits, committee)
 		if err != nil {
 			return err
 		}
 		r := bytesutil.ToBytes32(a.Data.BeaconBlockRoot)
 		if s.cfg.ForkChoiceStore.HasNode(r) {
+			// 如果block包含在fork choice store中的话，让fork choice处理attestations
 			s.cfg.ForkChoiceStore.ProcessAttestation(ctx, indices, r, a.Data.Target.Epoch)
 		} else if err := s.cfg.AttPool.SaveBlockAttestation(a); err != nil {
+			// 否则，插入block attestation到att pool
 			return err
 		}
 	}
@@ -604,6 +625,7 @@ func (s *Service) handleBlockBLSToExecChanges(blk interfaces.BeaconBlock) error 
 		return errors.Wrap(err, "could not get BLSToExecutionChanges")
 	}
 	for _, change := range changes {
+		// 将对应的BLSToExecutionChange标记为included
 		if err := s.cfg.BLSToExecPool.MarkIncluded(change); err != nil {
 			return errors.Wrap(err, "could not mark BLSToExecutionChange as included")
 		}
@@ -612,11 +634,14 @@ func (s *Service) handleBlockBLSToExecChanges(blk interfaces.BeaconBlock) error 
 }
 
 // InsertSlashingsToForkChoiceStore inserts attester slashing indices to fork choice store.
+// InsertSlashingsToForkChoiceStore插入attester slashing indices到fork choice store
 // To call this function, it's caller's responsibility to ensure the slashing object is valid.
+// 调用者要确保slashing对象是正确的
 func (s *Service) InsertSlashingsToForkChoiceStore(ctx context.Context, slashings []*ethpb.AttesterSlashing) {
 	for _, slashing := range slashings {
 		indices := blocks.SlashableAttesterIndices(slashing)
 		for _, index := range indices {
+			// 插入fork choice store
 			s.ForkChoicer().InsertSlashedIndex(ctx, types.ValidatorIndex(index))
 		}
 	}
@@ -624,6 +649,8 @@ func (s *Service) InsertSlashingsToForkChoiceStore(ctx context.Context, slashing
 
 // This saves post state info to DB or cache. This also saves post state info to fork choice store.
 // Post state info consists of processed block and state. Do not call this method unless the block and state are verified.
+// 保存post state到DB或者cache中，它同时保存post state info到fork choice store
+// post state由processed block和state组成，不要调用这个方法，除非block和state被校验
 func (s *Service) savePostStateInfo(ctx context.Context, r [32]byte, b interfaces.SignedBeaconBlock, st state.BeaconState) error {
 	ctx, span := trace.StartSpan(ctx, "blockChain.savePostStateInfo")
 	defer span.End()
@@ -638,6 +665,8 @@ func (s *Service) savePostStateInfo(ctx context.Context, r [32]byte, b interface
 
 // This removes the attestations from the mem pool. It will only remove the attestations if input root `r` is canonical,
 // meaning the block `b` is part of the canonical chain.
+// 将attestations从mem pool中移除，它只会移除attestations，如果输入的root `r`是canonical
+// 意味着block `b`是canonical chain的一部分
 func (s *Service) pruneCanonicalAttsFromPool(ctx context.Context, r [32]byte, b interfaces.SignedBeaconBlock) error {
 	canonical, err := s.IsCanonical(ctx, r)
 	if err != nil {
@@ -649,6 +678,7 @@ func (s *Service) pruneCanonicalAttsFromPool(ctx context.Context, r [32]byte, b 
 
 	atts := b.Block().Body().Attestations()
 	for _, att := range atts {
+		// 移除aggregated或者unaggregated attestations
 		if helpers.IsAggregated(att) {
 			if err := s.cfg.AttPool.DeleteAggregatedAttestation(att); err != nil {
 				return err

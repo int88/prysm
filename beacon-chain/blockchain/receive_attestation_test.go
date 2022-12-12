@@ -108,6 +108,7 @@ func TestProcessAttestations_Ok(t *testing.T) {
 	require.NoError(t, service.saveGenesisData(ctx, genesisState))
 	atts, err := util.GenerateAttestations(genesisState, pks, 1, 0, false)
 	require.NoError(t, err)
+	// 获取target root data
 	tRoot := bytesutil.ToBytes32(atts[0].Data.Target.Root)
 	copied := genesisState.Copy()
 	copied, err = transition.ProcessSlots(ctx, copied, 1)
@@ -115,10 +116,13 @@ func TestProcessAttestations_Ok(t *testing.T) {
 	require.NoError(t, service.cfg.BeaconDB.SaveState(ctx, copied, tRoot))
 	ofc := &ethpb.Checkpoint{Root: params.BeaconConfig().ZeroHash[:]}
 	ojc := &ethpb.Checkpoint{Root: params.BeaconConfig().ZeroHash[:]}
+	// 准备fork choice state
 	state, blkRoot, err := prepareForkchoiceState(ctx, 0, tRoot, tRoot, params.BeaconConfig().ZeroHash, ojc, ofc)
 	require.NoError(t, err)
 	require.NoError(t, service.cfg.ForkChoiceStore.InsertNode(ctx, state, blkRoot))
+	// 保存fork choice attestations
 	require.NoError(t, service.cfg.AttPool.SaveForkchoiceAttestations(atts))
+	// 处理attestations
 	service.processAttestations(ctx)
 	require.Equal(t, 0, len(service.cfg.AttPool.ForkchoiceAttestations()))
 	require.LogsDoNotContain(t, hook, "Could not process attestation for fork choice")
@@ -150,6 +154,7 @@ func TestNotifyEngineIfChangedHead(t *testing.T) {
 	}
 
 	// Block in Cache
+	// Block在Cache中
 	b := util.NewBeaconBlock()
 	b.Block.Slot = 2
 	wsb, err := blocks.NewSignedBeaconBlock(b)
@@ -164,12 +169,14 @@ func TestNotifyEngineIfChangedHead(t *testing.T) {
 		block: wsb,
 		state: st,
 	}
+	// 设置proposer以及payload ID
 	service.cfg.ProposerSlotIndexCache.SetProposerAndPayloadIDs(2, 1, [8]byte{1}, [32]byte{2})
 	require.NoError(t, service.notifyEngineIfChangedHead(ctx, r1))
 	require.LogsDoNotContain(t, hook, invalidStateErr)
 	require.LogsDoNotContain(t, hook, hookErr)
 
 	// Block in DB
+	// Block在DB中
 	b = util.NewBeaconBlock()
 	b.Block.Slot = 3
 	util.SaveBlock(t, ctx, service.cfg.BeaconDB, b)
@@ -186,12 +193,14 @@ func TestNotifyEngineIfChangedHead(t *testing.T) {
 	require.NoError(t, service.notifyEngineIfChangedHead(ctx, r1))
 	require.LogsDoNotContain(t, hook, invalidStateErr)
 	require.LogsDoNotContain(t, hook, hookErr)
+	// 获取proposer payload ID
 	vId, payloadID, has := service.cfg.ProposerSlotIndexCache.GetProposerPayloadIDs(2, [32]byte{2})
 	require.Equal(t, true, has)
 	require.Equal(t, types.ValidatorIndex(1), vId)
 	require.Equal(t, [8]byte{1}, payloadID)
 
 	// Test zero headRoot returns immediately.
+	// 测试zero headRoot立即返回
 	headRoot := service.headRoot()
 	require.NoError(t, service.notifyEngineIfChangedHead(ctx, [32]byte{}))
 	require.Equal(t, service.headRoot(), headRoot)
@@ -204,6 +213,7 @@ func TestService_ProcessAttestationsAndUpdateHead(t *testing.T) {
 	opts = append(opts,
 		WithAttestationPool(attestations.NewPool()),
 		WithStateNotifier(&mockBeaconNode{}),
+		// 初始化fork choice store
 		WithForkChoiceStore(fcs),
 	)
 
@@ -214,26 +224,32 @@ func TestService_ProcessAttestationsAndUpdateHead(t *testing.T) {
 	require.NoError(t, service.saveGenesisData(ctx, genesisState))
 	copied := genesisState.Copy()
 	// Generate a new block for attesters to attest
+	// 生成一个新的block，让attesters去证明
 	blk, err := util.GenerateFullBlock(copied, pks, util.DefaultBlockGenConfig(), 1)
 	require.NoError(t, err)
 	tRoot, err := blk.Block.HashTreeRoot()
 	require.NoError(t, err)
 	wsb, err := blocks.NewSignedBeaconBlock(blk)
 	require.NoError(t, err)
+	// 接收到block
 	require.NoError(t, service.onBlock(ctx, wsb, tRoot))
 	copied, err = service.cfg.StateGen.StateByRoot(ctx, tRoot)
 	require.NoError(t, err)
+	// fork choice store中有两个节点了
 	require.Equal(t, 2, fcs.NodeCount())
 	require.NoError(t, service.cfg.BeaconDB.SaveBlock(ctx, wsb))
 
 	// Generate attestations for this block in Slot 1
+	// 在slot 1，为这个block生成attestations
 	atts, err := util.GenerateAttestations(copied, pks, 1, 1, false)
 	require.NoError(t, err)
 	require.NoError(t, service.cfg.AttPool.SaveForkchoiceAttestations(atts))
 	// Verify the target is in forkchoice
+	// 校验target在forkchoice中
 	require.Equal(t, true, fcs.HasNode(bytesutil.ToBytes32(atts[0].Data.BeaconBlockRoot)))
 
 	// Insert a new block to forkchoice
+	// 插入一个新的block到forkchoice
 	ojc := &ethpb.Checkpoint{Epoch: 0, Root: params.BeaconConfig().ZeroHash[:]}
 	b, err := util.GenerateFullBlock(genesisState, pks, util.DefaultBlockGenConfig(), 2)
 	require.NoError(t, err)
@@ -244,12 +260,15 @@ func TestService_ProcessAttestationsAndUpdateHead(t *testing.T) {
 	state, blkRoot, err := prepareForkchoiceState(ctx, 2, r, service.originBlockRoot, [32]byte{'b'}, ojc, ojc)
 	require.NoError(t, err)
 	require.NoError(t, service.cfg.ForkChoiceStore.InsertNode(ctx, state, blkRoot))
+	// fork choice store中有3个节点
 	require.Equal(t, 3, fcs.NodeCount())
 	service.head.root = r // Old head
 
+	// UpdateHead之前，有1个attestations
 	require.Equal(t, 1, len(service.cfg.AttPool.ForkchoiceAttestations()))
 	require.NoError(t, err, service.UpdateHead(ctx))
 
+	// 校验pool是空的，校验head是新的，之前的block为root
 	require.Equal(t, 0, len(service.cfg.AttPool.ForkchoiceAttestations())) // Validate att pool is empty
 	require.Equal(t, tRoot, service.head.root)                             // Validate head is the new one
 }
@@ -271,6 +290,7 @@ func TestService_UpdateHead_NoAtts(t *testing.T) {
 	require.NoError(t, service.saveGenesisData(ctx, genesisState))
 	copied := genesisState.Copy()
 	// Generate a new block
+	// 生成一个新的block
 	blk, err := util.GenerateFullBlock(copied, pks, util.DefaultBlockGenConfig(), 1)
 	require.NoError(t, err)
 	tRoot, err := blk.Block.HashTreeRoot()
@@ -283,10 +303,12 @@ func TestService_UpdateHead_NoAtts(t *testing.T) {
 	require.Equal(t, tRoot, service.head.root)
 
 	// Insert a new block to forkchoice
+	// 插入一个新的block到forkchoice
 	ojc := &ethpb.Checkpoint{Epoch: 0, Root: params.BeaconConfig().ZeroHash[:]}
 	b, err := util.GenerateFullBlock(genesisState, pks, util.DefaultBlockGenConfig(), 2)
 	require.NoError(t, err)
 	b.Block.ParentRoot = service.originBlockRoot[:]
+	// 获取新的block的root，最后作为header
 	r, err := b.Block.HashTreeRoot()
 	require.NoError(t, err)
 	util.SaveBlock(t, ctx, service.cfg.BeaconDB, b)

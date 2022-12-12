@@ -46,6 +46,7 @@ func NewAttestation() *ethpb.Attestation {
 // requested to be cleanly divisible by committees per slot. If there is 1 committee
 // in the slot, and numToGen is set to 4, then it will return 4 attestations
 // for the same data with their aggregation bits split uniformly.
+// GenerateAttestations创建完全合法的attestations，对于当前state slot的所有的committees
 //
 // If you request 4 attestations, but there are 8 committees, you will get 4 fully aggregated attestations.
 func GenerateAttestations(
@@ -164,6 +165,7 @@ func GenerateAttestations(
 	if err != nil {
 		return nil, err
 	}
+	// 遍历各个committee
 	for c := types.CommitteeIndex(0); uint64(c) < committeesPerSlot && uint64(c) < numToGen; c++ {
 		committee, err := helpers.BeaconCommitteeFromState(context.Background(), bState, slot, c)
 		if err != nil {
@@ -188,6 +190,7 @@ func GenerateAttestations(
 
 		committeeSize := uint64(len(committee))
 		bitsPerAtt := committeeSize / uint64(attsPerCommittee)
+		// 遍历committee内的各个slots
 		for i := uint64(0); i < committeeSize; i += bitsPerAtt {
 			aggregationBits := bitfield.NewBitlist(committeeSize)
 			var sigs []bls.Signature
@@ -201,6 +204,7 @@ func GenerateAttestations(
 				continue
 			}
 
+			// 创建对应的attestation
 			att := &ethpb.Attestation{
 				Data:            attData,
 				AggregationBits: aggregationBits,

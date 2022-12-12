@@ -31,6 +31,7 @@ var _ ForkFetcher = (*Service)(nil)
 
 // prepareForkchoiceState prepares a beacon state with the given data to mock
 // insert into forkchoice
+// prepareForkchoiceState准备一个beacon state，用给定的data，来模拟forkchoice的插入
 func prepareForkchoiceState(
 	_ context.Context,
 	slot types.Slot,

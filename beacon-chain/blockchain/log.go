@@ -126,6 +126,7 @@ func logPayload(block interfaces.BeaconBlock) error {
 		"gasUtilized": fmt.Sprintf("%.2f", gasUtilized),
 	}
 	if block.Version() >= version.Capella {
+		// 大于等于Capella之后，对日志进行记录
 		withdrawals, err := payload.Withdrawals()
 		if err != nil {
 			return errors.Wrap(err, "could not get withdrawals")

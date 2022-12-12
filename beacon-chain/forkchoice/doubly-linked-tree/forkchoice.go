@@ -92,6 +92,7 @@ func (f *ForkChoice) Head(
 
 // ProcessAttestation processes attestation for vote accounting, it iterates around validator indices
 // and update their votes accordingly.
+// ProcessAttestation处理attestation，用于voting accouting，它遍历validator indices并且更新它们的votes
 func (f *ForkChoice) ProcessAttestation(ctx context.Context, validatorIndices []uint64, blockRoot [32]byte, targetEpoch types.Epoch) {
 	_, span := trace.StartSpan(ctx, "doublyLinkedForkchoice.ProcessAttestation")
 	defer span.End()
@@ -100,15 +101,18 @@ func (f *ForkChoice) ProcessAttestation(ctx context.Context, validatorIndices []
 
 	for _, index := range validatorIndices {
 		// Validator indices will grow the vote cache.
+		// Validator indices会增长vote cache
 		for index >= uint64(len(f.votes)) {
 			f.votes = append(f.votes, Vote{currentRoot: params.BeaconConfig().ZeroHash, nextRoot: params.BeaconConfig().ZeroHash})
 		}
 
 		// Newly allocated vote if the root fields are untouched.
+		// 新分配vote，如果root字段未被触及
 		newVote := f.votes[index].nextRoot == params.BeaconConfig().ZeroHash &&
 			f.votes[index].currentRoot == params.BeaconConfig().ZeroHash
 
 		// Vote gets updated if it's newly allocated or high target epoch.
+		// Vote被更新，如果这是新分配的或者是搞target epoch
 		if newVote || targetEpoch > f.votes[index].nextEpoch {
 			f.votes[index].nextEpoch = targetEpoch
 			f.votes[index].nextRoot = blockRoot
@@ -119,6 +123,7 @@ func (f *ForkChoice) ProcessAttestation(ctx context.Context, validatorIndices []
 }
 
 // InsertNode processes a new block by inserting it to the fork choice store.
+// InsertNode处理一个新的block，通过将它插入到fork choice store
 func (f *ForkChoice) InsertNode(ctx context.Context, state state.BeaconState, root [32]byte) error {
 	ctx, span := trace.StartSpan(ctx, "doublyLinkedForkchoice.InsertNode")
 	defer span.End()
@@ -239,6 +244,7 @@ func (f *ForkChoice) HasParent(root [32]byte) bool {
 }
 
 // IsCanonical returns true if the given root is part of the canonical chain.
+// IsCanonical返回true，如果给定的root是canonical chain的一部分
 func (f *ForkChoice) IsCanonical(root [32]byte) bool {
 	f.store.nodesLock.RLock()
 	defer f.store.nodesLock.RUnlock()

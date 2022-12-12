@@ -69,6 +69,7 @@ func (c *ProposerIndicesCache) AddProposerIndices(p *ProposerIndices) error {
 func (c *ProposerIndicesCache) HasProposerIndices(r [32]byte) (bool, error) {
 	c.lock.RLock()
 	defer c.lock.RUnlock()
+	// 获取proposer indices
 	_, exists, err := c.proposerIndicesCache.GetByKey(key(r))
 	if err != nil {
 		return false, err

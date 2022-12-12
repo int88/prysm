@@ -67,18 +67,21 @@ func ExecuteStateTransitionNoVerifyAnySig(
 	}
 
 	// Execute per block transition.
+	// 执行每个block的transition
 	set, st, err := ProcessBlockNoVerifyAnySig(ctx, st, signed)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "could not process block")
 	}
 
 	// State root validation.
+	// 对state root进行校验
 	postStateRoot, err := st.HashTreeRoot(ctx)
 	if err != nil {
 		return nil, nil, err
 	}
 	stateRoot := signed.Block().StateRoot()
 	if !bytes.Equal(postStateRoot[:], stateRoot[:]) {
+		// 不能校验state root
 		return nil, nil, fmt.Errorf("could not validate state root, wanted: %#x, received: %#x",
 			postStateRoot[:], signed.Block().StateRoot())
 	}

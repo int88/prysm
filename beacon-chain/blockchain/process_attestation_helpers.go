@@ -18,6 +18,7 @@ import (
 )
 
 // getAttPreState retrieves the att pre state by either from the cache or the DB.
+// getAttPreState获取attr的pre state，从cache或者DB中
 func (s *Service) getAttPreState(ctx context.Context, c *ethpb.Checkpoint) (state.BeaconState, error) {
 	// Use a multilock to allow scoped holding of a mutex by a checkpoint root + epoch
 	// allowing us to behave smarter in terms of how this function is used concurrently.
@@ -59,6 +60,7 @@ func (s *Service) getAttPreState(ctx context.Context, c *ethpb.Checkpoint) (stat
 }
 
 // verifyAttTargetEpoch validates attestation is from the current or previous epoch.
+// verifyAttTargetEpoch校验attestation来自当前的或者之前的epoch
 func verifyAttTargetEpoch(_ context.Context, genesisTime, nowTime uint64, c *ethpb.Checkpoint) error {
 	currentSlot := types.Slot((nowTime - genesisTime) / params.BeaconConfig().SecondsPerSlot)
 	currentEpoch := slots.ToEpoch(currentSlot)
@@ -74,6 +76,7 @@ func verifyAttTargetEpoch(_ context.Context, genesisTime, nowTime uint64, c *eth
 }
 
 // verifyBeaconBlock verifies beacon head block is known and not from the future.
+// verifyBeaconBlock校验beacon head block是已知的并且不是来自未来
 func (s *Service) verifyBeaconBlock(ctx context.Context, data *ethpb.AttestationData) error {
 	r := bytesutil.ToBytes32(data.BeaconBlockRoot)
 	b, err := s.getBlock(ctx, r)
@@ -84,6 +87,7 @@ func (s *Service) verifyBeaconBlock(ctx context.Context, data *ethpb.Attestation
 		return err
 	}
 	if b.Block().Slot() > data.Slot {
+		// 不能处理针对未来block的attestation
 		return fmt.Errorf("could not process attestation for future block, block.Slot=%d > attestation.Data.Slot=%d", b.Block().Slot(), data.Slot)
 	}
 	return nil

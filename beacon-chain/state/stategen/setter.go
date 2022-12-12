@@ -100,6 +100,8 @@ func (s *State) saveStateByRoot(ctx context.Context, blockRoot [32]byte, st stat
 
 // EnableSaveHotStateToDB enters the mode that saves hot beacon state to the DB.
 // This usually gets triggered when there's long duration since finality.
+// EnableSaveHotStateToDB进入一种模式，保存hot beacon state到DB中，它通常在finality
+// 经过了很久之后触发
 func (s *State) EnableSaveHotStateToDB(_ context.Context) {
 	s.saveHotStateDB.lock.Lock()
 	defer s.saveHotStateDB.lock.Unlock()
@@ -130,6 +132,7 @@ func (s *State) DisableSaveHotStateToDB(ctx context.Context) error {
 	}).Warn("Exiting mode to save hot states in DB")
 
 	// Delete previous saved states in DB as we are turning this mode off.
+	// 删除之前DB中保存的states，因为我们正在关闭这个模式
 	s.saveHotStateDB.enabled = false
 	if err := s.beaconDB.DeleteStates(ctx, s.saveHotStateDB.blockRootsOfSavedStates); err != nil {
 		return err

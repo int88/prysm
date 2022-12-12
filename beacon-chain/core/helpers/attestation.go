@@ -39,6 +39,7 @@ func ValidateNilAttestation(attestation *ethpb.Attestation) error {
 
 // ValidateSlotTargetEpoch checks if attestation data's epoch matches target checkpoint's epoch.
 // It is recommended to run `ValidateNilAttestation` first to ensure `data.Target` can't be nil.
+// ValidateSlotTargetEpoch检查，是否attestation data的epoch和target checkpoint的epoch匹配
 func ValidateSlotTargetEpoch(data *ethpb.AttestationData) error {
 	if slots.ToEpoch(data.Slot) != data.Target.Epoch {
 		return fmt.Errorf("slot %d does not match target epoch %d", data.Slot, data.Target.Epoch)

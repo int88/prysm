@@ -48,6 +48,7 @@ type BlockProcessor interface {
 }
 
 // AttestationProcessor processes the attestation that's used for accounting fork choice.
+// AttestationProcessor处理attestation，用于fork choice统计
 type AttestationProcessor interface {
 	ProcessAttestation(context.Context, []uint64, [32]byte, types.Epoch)
 	InsertSlashedIndex(context.Context, types.ValidatorIndex)

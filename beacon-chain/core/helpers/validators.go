@@ -82,11 +82,12 @@ func checkValidatorSlashable(activationEpoch, withdrawableEpoch types.Epoch, sla
 //
 // Spec pseudocode definition:
 //
-//	def get_active_validator_indices(state: BeaconState, epoch: Epoch) -> Sequence[ValidatorIndex]:
-//	  """
-//	  Return the sequence of active validator indices at ``epoch``.
-//	  """
-//	  return [ValidatorIndex(i) for i, v in enumerate(state.validators) if is_active_validator(v, epoch)]
+//		def get_active_validator_indices(state: BeaconState, epoch: Epoch) -> Sequence[ValidatorIndex]:
+//		  """
+//		  Return the sequence of active validator indices at ``epoch``.
+//	      返回在``epoch``的active validator indices的序列
+//		  """
+//		  return [ValidatorIndex(i) for i, v in enumerate(state.validators) if is_active_validator(v, epoch)]
 func ActiveValidatorIndices(ctx context.Context, s state.ReadOnlyBeaconState, epoch types.Epoch) ([]types.ValidatorIndex, error) {
 	seed, err := Seed(s, epoch, params.BeaconConfig().DomainBeaconAttester)
 	if err != nil {

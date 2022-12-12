@@ -255,13 +255,16 @@ func (s *Service) CurrentFork() *ethpb.Fork {
 }
 
 // IsCanonical returns true if the input block root is part of the canonical chain.
+// IsCanonical返回true，如果输入的block是canonical chain的一部分
 func (s *Service) IsCanonical(ctx context.Context, blockRoot [32]byte) (bool, error) {
 	// If the block has not been finalized, check fork choice store to see if the block is canonical
+	// 如果block没有被finalized，检查fork choice store，看看block是不是canonical
 	if s.cfg.ForkChoiceStore.HasNode(blockRoot) {
 		return s.cfg.ForkChoiceStore.IsCanonical(blockRoot), nil
 	}
 
 	// If the block has been finalized, the block will always be part of the canonical chain.
+	// 如果block已经finalized，block会是canonical chain的一部分
 	return s.cfg.BeaconDB.IsFinalizedBlock(ctx, blockRoot), nil
 }
 

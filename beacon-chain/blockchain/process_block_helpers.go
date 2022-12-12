@@ -37,6 +37,7 @@ func (s *Service) getBlockPreState(ctx context.Context, b interfaces.BeaconBlock
 	defer span.End()
 
 	// Verify incoming block has a valid pre state.
+	// 校验incoming block有一个合法的pre state
 	if err := s.verifyBlkPreState(ctx, b); err != nil {
 		return nil, err
 	}
@@ -143,11 +144,14 @@ func (s *Service) verifyBlkFinalizedSlot(b interfaces.BeaconBlock) error {
 // updateFinalized saves the init sync blocks, finalized checkpoint, migrates
 // to cold old states and saves the last validated checkpoint to DB. It returns
 // early if the new checkpoint is older than the one on db.
+// updateFinalized保存init sync blocks，finalized checkpoint，迁移cold old state并且保存
+// last validated checkpoint到DB，它会立即返回，如果新的checkpoint比db中的更老
 func (s *Service) updateFinalized(ctx context.Context, cp *ethpb.Checkpoint) error {
 	ctx, span := trace.StartSpan(ctx, "blockChain.updateFinalized")
 	defer span.End()
 
 	// return early if new checkpoint is not newer than the one in DB
+	// 立即返回，如果新的checkpoint没有比DB中的更新
 	currentFinalized, err := s.cfg.BeaconDB.FinalizedCheckpoint(ctx)
 	if err != nil {
 		return err
@@ -158,11 +162,13 @@ func (s *Service) updateFinalized(ctx context.Context, cp *ethpb.Checkpoint) err
 
 	// Blocks need to be saved so that we can retrieve finalized block from
 	// DB when migrating states.
+	// blocks需要被保存，这样我们可以从DB中获取finalized block，当迁移states的时候
 	if err := s.cfg.BeaconDB.SaveBlocks(ctx, s.getInitSyncBlocks()); err != nil {
 		return err
 	}
 	s.clearInitSyncBlocks()
 
+	// 保存finalized checkpoint
 	if err := s.cfg.BeaconDB.SaveFinalizedCheckpoint(ctx, cp); err != nil {
 		return err
 	}
@@ -258,11 +264,14 @@ func (s *Service) ancestorByDB(ctx context.Context, r [32]byte, slot types.Slot)
 
 // This retrieves missing blocks from DB (ie. the blocks that couldn't be received over sync) and inserts them to fork choice store.
 // This is useful for block tree visualizer and additional vote accounting.
+// 从DB中获取missing blocks（例如，不能通过sync获取的blocks），并且插入到fork choice store
+// 这对于block tree的可视化以及额外的vote accounting有用
 func (s *Service) fillInForkChoiceMissingBlocks(ctx context.Context, blk interfaces.BeaconBlock,
 	fCheckpoint, jCheckpoint *ethpb.Checkpoint) error {
 	pendingNodes := make([]*forkchoicetypes.BlockAndCheckpoints, 0)
 
 	// Fork choice only matters from last finalized slot.
+	// Fork choice只关心最新的finalized slot
 	finalized := s.ForkChoicer().FinalizedCheckpoint()
 	fSlot, err := slots.EpochStart(finalized.Epoch)
 	if err != nil {
@@ -271,6 +280,7 @@ func (s *Service) fillInForkChoiceMissingBlocks(ctx context.Context, blk interfa
 	pendingNodes = append(pendingNodes, &forkchoicetypes.BlockAndCheckpoints{Block: blk,
 		JustifiedCheckpoint: jCheckpoint, FinalizedCheckpoint: fCheckpoint})
 	// As long as parent node is not in fork choice store, and parent node is in DB.
+	// 只要parent node不在fork choice store并且parent node在DB中
 	root := blk.ParentRoot()
 	for !s.cfg.ForkChoiceStore.HasNode(root) && s.cfg.BeaconDB.HasBlock(ctx, root) {
 		b, err := s.getBlock(ctx, root)

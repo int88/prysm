@@ -19,6 +19,7 @@ import (
 )
 
 // ConvertToIndexed converts attestation to (almost) indexed-verifiable form.
+// ConvertToIndexed将attestations转换为索引可验证的模式
 //
 // Note about spec pseudocode definition. The state was used by get_attesting_indices to determine
 // the attestation committee. Now that we provide this as an argument, we no longer need to provide

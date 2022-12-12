@@ -247,6 +247,7 @@ func (s *Service) headSlot() types.Slot {
 }
 
 // This returns the head root.
+// 返回head root，对head root做一个全拷贝，为了不变性
 // It does a full copy on head root for immutability.
 // This is a lock free version.
 func (s *Service) headRoot() [32]byte {

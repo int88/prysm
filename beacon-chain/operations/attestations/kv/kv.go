@@ -23,15 +23,18 @@ var hashFn = hash.HashProto
 // AttCaches定义了缓存用于满足attestation pool接口，这些caches是键值对，用于各种attestations
 // 例如aggregated, unaggregated或者一个block内的attestations
 type AttCaches struct {
-	aggregatedAttLock  sync.RWMutex
+	aggregatedAttLock sync.RWMutex
+	// aggregated attestations
 	aggregatedAtt      map[[32]byte][]*ethpb.Attestation
 	unAggregateAttLock sync.RWMutex
-	unAggregatedAtt    map[[32]byte]*ethpb.Attestation
-	forkchoiceAttLock  sync.RWMutex
-	forkchoiceAtt      map[[32]byte]*ethpb.Attestation
-	blockAttLock       sync.RWMutex
-	blockAtt           map[[32]byte][]*ethpb.Attestation
-	seenAtt            *cache.Cache
+	// unaggregated attestations
+	unAggregatedAtt   map[[32]byte]*ethpb.Attestation
+	forkchoiceAttLock sync.RWMutex
+	// forkchoice attestations
+	forkchoiceAtt map[[32]byte]*ethpb.Attestation
+	blockAttLock  sync.RWMutex
+	blockAtt      map[[32]byte][]*ethpb.Attestation
+	seenAtt       *cache.Cache
 }
 
 // NewAttCaches initializes a new attestation pool consists of multiple KV store in cache for

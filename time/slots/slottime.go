@@ -179,10 +179,12 @@ func CurrentSlot(genesisTimeSec uint64) types.Slot {
 // ValidateClock validates a provided slot against the local
 // clock to ensure slots that are unreasonable are returned with
 // an error.
+// ValidateClock校验提供的slot，对于local clock是非法的会返回一个error
 func ValidateClock(slot types.Slot, genesisTimeSec uint64) error {
 	maxPossibleSlot := CurrentSlot(genesisTimeSec).Add(MaxSlotBuffer)
 	// Defensive check to ensure that we only process slots up to a hard limit
 	// from our local clock.
+	// 防御性检查，确保我们只处理对于我们的local clock在hard limit之内的slots
 	if slot > maxPossibleSlot {
 		return fmt.Errorf("slot %d > %d which exceeds max allowed value relative to the local clock", slot, maxPossibleSlot)
 	}

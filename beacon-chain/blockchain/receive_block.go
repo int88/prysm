@@ -16,6 +16,7 @@ import (
 )
 
 // This defines how many epochs since finality the run time will begin to save hot state on to the DB.
+// 定义了finality多少个epochs以来，runtime会开始保存hot state到DB中
 var epochsSinceFinalitySaveHotStateDB = types.Epoch(100)
 
 // BlockReceiver interface defines the methods of chain service for receiving and processing new blocks.

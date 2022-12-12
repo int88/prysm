@@ -28,24 +28,29 @@ import (
 )
 
 // ExecuteStateTransition defines the procedure for a state transition function.
+// ExecuteStateTransition定义了状态转换的函数
 //
 // Note: This method differs from the spec pseudocode as it uses a batch signature verification.
 // See: ExecuteStateTransitionNoVerifyAnySig
 //
 // Spec pseudocode definition:
 //
-//	def state_transition(state: BeaconState, signed_block: SignedBeaconBlock, validate_result: bool=True) -> None:
-//	  block = signed_block.message
-//	  # Process slots (including those with no blocks) since block
-//	  process_slots(state, block.slot)
-//	  # Verify signature
-//	  if validate_result:
-//	      assert verify_block_signature(state, signed_block)
-//	  # Process block
-//	  process_block(state, block)
-//	  # Verify state root
-//	  if validate_result:
-//	      assert block.state_root == hash_tree_root(state)
+//					def state_transition(state: BeaconState, signed_block: SignedBeaconBlock, validate_result: bool=True) -> None:
+//					  block = signed_block.message
+//					  # Process slots (including those with no blocks) since block
+//				   # 处理slots
+//					  process_slots(state, block.slot)
+//					  # Verify signature
+//			       # 校验signature
+//					  if validate_result:
+//					      assert verify_block_signature(state, signed_block)
+//					  # Process block
+//		           # 处理block
+//					  process_block(state, block)
+//					  # Verify state root
+//	               # 校验state root
+//					  if validate_result:
+//					      assert block.state_root == hash_tree_root(state)
 func ExecuteStateTransition(
 	ctx context.Context,
 	state state.BeaconState,
@@ -62,6 +67,7 @@ func ExecuteStateTransition(
 	defer span.End()
 	var err error
 
+	// 获取poststate
 	set, postState, err := ExecuteStateTransitionNoVerifyAnySig(ctx, state, signed)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not execute state transition")
@@ -181,6 +187,7 @@ func ProcessSlotsIfPossible(ctx context.Context, state state.BeaconState, target
 }
 
 // ProcessSlots process through skip slots and apply epoch transition when it's needed
+// ProcessSlots处理skip slots并且应用epoch transition，当需要的话
 //
 // Spec pseudocode definition:
 //

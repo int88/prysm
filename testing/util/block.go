@@ -28,6 +28,7 @@ import (
 
 // BlockGenConfig is used to define the requested conditions
 // for block generation.
+// BlockGenConfig用于定义block generation的requested conditions
 type BlockGenConfig struct {
 	NumProposerSlashings uint64
 	NumAttesterSlashings uint64
@@ -40,6 +41,7 @@ type BlockGenConfig struct {
 
 // DefaultBlockGenConfig returns the block config that utilizes the
 // current params in the beacon config.
+// DefaultBlockGenConfig返回block config，在beacon config使用当前的参数
 func DefaultBlockGenConfig() *BlockGenConfig {
 	return &BlockGenConfig{
 		NumProposerSlashings: 0,

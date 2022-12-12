@@ -33,17 +33,19 @@ var (
 // from the spec definition. Having the active validator count as an argument allows for
 // cheaper computation, instead of retrieving head state, one can retrieve the validator
 // count.
+// SlotCommitteeCount返回一个slot的beacon committees的数目
 //
 // Spec pseudocode definition:
 //
-//	def get_committee_count_per_slot(state: BeaconState, epoch: Epoch) -> uint64:
-//	 """
-//	 Return the number of committees in each slot for the given ``epoch``.
-//	 """
-//	 return max(uint64(1), min(
-//	     MAX_COMMITTEES_PER_SLOT,
-//	     uint64(len(get_active_validator_indices(state, epoch))) // SLOTS_PER_EPOCH // TARGET_COMMITTEE_SIZE,
-//	 ))
+//		def get_committee_count_per_slot(state: BeaconState, epoch: Epoch) -> uint64:
+//		 """
+//		 Return the number of committees in each slot for the given ``epoch``.
+//	     返回对于给定``epoch``的每个slot的committees的数目
+//		 """
+//		 return max(uint64(1), min(
+//		     MAX_COMMITTEES_PER_SLOT,
+//		     uint64(len(get_active_validator_indices(state, epoch))) // SLOTS_PER_EPOCH // TARGET_COMMITTEE_SIZE,
+//		 ))
 func SlotCommitteeCount(activeValidatorCount uint64) uint64 {
 	var committeesPerSlot = activeValidatorCount / uint64(params.BeaconConfig().SlotsPerEpoch) / params.BeaconConfig().TargetCommitteeSize
 
@@ -60,21 +62,24 @@ func SlotCommitteeCount(activeValidatorCount uint64) uint64 {
 // BeaconCommitteeFromState returns the crosslink committee of a given slot and committee index. This
 // is a spec implementation where state is used as an argument. In case of state retrieval
 // becomes expensive, consider using BeaconCommittee below.
+// BeaconCommitteeFromState返回一个给定slot的crosslink committee以及committee index，这是一个spec的实现
+// 其中state作为一个参数，为了防止state retreival变得昂贵，考虑使用下面的BeaconCommittee
 //
 // Spec pseudocode definition:
 //
-//	def get_beacon_committee(state: BeaconState, slot: Slot, index: CommitteeIndex) -> Sequence[ValidatorIndex]:
-//	 """
-//	 Return the beacon committee at ``slot`` for ``index``.
-//	 """
-//	 epoch = compute_epoch_at_slot(slot)
-//	 committees_per_slot = get_committee_count_per_slot(state, epoch)
-//	 return compute_committee(
-//	     indices=get_active_validator_indices(state, epoch),
-//	     seed=get_seed(state, epoch, DOMAIN_BEACON_ATTESTER),
-//	     index=(slot % SLOTS_PER_EPOCH) * committees_per_slot + index,
-//	     count=committees_per_slot * SLOTS_PER_EPOCH,
-//	 )
+//		def get_beacon_committee(state: BeaconState, slot: Slot, index: CommitteeIndex) -> Sequence[ValidatorIndex]:
+//		 """
+//		 Return the beacon committee at ``slot`` for ``index``.
+//	  返回在``slot``的索引为``index``的beacon committee
+//		 """
+//		 epoch = compute_epoch_at_slot(slot)
+//		 committees_per_slot = get_committee_count_per_slot(state, epoch)
+//		 return compute_committee(
+//		     indices=get_active_validator_indices(state, epoch),
+//		     seed=get_seed(state, epoch, DOMAIN_BEACON_ATTESTER),
+//		     index=(slot % SLOTS_PER_EPOCH) * committees_per_slot + index,
+//		     count=committees_per_slot * SLOTS_PER_EPOCH,
+//		 )
 func BeaconCommitteeFromState(ctx context.Context, state state.ReadOnlyBeaconState, slot types.Slot, committeeIndex types.CommitteeIndex) ([]types.ValidatorIndex, error) {
 	epoch := slots.ToEpoch(slot)
 	seed, err := Seed(state, epoch, params.BeaconConfig().DomainBeaconAttester)
@@ -84,6 +89,7 @@ func BeaconCommitteeFromState(ctx context.Context, state state.ReadOnlyBeaconSta
 
 	committee, err := committeeCache.Committee(ctx, slot, seed, committeeIndex)
 	if err != nil {
+		// 先从cache获取committee，有则直接返回
 		return nil, errors.Wrap(err, "could not interface with committee cache")
 	}
 	if committee != nil {
@@ -92,6 +98,7 @@ func BeaconCommitteeFromState(ctx context.Context, state state.ReadOnlyBeaconSta
 
 	activeIndices, err := ActiveValidatorIndices(ctx, state, epoch)
 	if err != nil {
+		// 不能获取active indices
 		return nil, errors.Wrap(err, "could not get active indices")
 	}
 
@@ -101,6 +108,7 @@ func BeaconCommitteeFromState(ctx context.Context, state state.ReadOnlyBeaconSta
 // BeaconCommittee returns the beacon committee of a given slot and committee index. The
 // validator indices and seed are provided as an argument rather than an imported implementation
 // from the spec definition. Having them as an argument allows for cheaper computation run time.
+// BeaconCommittee返回一个给定的slot以及committee index的beacon committee
 //
 // Spec pseudocode definition:
 //
@@ -291,6 +299,7 @@ func ShuffledIndices(s state.ReadOnlyBeaconState, epoch types.Epoch) ([]types.Va
 // UpdateCommitteeCache在每个epoch的开始被调用，用来缓存committee shuffled indices list，有着committee index以及epoch number
 // 它为当前的epoch以及下一个epoch缓存shuffled indices
 func UpdateCommitteeCache(ctx context.Context, state state.ReadOnlyBeaconState, epoch types.Epoch) error {
+	// 更新当前epoch和下一个epoch
 	for _, e := range []types.Epoch{epoch, epoch + 1} {
 		seed, err := Seed(state, e, params.BeaconConfig().DomainBeaconAttester)
 		if err != nil {
@@ -369,6 +378,7 @@ func UpdateProposerIndicesInCache(ctx context.Context, state state.ReadOnlyBeaco
 		return nil
 	}
 
+	// 获取active validator的索引
 	indices, err := ActiveValidatorIndices(ctx, state, time.CurrentEpoch(state))
 	if err != nil {
 		return err

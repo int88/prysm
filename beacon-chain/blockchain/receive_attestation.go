@@ -21,11 +21,13 @@ import (
 
 // AttestationStateFetcher allows for retrieving a beacon state corresponding to the block
 // root of an attestation's target checkpoint.
+// AttestationStateFetcher允许获取一个beacon state，对应到一个attestation的target checkpoint
 type AttestationStateFetcher interface {
 	AttestationTargetState(ctx context.Context, target *ethpb.Checkpoint) (state.BeaconState, error)
 }
 
 // AttestationReceiver interface defines the methods of chain service receive and processing new attestations.
+// AttestationReceiver接口定义了chain service的方法用于接收以及处理新的attestations
 type AttestationReceiver interface {
 	AttestationStateFetcher
 	VerifyLmdFfgConsistency(ctx context.Context, att *ethpb.Attestation) error
@@ -33,6 +35,7 @@ type AttestationReceiver interface {
 }
 
 // AttestationTargetState returns the pre state of attestation.
+// AttestationTargetState返回attestation的pre state
 func (s *Service) AttestationTargetState(ctx context.Context, target *ethpb.Checkpoint) (state.BeaconState, error) {
 	ss, err := slots.EpochStart(target.Epoch)
 	if err != nil {
@@ -233,6 +236,7 @@ func (s *Service) notifyEngineIfChangedHead(ctx context.Context, newHeadRoot [32
 // 处理来自pool的fork choice attestations，来统计validator votes以及fork choice
 func (s *Service) processAttestations(ctx context.Context) {
 	atts := s.cfg.AttPool.ForkchoiceAttestations()
+	// 遍历attestations
 	for _, a := range atts {
 		// Based on the spec, don't process the attestation until the subsequent slot.
 		// 基于spec，不要处理attestations，直到后续的slot
