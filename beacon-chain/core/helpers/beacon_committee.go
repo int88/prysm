@@ -133,6 +133,7 @@ func BeaconCommittee(
 ) ([]types.ValidatorIndex, error) {
 	committee, err := committeeCache.Committee(ctx, slot, seed, committeeIndex)
 	if err != nil {
+		// 不能和committee cache进行交互
 		return nil, errors.Wrap(err, "could not interface with committee cache")
 	}
 	if committee != nil {
@@ -405,6 +406,7 @@ func ClearCache() {
 
 // computeCommittee returns the requested shuffled committee out of the total committees using
 // validator indices and seed.
+// computeCommittee返回请求的shuffled committee，从所有的committees之中，使用validator indices以及seed
 //
 // Spec pseudocode definition:
 //
@@ -442,6 +444,7 @@ func computeCommittee(
 		return nil, err
 	}
 
+	// 从shuffledList中截取start到end
 	return shuffledList[start:end], nil
 }
 

@@ -270,6 +270,7 @@ func (s *Service) processAttestations(ctx context.Context) {
 				"beaconBlockRoot":  fmt.Sprintf("%#x", bytesutil.Trunc(a.Data.BeaconBlockRoot)),
 				"targetRoot":       fmt.Sprintf("%#x", bytesutil.Trunc(a.Data.Target.Root)),
 				"aggregationCount": a.AggregationBits.Count(),
+				// 不能处理attestation，对于fork choice
 			}).WithError(err).Warn("Could not process attestation for fork choice")
 		}
 	}

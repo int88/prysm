@@ -108,6 +108,7 @@ func (s *Service) PreviousJustifiedCheckpt() *ethpb.Checkpoint {
 }
 
 // CurrentJustifiedCheckpt returns the current justified checkpoint from chain store.
+// CurrentJustifiedCheckpt返回chain store中当前的justified checkpoint
 func (s *Service) CurrentJustifiedCheckpt() *ethpb.Checkpoint {
 	cp := s.ForkChoicer().JustifiedCheckpoint()
 	return &ethpb.Checkpoint{Epoch: cp.Epoch, Root: bytesutil.SafeCopyBytes(cp.Root[:])}
@@ -120,6 +121,7 @@ func (s *Service) BestJustifiedCheckpt() *ethpb.Checkpoint {
 }
 
 // HeadSlot returns the slot of the head of the chain.
+// HeadSlot返回head of the chain的slot
 func (s *Service) HeadSlot() types.Slot {
 	s.headLock.RLock()
 	defer s.headLock.RUnlock()
@@ -132,14 +134,17 @@ func (s *Service) HeadSlot() types.Slot {
 }
 
 // HeadRoot returns the root of the head of the chain.
+// HeadRoot返回head of the chain的root值
 func (s *Service) HeadRoot(ctx context.Context) ([]byte, error) {
 	s.headLock.RLock()
 	defer s.headLock.RUnlock()
 
 	if s.head != nil && s.head.root != params.BeaconConfig().ZeroHash {
+		// 如果s.head已经被设置
 		return bytesutil.SafeCopyBytes(s.head.root[:]), nil
 	}
 
+	// 获取head block
 	b, err := s.cfg.BeaconDB.HeadBlock(ctx)
 	if err != nil {
 		return nil, err
@@ -148,6 +153,7 @@ func (s *Service) HeadRoot(ctx context.Context) ([]byte, error) {
 		return params.BeaconConfig().ZeroHash[:], nil
 	}
 
+	// 获取head block的hash
 	r, err := b.Block().HashTreeRoot()
 	if err != nil {
 		return nil, err
@@ -230,6 +236,7 @@ func (s *Service) GenesisTime() time.Time {
 
 // GenesisValidatorsRoot returns the genesis validators
 // root of the chain.
+// GenesisValidatorsRoot返回chain的genesis validators root
 func (s *Service) GenesisValidatorsRoot() [32]byte {
 	s.headLock.RLock()
 	defer s.headLock.RUnlock()
@@ -241,6 +248,7 @@ func (s *Service) GenesisValidatorsRoot() [32]byte {
 }
 
 // CurrentFork retrieves the latest fork information of the beacon chain.
+// CurrentFork获取beacon chain最新的fork信息
 func (s *Service) CurrentFork() *ethpb.Fork {
 	s.headLock.RLock()
 	defer s.headLock.RUnlock()
@@ -270,6 +278,8 @@ func (s *Service) IsCanonical(ctx context.Context, blockRoot [32]byte) (bool, er
 
 // ChainHeads returns all possible chain heads (leaves of fork choice tree).
 // Heads roots and heads slots are returned.
+// ChainHeads返回所有可能的chain heads（fork choice tree的叶子）
+// Heads roots以及head slots返回
 func (s *Service) ChainHeads() ([][32]byte, []types.Slot) {
 	return s.cfg.ForkChoiceStore.Tips()
 }
@@ -325,6 +335,7 @@ func (s *Service) IsOptimistic(ctx context.Context) (bool, error) {
 	}
 	// If fockchoice does not have the headroot, then the node is considered
 	// optimistic
+	// 如果forkchoice没有head root，则node被认为是optimistic
 	return true, nil
 }
 
@@ -404,6 +415,7 @@ func (s *Service) SetGenesisTime(t time.Time) {
 }
 
 // ForkChoiceStore returns the fork choice store in the service.
+// ForkChoiceStore返回service中的fork choice store
 func (s *Service) ForkChoiceStore() forkchoice.ForkChoicer {
 	return s.cfg.ForkChoiceStore
 }

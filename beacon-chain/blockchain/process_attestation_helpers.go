@@ -34,11 +34,13 @@ func (s *Service) getAttPreState(ctx context.Context, c *ethpb.Checkpoint) (stat
 		return cachedState, nil
 	}
 
+	// 获取checkpoint root对应的state
 	baseState, err := s.cfg.StateGen.StateByRoot(ctx, bytesutil.ToBytes32(c.Root))
 	if err != nil {
 		return nil, errors.Wrapf(err, "could not get pre state for epoch %d", c.Epoch)
 	}
 
+	// 获取epoch的start slot
 	epochStartSlot, err := slots.EpochStart(c.Epoch)
 	if err != nil {
 		return nil, err
@@ -53,6 +55,7 @@ func (s *Service) getAttPreState(ctx context.Context, c *ethpb.Checkpoint) (stat
 	// the beacon node. An extra state instance cached isn't an issue in the bigger
 	// picture.
 	if err := s.checkpointStateCache.AddCheckpointState(c, baseState); err != nil {
+		// 不能保存checkpoint state到缓存中
 		return nil, errors.Wrap(err, "could not save checkpoint state to cache")
 	}
 	return baseState, nil
@@ -79,6 +82,7 @@ func verifyAttTargetEpoch(_ context.Context, genesisTime, nowTime uint64, c *eth
 // verifyBeaconBlock校验beacon head block是已知的并且不是来自未来
 func (s *Service) verifyBeaconBlock(ctx context.Context, data *ethpb.AttestationData) error {
 	r := bytesutil.ToBytes32(data.BeaconBlockRoot)
+	// 获取BeaconBlockRoot对应的block
 	b, err := s.getBlock(ctx, r)
 	if err != nil {
 		return err

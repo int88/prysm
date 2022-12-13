@@ -179,6 +179,8 @@ func ProcessSlotsUsingNextSlotCache(
 
 // ProcessSlotsIfPossible executes ProcessSlots on the input state when target slot is above the state's slot.
 // Otherwise, it returns the input state unchanged.
+// ProcessSlotsIfPossible在输入的state之上执行ProcessSlots，当target slot超过state的slot时
+// 否则，返回input state，不发生变更
 func ProcessSlotsIfPossible(ctx context.Context, state state.BeaconState, targetSlot types.Slot) (state.BeaconState, error) {
 	if targetSlot > state.Slot() {
 		return ProcessSlots(ctx, state, targetSlot)
@@ -191,14 +193,16 @@ func ProcessSlotsIfPossible(ctx context.Context, state state.BeaconState, target
 //
 // Spec pseudocode definition:
 //
-//	def process_slots(state: BeaconState, slot: Slot) -> None:
-//	  assert state.slot < slot
-//	  while state.slot < slot:
-//	      process_slot(state)
-//	      # Process epoch on the start slot of the next epoch
-//	      if (state.slot + 1) % SLOTS_PER_EPOCH == 0:
-//	          process_epoch(state)
-//	      state.slot = Slot(state.slot + 1)
+//			def process_slots(state: BeaconState, slot: Slot) -> None:
+//			  assert state.slot < slot
+//			  while state.slot < slot:
+//	           # 处理slot
+//			      process_slot(state)
+//			      # Process epoch on the start slot of the next epoch
+//		       # 在下一个epoch的start slot处理epoch
+//			      if (state.slot + 1) % SLOTS_PER_EPOCH == 0:
+//			          process_epoch(state)
+//			      state.slot = Slot(state.slot + 1)
 func ProcessSlots(ctx context.Context, state state.BeaconState, slot types.Slot) (state.BeaconState, error) {
 	ctx, span := trace.StartSpan(ctx, "core.state.ProcessSlots")
 	defer span.End()
@@ -208,6 +212,7 @@ func ProcessSlots(ctx context.Context, state state.BeaconState, slot types.Slot)
 	span.AddAttributes(trace.Int64Attribute("slots", int64(slot)-int64(state.Slot()))) // lint:ignore uintcast -- This is OK for tracing.
 
 	// The block must have a higher slot than parent state.
+	// block必须有比parent state更高的slot
 	if state.Slot() >= slot {
 		err := fmt.Errorf("expected state.slot %d < slot %d", state.Slot(), slot)
 		tracing.AnnotateError(span, err)
@@ -257,11 +262,13 @@ func ProcessSlots(ctx context.Context, state state.BeaconState, slot types.Slot)
 			}
 			return nil, ctx.Err()
 		}
+		// 处理slot
 		state, err = ProcessSlot(ctx, state)
 		if err != nil {
 			tracing.AnnotateError(span, err)
 			return nil, errors.Wrap(err, "could not process slot")
 		}
+		// 处理epoch
 		if time.CanProcessEpoch(state) {
 			switch state.Version() {
 			case version.Phase0:

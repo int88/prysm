@@ -298,6 +298,7 @@ func (s *Service) headValidatorIndexAtPubkey(pubKey [fieldparams.BLSPubkeyLength
 
 // Returns true if head state exists.
 // This is the lock free version.
+// 返回true，如果head state存在，这是一个lock free版本
 func (s *Service) hasHeadState() bool {
 	return s.head != nil && s.head.state != nil
 }

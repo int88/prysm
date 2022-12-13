@@ -69,12 +69,15 @@ func TestHeadRoot_Nil(t *testing.T) {
 	c := setupBeaconChain(t, beaconDB)
 	headRoot, err := c.HeadRoot(context.Background())
 	require.NoError(t, err)
+	// pre chain start value是错误的
 	assert.DeepEqual(t, params.BeaconConfig().ZeroHash[:], headRoot, "Incorrect pre chain start value")
 }
 
 func TestService_ForkChoiceStore(t *testing.T) {
 	c := &Service{cfg: &config{ForkChoiceStore: doublylinkedtree.New()}}
+	// 获取fork choice store
 	p := c.ForkChoiceStore()
+	// 初始的finalized checkpoint为0
 	require.Equal(t, types.Epoch(0), p.FinalizedCheckpoint().Epoch)
 }
 
@@ -91,12 +94,15 @@ func TestFinalizedCheckpt_GenesisRootOk(t *testing.T) {
 	require.NoError(t, err)
 
 	gs, _ := util.DeterministicGenesisState(t, 32)
+	// 保存genesis data
 	require.NoError(t, service.saveGenesisData(ctx, gs))
 	cp := service.FinalizedCheckpt()
+	// 一开始的finalized checkpoint和justified checkpoin的root都为空
 	assert.DeepEqual(t, [32]byte{}, bytesutil.ToBytes32(cp.Root))
 	cp = service.CurrentJustifiedCheckpt()
 	assert.DeepEqual(t, [32]byte{}, bytesutil.ToBytes32(cp.Root))
 	// check that forkchoice has the right genesis root as the node root
+	// 检查forkchoice有正确的genesis root，和node root一样
 	root, err := fcs.Head(ctx, []uint64{})
 	require.NoError(t, err)
 	require.Equal(t, service.originBlockRoot, root)
@@ -116,7 +122,9 @@ func TestCurrentJustifiedCheckpt_CanRetrieve(t *testing.T) {
 	require.NoError(t, err)
 
 	cp := &forkchoicetypes.Checkpoint{Epoch: 6, Root: [32]byte{'j'}}
+	// 更新justified checkpoint
 	require.NoError(t, fcs.UpdateJustifiedCheckpoint(cp))
+	// 获取当前的justified checkpoint
 	jp := service.CurrentJustifiedCheckpt()
 	assert.Equal(t, cp.Epoch, jp.Epoch, "Unexpected justified epoch")
 	require.Equal(t, cp.Root, bytesutil.ToBytes32(jp.Root))
@@ -167,6 +175,7 @@ func TestHeadRoot_UseDB(t *testing.T) {
 	require.NoError(t, err)
 	wsb, err := blocks.NewSignedBeaconBlock(b)
 	require.NoError(t, err)
+	// 直接将block保存到DB中
 	require.NoError(t, beaconDB.SaveBlock(ctx, wsb))
 	require.NoError(t, beaconDB.SaveStateSummary(ctx, &ethpb.StateSummary{Root: br[:]}))
 	require.NoError(t, beaconDB.SaveHeadBlockRoot(ctx, br))
@@ -189,6 +198,7 @@ func TestHeadBlock_CanRetrieve(t *testing.T) {
 	require.NoError(t, err)
 	pb, err := received.Proto()
 	require.NoError(t, err)
+	// 能获取到head block
 	assert.DeepEqual(t, b, pb, "Incorrect head block received")
 }
 
@@ -199,6 +209,7 @@ func TestHeadState_CanRetrieve(t *testing.T) {
 	c.head = &head{state: s}
 	headState, err := c.HeadState(context.Background())
 	require.NoError(t, err)
+	// 能获取到head state
 	assert.DeepEqual(t, headState.ToProtoUnsafe(), s.ToProtoUnsafe(), "Incorrect head state received")
 }
 
@@ -268,6 +279,7 @@ func TestIsCanonical_Ok(t *testing.T) {
 	root, err := blk.Block.HashTreeRoot()
 	require.NoError(t, err)
 	util.SaveBlock(t, ctx, beaconDB, blk)
+	// 保存genesis block root
 	require.NoError(t, beaconDB.SaveGenesisBlockRoot(ctx, root))
 	can, err := c.IsCanonical(ctx, root)
 	require.NoError(t, err)
@@ -334,6 +346,7 @@ func TestService_ChainHeads(t *testing.T) {
 	require.NoError(t, c.cfg.ForkChoiceStore.InsertNode(ctx, st, blkRoot))
 	st, blkRoot, err = prepareForkchoiceState(ctx, 104, [32]byte{'e'}, [32]byte{'b'}, params.BeaconConfig().ZeroHash, ojc, ofc)
 	require.NoError(t, err)
+	// 插入state和block
 	require.NoError(t, c.cfg.ForkChoiceStore.InsertNode(ctx, st, blkRoot))
 
 	roots, slots := c.ChainHeads()
@@ -560,6 +573,7 @@ func TestService_IsFinalized(t *testing.T) {
 	br, err := b.Block.HashTreeRoot()
 	require.NoError(t, err)
 	util.SaveBlock(t, ctx, beaconDB, b)
+	// 保存state summary，保存genesis block root以及finalized checkpoint
 	require.NoError(t, beaconDB.SaveStateSummary(ctx, &ethpb.StateSummary{Root: br[:], Slot: 10}))
 	require.NoError(t, beaconDB.SaveGenesisBlockRoot(ctx, br))
 	require.NoError(t, beaconDB.SaveFinalizedCheckpoint(ctx, &ethpb.Checkpoint{

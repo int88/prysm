@@ -123,7 +123,9 @@ func ActiveValidatorIndices(ctx context.Context, s state.ReadOnlyBeaconState, ep
 
 	var indices []types.ValidatorIndex
 	if err := s.ReadFromEveryValidator(func(idx int, val state.ReadOnlyValidator) error {
+		// 从每个validator中读取
 		if IsActiveValidatorUsingTrie(val, epoch) {
+			// 是否是active validator
 			indices = append(indices, types.ValidatorIndex(idx))
 		}
 		return nil
@@ -131,6 +133,7 @@ func ActiveValidatorIndices(ctx context.Context, s state.ReadOnlyBeaconState, ep
 		return nil, err
 	}
 
+	// 更新committee cache
 	if err := UpdateCommitteeCache(ctx, s, epoch); err != nil {
 		return nil, errors.Wrap(err, "could not update committee cache")
 	}

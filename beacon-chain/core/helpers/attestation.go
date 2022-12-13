@@ -42,6 +42,7 @@ func ValidateNilAttestation(attestation *ethpb.Attestation) error {
 // ValidateSlotTargetEpoch检查，是否attestation data的epoch和target checkpoint的epoch匹配
 func ValidateSlotTargetEpoch(data *ethpb.AttestationData) error {
 	if slots.ToEpoch(data.Slot) != data.Target.Epoch {
+		// data中包含的slot所在的epoch必须和target epoch匹配
 		return fmt.Errorf("slot %d does not match target epoch %d", data.Slot, data.Target.Epoch)
 	}
 	return nil
@@ -210,6 +211,7 @@ func VerifyCheckpointEpoch(c *ethpb.Checkpoint, genesis time.Time) bool {
 	}
 
 	if c.Epoch != prevEpoch && c.Epoch != currentEpoch {
+		// c.Epoch必须是当前epoch或者是pre epoch
 		return false
 	}
 

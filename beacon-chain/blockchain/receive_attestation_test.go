@@ -317,6 +317,7 @@ func TestService_UpdateHead_NoAtts(t *testing.T) {
 	require.NoError(t, service.cfg.ForkChoiceStore.InsertNode(ctx, state, blkRoot))
 	require.Equal(t, 3, fcs.NodeCount())
 
+	// ForkchoiceAttestationCount始终为0
 	require.Equal(t, 0, service.cfg.AttPool.ForkchoiceAttestationCount())
 	require.NoError(t, err, service.UpdateHead(ctx))
 

@@ -57,6 +57,7 @@ func GenerateAttestations(
 	bState = bState.Copy()
 	if slot > bState.Slot() {
 		// Going back a slot here so there's no inclusion delay issues.
+		// 回退一个slot，这样没有inclusion delay的问题
 		slot--
 		generateHeadState = true
 	}
@@ -66,6 +67,7 @@ func GenerateAttestations(
 	var headRoot []byte
 	var err error
 	// Only calculate head state if its an attestation for the current slot or future slot.
+	// 只计算head state，如果这是一个attestation，对于当前的slot或者未来的slot
 	if generateHeadState || slot == bState.Slot() {
 		var headState state.BeaconState
 		switch bState.Version() {
@@ -98,11 +100,13 @@ func GenerateAttestations(
 			if err != nil {
 				return nil, err
 			}
+			// 获取head state
 			headState = genState
 		default:
 			return nil, errors.New("state type isn't supported")
 		}
 
+		// 处理slot
 		headState, err = transition.ProcessSlots(context.Background(), headState, slot+1)
 		if err != nil {
 			return nil, err
@@ -179,7 +183,8 @@ func GenerateAttestations(
 			Source:          bState.CurrentJustifiedCheckpoint(),
 			Target: &ethpb.Checkpoint{
 				Epoch: currentEpoch,
-				Root:  targetRoot,
+				// targetRoot是当前slot所在epoch的第一个slot的block root
+				Root: targetRoot,
 			},
 		}
 
@@ -195,6 +200,7 @@ func GenerateAttestations(
 			aggregationBits := bitfield.NewBitlist(committeeSize)
 			var sigs []bls.Signature
 			for b := i; b < i+bitsPerAtt; b++ {
+				// 设置aggregation bits
 				aggregationBits.SetBitAt(b, true)
 				sigs = append(sigs, privs[committee[b]].Sign(dataRoot[:]))
 			}
@@ -210,6 +216,7 @@ func GenerateAttestations(
 				AggregationBits: aggregationBits,
 				Signature:       bls.AggregateSignatures(sigs).Marshal(),
 			}
+			// 扩展attestations
 			attestations = append(attestations, att)
 		}
 	}

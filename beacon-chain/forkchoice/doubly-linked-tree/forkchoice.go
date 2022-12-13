@@ -52,7 +52,9 @@ func (f *ForkChoice) NodeCount() int {
 }
 
 // Head returns the head root from fork choice store.
+// Head从fork choice store中返回head root
 // It firsts computes validator's balance changes then recalculates block tree from leaves to root.
+// 首先计算validator的balance changes，之后再重新计算block tree，从leaves到root
 func (f *ForkChoice) Head(
 	ctx context.Context,
 	justifiedStateBalances []uint64,
@@ -69,14 +71,17 @@ func (f *ForkChoice) Head(
 	f.store.nodesLock.Lock()
 	defer f.store.nodesLock.Unlock()
 
+	// 更新balance
 	if err := f.updateBalances(justifiedStateBalances); err != nil {
 		return [32]byte{}, errors.Wrap(err, "could not update balances")
 	}
 
+	// 应用proposer boost store
 	if err := f.store.applyProposerBoostScore(justifiedStateBalances); err != nil {
 		return [32]byte{}, errors.Wrap(err, "could not apply proposer boost score")
 	}
 
+	// 应用weight的变更
 	if err := f.store.treeRootNode.applyWeightChanges(ctx); err != nil {
 		return [32]byte{}, errors.Wrap(err, "could not apply weight changes")
 	}
@@ -84,6 +89,7 @@ func (f *ForkChoice) Head(
 	jc := f.JustifiedCheckpoint()
 	fc := f.FinalizedCheckpoint()
 	currentEpoch := slots.EpochsSinceGenesis(time.Unix(int64(f.store.genesisTime), 0))
+	// 更新best descendant
 	if err := f.store.treeRootNode.updateBestDescendant(ctx, jc.Epoch, fc.Epoch, currentEpoch); err != nil {
 		return [32]byte{}, errors.Wrap(err, "could not update best descendant")
 	}
@@ -422,6 +428,7 @@ func (f *ForkChoice) JustifiedCheckpoint() *forkchoicetypes.Checkpoint {
 }
 
 // FinalizedCheckpoint of fork choice store.
+// FinalizedCheckpoint返回fork choice store
 func (f *ForkChoice) FinalizedCheckpoint() *forkchoicetypes.Checkpoint {
 	f.store.checkpointsLock.RLock()
 	defer f.store.checkpointsLock.RUnlock()
@@ -487,6 +494,7 @@ func (f *ForkChoice) UpdateJustifiedCheckpoint(jc *forkchoicetypes.Checkpoint) e
 }
 
 // UpdateFinalizedCheckpoint sets the finalized checkpoint to the given one
+// UpdateFinalizedCheckpoint设置finalized checkpoint到给定值
 func (f *ForkChoice) UpdateFinalizedCheckpoint(fc *forkchoicetypes.Checkpoint) error {
 	if fc == nil {
 		return errInvalidNilCheckpoint

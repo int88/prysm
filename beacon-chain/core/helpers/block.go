@@ -12,6 +12,8 @@ import (
 
 // BlockRootAtSlot returns the block root stored in the BeaconState for a recent slot.
 // It returns an error if the requested block root is not within the slot range.
+// BlockRootAtSlot返回存储在BeaconState中的block root，对于一个recent slot
+// 它返回一个error，如果请求的block root不在slot range之内
 //
 // Spec pseudocode definition:
 //
@@ -42,6 +44,7 @@ func StateRootAtSlot(state state.ReadOnlyBeaconState, slot types.Slot) ([]byte, 
 }
 
 // BlockRoot returns the block root stored in the BeaconState for epoch start slot.
+// BlockRoot返回存储在BeaconState中国的block root，对于epoch start slot
 //
 // Spec pseudocode definition:
 //

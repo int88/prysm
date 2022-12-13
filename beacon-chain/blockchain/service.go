@@ -46,12 +46,13 @@ import (
 // logic of managing the full PoS beacon chain.
 // Service代表一个服务，处理关于管理完整的PoS beacon chain的内部逻辑
 type Service struct {
-	cfg                     *config
-	ctx                     context.Context
-	cancel                  context.CancelFunc
-	genesisTime             time.Time
-	head                    *head
-	headLock                sync.RWMutex
+	cfg         *config
+	ctx         context.Context
+	cancel      context.CancelFunc
+	genesisTime time.Time
+	head        *head
+	headLock    sync.RWMutex
+	// genesis root或者weak subjectivity checkpoint root，依赖于node如何初始化
 	originBlockRoot         [32]byte // genesis root, or weak subjectivity checkpoint root, depending on how the node is initialized
 	nextEpochBoundarySlot   types.Slot
 	boundaryRoots           [][32]byte

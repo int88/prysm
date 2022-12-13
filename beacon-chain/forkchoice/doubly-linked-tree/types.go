@@ -23,6 +23,7 @@ type ForkChoice struct {
 }
 
 // Store defines the fork choice store which includes block nodes and the last view of checkpoint information.
+// Store定义了fork choice store，包含block nodes以及checkpoint信息的last view
 type Store struct {
 	justifiedCheckpoint           *forkchoicetypes.Checkpoint            // latest justified epoch in store.
 	bestJustifiedCheckpoint       *forkchoicetypes.Checkpoint            // best justified checkpoint in store.

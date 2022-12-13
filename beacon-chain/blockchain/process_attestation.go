@@ -53,6 +53,7 @@ func (s *Service) OnAttestation(ctx context.Context, a *ethpb.Attestation) error
 	if err := helpers.ValidateSlotTargetEpoch(a.Data); err != nil {
 		return err
 	}
+	// 获取target checkpoint
 	tgt := ethpb.CopyCheckpoint(a.Data.Target)
 
 	// Note that target root check is ignored here because it was performed in sync's validation pipeline:

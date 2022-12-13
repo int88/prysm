@@ -56,6 +56,8 @@ func (s *Store) proposerBoost() [fieldparams.RootLength]byte {
 
 // head starts from justified root and then follows the best descendant links
 // to find the best block for head. This function assumes a lock on s.nodesLock
+// head从justified root开始，之后延着best descendant links来找到最好的block用于head
+// 这个函数假设持有s.nodesLock
 func (s *Store) head(ctx context.Context) ([32]byte, error) {
 	ctx, span := trace.StartSpan(ctx, "doublyLinkedForkchoice.head")
 	defer span.End()
