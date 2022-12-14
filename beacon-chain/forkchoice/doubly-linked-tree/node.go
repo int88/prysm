@@ -14,8 +14,11 @@ import (
 // applyWeightChanges recomputes the weight of the node passed as an argument and all of its descendants,
 // using the current balance stored in each node. This function requires a lock
 // in Store.nodesLock
+// applyWeightChanges重新计算node的weight，使用当前存储在每个node的当前的balance，这个函数需要一个
+// Store.nodesLock
 func (n *Node) applyWeightChanges(ctx context.Context) error {
 	// Recursively calling the children to sum their weights.
+	// 遍历地调用children来累加它们的weights
 	childrenWeight := uint64(0)
 	for _, child := range n.children {
 		if ctx.Err() != nil {
@@ -29,12 +32,15 @@ func (n *Node) applyWeightChanges(ctx context.Context) error {
 	if n.root == params.BeaconConfig().ZeroHash {
 		return nil
 	}
+	// 自己的balance，加上childrenWeight
 	n.weight = n.balance + childrenWeight
 	return nil
 }
 
 // updateBestDescendant updates the best descendant of this node and its
 // children. This function assumes the caller has a lock on Store.nodesLock
+// updateBestDescendant更新这个node的best descendant以及它的children，这个函数假设
+// caller对于Store.nodesLock有lock
 func (n *Node) updateBestDescendant(ctx context.Context, justifiedEpoch, finalizedEpoch, currentEpoch types.Epoch) error {
 	if ctx.Err() != nil {
 		return ctx.Err()
@@ -51,6 +57,7 @@ func (n *Node) updateBestDescendant(ctx context.Context, justifiedEpoch, finaliz
 		if child == nil {
 			return errors.Wrap(ErrNilNode, "could not update best descendant")
 		}
+		// 递归获得best descendant
 		if err := child.updateBestDescendant(ctx, justifiedEpoch, finalizedEpoch, currentEpoch); err != nil {
 			return err
 		}
@@ -58,11 +65,13 @@ func (n *Node) updateBestDescendant(ctx context.Context, justifiedEpoch, finaliz
 		if childLeadsToViableHead && !hasViableDescendant {
 			// The child leads to a viable head, but the current
 			// parent's best child doesn't.
+			// 这个child引导到viable head，但是当前的parent的best child没有
 			bestWeight = child.weight
 			bestChild = child
 			hasViableDescendant = true
 		} else if childLeadsToViableHead {
 			// If both are viable, compare their weights.
+			// 如果都是可行的，比较它们的weight
 			if child.weight == bestWeight {
 				// Tie-breaker of equal weights by root.
 				if bytes.Compare(child.root[:], bestChild.root[:]) > 0 {

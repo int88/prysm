@@ -221,10 +221,12 @@ func setup(justifiedEpoch, finalizedEpoch types.Epoch) *ForkChoice {
 	f.store.justifiedCheckpoint = &forkchoicetypes.Checkpoint{Epoch: justifiedEpoch, Root: params.BeaconConfig().ZeroHash}
 	f.store.bestJustifiedCheckpoint = &forkchoicetypes.Checkpoint{Epoch: justifiedEpoch, Root: params.BeaconConfig().ZeroHash}
 	f.store.finalizedCheckpoint = &forkchoicetypes.Checkpoint{Epoch: finalizedEpoch, Root: params.BeaconConfig().ZeroHash}
+	// 第二个参数是slot
 	state, blkRoot, err := prepareForkchoiceState(ctx, 0, params.BeaconConfig().ZeroHash, [32]byte{}, params.BeaconConfig().ZeroHash, justifiedEpoch, finalizedEpoch)
 	if err != nil {
 		return nil
 	}
+	// 将block插入fork choice store
 	err = f.InsertNode(ctx, state, blkRoot)
 	if err != nil {
 		return nil

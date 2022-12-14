@@ -74,6 +74,7 @@ func TestForkChoice_UpdateBalancesPositiveChange(t *testing.T) {
 	require.NoError(t, err)
 	require.NoError(t, f.InsertNode(ctx, st, blkRoot))
 
+	// 设置fork choice中的votes
 	f.votes = []Vote{
 		{indexToHash(1), indexToHash(1), 0},
 		{indexToHash(2), indexToHash(2), 0},
@@ -82,8 +83,10 @@ func TestForkChoice_UpdateBalancesPositiveChange(t *testing.T) {
 
 	// Each node gets one unique vote. The weight should look like 103 <- 102 <- 101 because
 	// they get propagated back.
+	// 每个node获得唯一的vote，重量应该像103 <- 102 <- 101，因为它们会向后传播
 	require.NoError(t, f.updateBalances([]uint64{10, 20, 30}))
 	s := f.store
+	// 设置各个node的balance
 	assert.Equal(t, uint64(10), s.nodeByRoot[indexToHash(1)].balance)
 	assert.Equal(t, uint64(20), s.nodeByRoot[indexToHash(2)].balance)
 	assert.Equal(t, uint64(30), s.nodeByRoot[indexToHash(3)].balance)
@@ -171,6 +174,7 @@ func TestForkChoice_IsCanonical(t *testing.T) {
 	require.NoError(t, err)
 	require.NoError(t, f.InsertNode(ctx, st, blkRoot))
 
+	// 除了1和3，都是canonical
 	require.Equal(t, true, f.IsCanonical(params.BeaconConfig().ZeroHash))
 	require.Equal(t, false, f.IsCanonical(indexToHash(1)))
 	require.Equal(t, true, f.IsCanonical(indexToHash(2)))
@@ -203,22 +207,26 @@ func TestForkChoice_IsCanonicalReorg(t *testing.T) {
 	require.NoError(t, f.InsertNode(ctx, st, blkRoot))
 
 	f.store.nodesLock.Lock()
+	// 更新这个node的balance
 	f.store.nodeByRoot[[32]byte{'3'}].balance = 10
 	require.NoError(t, f.store.treeRootNode.applyWeightChanges(ctx))
 	require.Equal(t, uint64(10), f.store.nodeByRoot[[32]byte{'1'}].weight)
 	require.Equal(t, uint64(0), f.store.nodeByRoot[[32]byte{'2'}].weight)
 
+	// 更新best descendant
 	require.NoError(t, f.store.treeRootNode.updateBestDescendant(ctx, 1, 1, 1))
 	require.DeepEqual(t, [32]byte{'3'}, f.store.treeRootNode.bestDescendant.root)
 	f.store.nodesLock.Unlock()
 
 	r1 := [32]byte{'1'}
+	// 更新justified checkpoint
 	f.store.justifiedCheckpoint = &forkchoicetypes.Checkpoint{Epoch: 1, Root: r1}
 	h, err := f.store.head(ctx)
 	require.NoError(t, err)
 	require.DeepEqual(t, [32]byte{'3'}, h)
 	require.DeepEqual(t, h, f.store.headNode.root)
 
+	// 更新canonical
 	require.Equal(t, true, f.IsCanonical(params.BeaconConfig().ZeroHash))
 	require.Equal(t, true, f.IsCanonical([32]byte{'1'}))
 	require.Equal(t, false, f.IsCanonical([32]byte{'2'}))

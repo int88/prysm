@@ -24,6 +24,7 @@ import (
 )
 
 // New initializes a new fork choice store.
+// New初始化一个新的fork choice store
 func New() *ForkChoice {
 	s := &Store{
 		justifiedCheckpoint:           &forkchoicetypes.Checkpoint{},
@@ -147,9 +148,11 @@ func (f *ForkChoice) InsertNode(ctx context.Context, state state.BeaconState, ro
 			return err
 		}
 		if ph != nil {
+			// 复制payload hash
 			copy(payloadHash[:], ph.BlockHash())
 		}
 	}
+	// 从state获取当前的justified checkpoint
 	jc := state.CurrentJustifiedCheckpoint()
 	if jc == nil {
 		return errInvalidNilCheckpoint
@@ -159,6 +162,7 @@ func (f *ForkChoice) InsertNode(ctx context.Context, state state.BeaconState, ro
 	if fc == nil {
 		return errInvalidNilCheckpoint
 	}
+	// 获取finalized epoch
 	finalizedEpoch := fc.Epoch
 	node, err := f.store.insert(ctx, slot, root, parentRoot, payloadHash, justifiedEpoch, finalizedEpoch)
 	if err != nil {
@@ -172,9 +176,11 @@ func (f *ForkChoice) InsertNode(ctx context.Context, state state.BeaconState, ro
 }
 
 // updateCheckpoints update the checkpoints when inserting a new node.
+// updateCheckpoints在插入一个新的node的时候更新checkpoints
 func (f *ForkChoice) updateCheckpoints(ctx context.Context, jc, fc *ethpb.Checkpoint) error {
 	f.store.checkpointsLock.Lock()
 	if jc.Epoch > f.store.justifiedCheckpoint.Epoch {
+		// 如果bestJustifiedCheckpoint有更新
 		if jc.Epoch > f.store.bestJustifiedCheckpoint.Epoch {
 			f.store.bestJustifiedCheckpoint = &forkchoicetypes.Checkpoint{Epoch: jc.Epoch,
 				Root: bytesutil.ToBytes32(jc.Root)}
@@ -213,10 +219,12 @@ func (f *ForkChoice) updateCheckpoints(ctx context.Context, jc, fc *ethpb.Checkp
 		}
 	}
 	// Update finalization
+	// 更新finalization
 	if fc.Epoch <= f.store.finalizedCheckpoint.Epoch {
 		f.store.checkpointsLock.Unlock()
 		return nil
 	}
+	// 更新store中的finalized和justified checkpoint
 	f.store.finalizedCheckpoint = &forkchoicetypes.Checkpoint{Epoch: fc.Epoch,
 		Root: bytesutil.ToBytes32(fc.Root)}
 	f.store.justifiedCheckpoint = &forkchoicetypes.Checkpoint{Epoch: jc.Epoch,

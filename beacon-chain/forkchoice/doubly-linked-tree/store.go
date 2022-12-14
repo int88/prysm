@@ -107,6 +107,8 @@ func (s *Store) head(ctx context.Context) ([32]byte, error) {
 
 // insert registers a new block node to the fork choice store's node list.
 // It then updates the new node's parent with best child and descendant node.
+// insert注册一个新的block node到fork choice store的node list，它之后更新
+// 新的node的parent，用best child以及descendant node
 func (s *Store) insert(ctx context.Context,
 	slot types.Slot,
 	root, parentRoot, payloadHash [fieldparams.RootLength]byte,
@@ -118,12 +120,14 @@ func (s *Store) insert(ctx context.Context,
 	defer s.nodesLock.Unlock()
 
 	// Return if the block has been inserted into Store before.
+	// 返回true，如果block之前已经被插入到Store
 	if n, ok := s.nodeByRoot[root]; ok {
 		return n, nil
 	}
 
 	parent := s.nodeByRoot[parentRoot]
 
+	// 构建Node
 	n := &Node{
 		slot:                     slot,
 		root:                     root,
@@ -145,11 +149,13 @@ func (s *Store) insert(ctx context.Context,
 			s.headNode = n
 			s.highestReceivedNode = n
 		} else {
+			// 有s.treeRootNode，但是没有parent，则报错
 			return n, errInvalidParentRoot
 		}
 	} else {
 		parent.children = append(parent.children, n)
 		// Apply proposer boost
+		// 应用proposer增强
 		timeNow := uint64(time.Now().Unix())
 		if timeNow < s.genesisTime {
 			return n, nil
@@ -164,6 +170,7 @@ func (s *Store) insert(ctx context.Context,
 		}
 
 		// Update best descendants
+		// 更新best desendants
 		s.checkpointsLock.RLock()
 		jEpoch := s.justifiedCheckpoint.Epoch
 		fEpoch := s.finalizedCheckpoint.Epoch
@@ -173,14 +180,17 @@ func (s *Store) insert(ctx context.Context,
 		}
 	}
 	// Update metrics.
+	// 更新metrics
 	processedBlockCount.Inc()
 	nodeCount.Set(float64(len(s.nodeByRoot)))
 
 	// Only update received block slot if it's within epoch from current time.
+	// 只更新received block slot，如果它在当前时间的epoch内
 	if slot+params.BeaconConfig().SlotsPerEpoch > slots.CurrentSlot(s.genesisTime) {
 		s.receivedBlocksLastEpoch[slot%params.BeaconConfig().SlotsPerEpoch] = slot
 	}
 	// Update highest slot tracking.
+	// 更新最高的追踪的slot
 	if slot > s.highestReceivedNode.slot {
 		s.highestReceivedNode = n
 	}

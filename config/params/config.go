@@ -73,7 +73,8 @@ type BeaconChainConfig struct {
 
 	// Fork choice algorithm constants.
 	ProposerScoreBoost uint64 `yaml:"PROPOSER_SCORE_BOOST" spec:"true"` // ProposerScoreBoost defines a value that is a % of the committee weight for fork-choice boosting.
-	IntervalsPerSlot   uint64 `yaml:"INTERVALS_PER_SLOT" spec:"true"`   // IntervalsPerSlot defines the number of fork choice intervals in a slot defined in the fork choice spec.
+	// IntervalsPerSlot定义了一个slot中fork choice interval的数目，定义在fork choice spec中
+	IntervalsPerSlot uint64 `yaml:"INTERVALS_PER_SLOT" spec:"true"` // IntervalsPerSlot defines the number of fork choice intervals in a slot defined in the fork choice spec.
 
 	// Ethereum PoW parameters.
 	// 分别表示连接的Pow network的ChainID，NetworkID以及Contract Address
