@@ -18,6 +18,8 @@ func (f *ForkChoice) ResetBoostedProposerRoot(_ context.Context) error {
 // Given a list of validator balances, we compute the proposer boost score
 // that should be given to a proposer based on their committee weight, derived from
 // the total active balances, the size of a committee, and a boost score constant.
+// 给定一系列的validator balances，我们计算proposer boost score，应该给到一个proposer，基于他们的
+// committee weight，派生自total active balances，一个committee的大小以及一个boost score constant
 // IMPORTANT: The caller MUST pass in a list of validator balances where balances > 0 refer to active
 // validators while balances == 0 are for inactive validators.
 func computeProposerBoostScore(validatorBalances []uint64) (score uint64, err error) {
@@ -34,6 +36,7 @@ func computeProposerBoostScore(validatorBalances []uint64) (score uint64, err er
 	}
 	if numActive == 0 {
 		// Should never happen.
+		// 不应该发生
 		err = errors.New("no active validators")
 		return
 	}

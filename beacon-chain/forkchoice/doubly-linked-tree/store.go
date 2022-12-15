@@ -15,6 +15,8 @@ import (
 
 // applyProposerBoostScore applies the current proposer boost scores to the
 // relevant nodes. This function requires a lock in Store.nodesLock.
+// applyProposerBoostScore应用当前的proposer boost scores到相关的nodes
+// 这个函数需要Store.nodesLock的锁
 func (s *Store) applyProposerBoostScore(newBalances []uint64) error {
 	s.proposerBoostLock.Lock()
 	defer s.proposerBoostLock.Unlock()
@@ -26,6 +28,7 @@ func (s *Store) applyProposerBoostScore(newBalances []uint64) error {
 		if !ok || previousNode == nil {
 			log.WithError(errInvalidProposerBoostRoot).Errorf(fmt.Sprintf("invalid prev root %#x", s.previousProposerBoostRoot))
 		} else {
+			// 之前的proposer boost root，减去previousProposerBoostScore
 			previousNode.balance -= s.previousProposerBoostScore
 		}
 	}
@@ -39,9 +42,11 @@ func (s *Store) applyProposerBoostScore(newBalances []uint64) error {
 			if err != nil {
 				return err
 			}
+			// 获取当前proposerBootRoot对应的node，更新balance
 			currentNode.balance += proposerScore
 		}
 	}
+	// 重置previousProposerBoostRoot和previousProposerBoostScore
 	s.previousProposerBoostRoot = s.proposerBoostRoot
 	s.previousProposerBoostScore = proposerScore
 	return nil
@@ -69,11 +74,14 @@ func (s *Store) head(ctx context.Context) ([32]byte, error) {
 	}
 
 	// JustifiedRoot has to be known
+	// JustifiedRoot需要是已知的
 	justifiedNode, ok := s.nodeByRoot[s.justifiedCheckpoint.Root]
 	if !ok || justifiedNode == nil {
 		// If the justifiedCheckpoint is from genesis, then the root is
 		// zeroHash. In this case it should be the root of forkchoice
 		// tree.
+		// 如果justifiedCheckpoint来自genesis，那么root是zeroHash，在这种情况下，它应该是
+		// forkchoice tree的root
 		if s.justifiedCheckpoint.Epoch == params.BeaconConfig().GenesisEpoch {
 			justifiedNode = s.treeRootNode
 		} else {
@@ -83,6 +91,7 @@ func (s *Store) head(ctx context.Context) ([32]byte, error) {
 
 	// If the justified node doesn't have a best descendant,
 	// the best node is itself.
+	// 如果justified node没有一个best descendant，best node是它自己
 	bestDescendant := justifiedNode.bestDescendant
 	if bestDescendant == nil {
 		bestDescendant = justifiedNode
@@ -96,6 +105,7 @@ func (s *Store) head(ctx context.Context) ([32]byte, error) {
 	s.allTipsAreInvalid = false
 
 	// Update metrics.
+	// 更新metrics
 	if bestDescendant != s.headNode {
 		headChangesCount.Inc()
 		headSlotNumber.Set(float64(bestDescendant.slot))
@@ -153,11 +163,13 @@ func (s *Store) insert(ctx context.Context,
 			return n, errInvalidParentRoot
 		}
 	} else {
+		// 扩展parent的child
 		parent.children = append(parent.children, n)
 		// Apply proposer boost
 		// 应用proposer增强
 		timeNow := uint64(time.Now().Unix())
 		if timeNow < s.genesisTime {
+			// 比genesis time要小，则直接返回
 			return n, nil
 		}
 		secondsIntoSlot := (timeNow - s.genesisTime) % params.BeaconConfig().SecondsPerSlot
@@ -175,6 +187,7 @@ func (s *Store) insert(ctx context.Context,
 		jEpoch := s.justifiedCheckpoint.Epoch
 		fEpoch := s.finalizedCheckpoint.Epoch
 		s.checkpointsLock.RUnlock()
+		// 更新best descendant
 		if err := s.treeRootNode.updateBestDescendant(ctx, jEpoch, fEpoch, slots.ToEpoch(currentSlot)); err != nil {
 			return n, err
 		}

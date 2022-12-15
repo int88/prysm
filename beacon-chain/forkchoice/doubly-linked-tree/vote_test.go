@@ -44,6 +44,7 @@ func TestVotes_CanFindHead(t *testing.T) {
 	assert.Equal(t, indexToHash(2), r, "Incorrect head for with justified epoch at 1")
 
 	// Add a vote to block 1 of the tree and verify head is switched to 1:
+	// 添加一个vote到block 1，校验head已经转换到1
 	//            0
 	//           / \
 	//          2  1 <- +vote, new head
@@ -53,6 +54,7 @@ func TestVotes_CanFindHead(t *testing.T) {
 	assert.Equal(t, indexToHash(1), r, "Incorrect head for with justified epoch at 1")
 
 	// Add a vote to block 2 of the tree and verify head is switched to 2:
+	// 添加一个vote到block 2，校验head转换为2
 	//                     0
 	//                    / \
 	// vote, new head -> 2  1
@@ -76,6 +78,7 @@ func TestVotes_CanFindHead(t *testing.T) {
 	assert.Equal(t, indexToHash(2), r, "Incorrect head for with justified epoch at 1")
 
 	// Move validator 0's vote from 1 to 3 and verify head is still at 2:
+	// 移动validator 0的vote从1到3并且校验head依然在2
 	//            0
 	//           / \
 	//  head -> 2  1 <- old vote
@@ -87,6 +90,7 @@ func TestVotes_CanFindHead(t *testing.T) {
 	assert.Equal(t, indexToHash(2), r, "Incorrect head for with justified epoch at 1")
 
 	// Move validator 1's vote from 2 to 1 and verify head is switched to 3:
+	// 将validator 1的vote从2移动到1并且校验head切换到3
 	//               0
 	//              / \
 	// old vote -> 2  1 <- new vote
@@ -153,6 +157,7 @@ func TestVotes_CanFindHead(t *testing.T) {
 
 	// Inset blocks 7 and 8
 	// 6 should still be the head, even though 5 has all the votes.
+	// 插入blocks 7和8,6依然是head，即使5有所有的votes
 	//            0
 	//           / \
 	//          2  1

@@ -164,6 +164,7 @@ func (f *ForkChoice) InsertNode(ctx context.Context, state state.BeaconState, ro
 	}
 	// 获取finalized epoch
 	finalizedEpoch := fc.Epoch
+	// 用state中的justified和finalized checkpoint插入
 	node, err := f.store.insert(ctx, slot, root, parentRoot, payloadHash, justifiedEpoch, finalizedEpoch)
 	if err != nil {
 		return err
@@ -281,6 +282,7 @@ func (f *ForkChoice) IsCanonical(root [32]byte) bool {
 }
 
 // IsOptimistic returns true if the given root has been optimistically synced.
+// IsOptimistic返回true，如果给定的root已经乐观地同步了
 func (f *ForkChoice) IsOptimistic(root [32]byte) (bool, error) {
 	f.store.nodesLock.RLock()
 	defer f.store.nodesLock.RUnlock()
@@ -324,14 +326,19 @@ func (f *ForkChoice) AncestorRoot(ctx context.Context, root [32]byte, slot types
 // updateBalances updates the balances that directly voted for each block taking into account the
 // validators' latest votes. This function requires a lock in Store.nodesLock
 // and votesLock
+// updateBalances更新直接投票给每个block的balances，考虑validators的最新的votes，这个函数需要锁住Store.nodesLock
+// 以及voutesLock
 func (f *ForkChoice) updateBalances(newBalances []uint64) error {
 	for index, vote := range f.votes {
 		// Skip if validator has been slashed
+		// 跳过，如果validator已经被slashed
 		if f.store.slashedIndices[types.ValidatorIndex(index)] {
 			continue
 		}
 		// Skip if validator has never voted for current root and next root (i.e. if the
 		// votes are zero hash aka genesis block), there's nothing to compute.
+		// 跳过，如果validator从没有投票给当前的root以及next root（例如，如果votes是zero hash，即genesis block）
+		// 什么都不计算
 		if vote.currentRoot == params.BeaconConfig().ZeroHash && vote.nextRoot == params.BeaconConfig().ZeroHash {
 			continue
 		}
@@ -340,6 +347,8 @@ func (f *ForkChoice) updateBalances(newBalances []uint64) error {
 		newBalance := uint64(0)
 		// If the validator index did not exist in `f.balances` or
 		// `newBalances` list above, the balance is just 0.
+		// 如果validator index在`f.balances`不存在或者`newBalances`
+		// list above，则balance为0
 		if index < len(f.balances) {
 			oldBalance = f.balances[index]
 		}
@@ -348,13 +357,17 @@ func (f *ForkChoice) updateBalances(newBalances []uint64) error {
 		}
 
 		// Update only if the validator's balance or vote has changed.
+		// 更新，只有validator的balance或者vote已经改变
 		if vote.currentRoot != vote.nextRoot || oldBalance != newBalance {
 			// Ignore the vote if the root is not in fork choice
 			// store, that means we have not seen the block before.
+			// 忽略vote，如果root不在fork choice store，这意味着我们之前没有看到block
 			nextNode, ok := f.store.nodeByRoot[vote.nextRoot]
 			if ok && vote.nextRoot != params.BeaconConfig().ZeroHash {
 				// Protection against nil node
+				// 保护nil node
 				if nextNode == nil {
+					// 不能更新balances
 					return errors.Wrap(ErrNilNode, "could not update balances")
 				}
 				nextNode.balance += newBalance
@@ -363,6 +376,7 @@ func (f *ForkChoice) updateBalances(newBalances []uint64) error {
 			currentNode, ok := f.store.nodeByRoot[vote.currentRoot]
 			if ok && vote.currentRoot != params.BeaconConfig().ZeroHash {
 				// Protection against nil node
+				// 保护nil node
 				if currentNode == nil {
 					return errors.Wrap(ErrNilNode, "could not update balances")
 				}
@@ -378,16 +392,20 @@ func (f *ForkChoice) updateBalances(newBalances []uint64) error {
 						"previousProposerBoostScore": f.store.previousProposerBoostScore,
 					}).Warning("node with invalid balance, setting it to zero")
 					f.store.proposerBoostLock.RUnlock()
+					// node有着非法的balance，设置为0
 					currentNode.balance = 0
 				} else {
+					// 从当前node中减去oldBalance
 					currentNode.balance -= oldBalance
 				}
 			}
 		}
 
 		// Rotate the validator vote.
+		// 轮转validator vote
 		f.votes[index].currentRoot = vote.nextRoot
 	}
+	// 赋值新的balances
 	f.balances = newBalances
 	return nil
 }

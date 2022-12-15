@@ -15,6 +15,7 @@ func TestNoVote_CanFindHead(t *testing.T) {
 	ctx := context.Background()
 
 	// The head should always start at the finalized block.
+	// head总是应该从finalized block
 	r, err := f.Head(context.Background(), balances)
 	require.NoError(t, err)
 	if r != params.BeaconConfig().ZeroHash {
@@ -22,6 +23,7 @@ func TestNoVote_CanFindHead(t *testing.T) {
 	}
 
 	// Insert block 2 into the tree and verify head is at 2:
+	// 插入block 2到tree中并且校验head是2
 	//         0
 	//        /
 	//       2 <- head

@@ -98,6 +98,8 @@ func (n *Node) updateBestDescendant(ctx context.Context, justifiedEpoch, finaliz
 // viableForHead returns true if the node is viable to head.
 // Any node with different finalized or justified epoch than
 // the ones in fork choice store should not be viable to head.
+// viableForHead返回true，如果node对于head是可行的，任何node，如果和fork choice store
+// 有着不同的finalized或者justified epoch，则对于Head是不可行的
 func (n *Node) viableForHead(justifiedEpoch, finalizedEpoch, currentEpoch types.Epoch) bool {
 	justified := justifiedEpoch == n.justifiedEpoch || justifiedEpoch == 0
 	finalized := finalizedEpoch == n.finalizedEpoch || finalizedEpoch == 0
@@ -109,17 +111,21 @@ func (n *Node) viableForHead(justifiedEpoch, finalizedEpoch, currentEpoch types.
 			finalized = true
 		}
 	}
+	// 两者必须相等
 	return justified && finalized
 }
 
 func (n *Node) leadsToViableHead(justifiedEpoch, finalizedEpoch, currentEpoch types.Epoch) bool {
 	if n.bestDescendant == nil {
+		// 如果没有best descendant，则判断node自己是不是能作head
 		return n.viableForHead(justifiedEpoch, finalizedEpoch, currentEpoch)
 	}
+	// 否则根据best descendant判断有没有能当head
 	return n.bestDescendant.viableForHead(justifiedEpoch, finalizedEpoch, currentEpoch)
 }
 
 // setNodeAndParentValidated sets the current node and all the ancestors as validated (i.e. non-optimistic).
+// setNodeAndParentValidated将当前的node和所有的ancestors标记为validated（例如，non-optimistic）
 func (n *Node) setNodeAndParentValidated(ctx context.Context) error {
 	if ctx.Err() != nil {
 		return ctx.Err()
@@ -128,6 +134,7 @@ func (n *Node) setNodeAndParentValidated(ctx context.Context) error {
 	if !n.optimistic {
 		return nil
 	}
+	// 将node自己的optimistic设置为false
 	n.optimistic = false
 
 	if n.parent == nil {
@@ -137,6 +144,7 @@ func (n *Node) setNodeAndParentValidated(ctx context.Context) error {
 }
 
 // nodeTreeDump appends to the given list all the nodes descending from this one
+// nodeTreeDump扩展给定的list，从这个list派生而来的所有nodes
 func (n *Node) nodeTreeDump(ctx context.Context, nodes []*v1.ForkChoiceNode) ([]*v1.ForkChoiceNode, error) {
 	if ctx.Err() != nil {
 		return nil, ctx.Err()
@@ -168,6 +176,7 @@ func (n *Node) nodeTreeDump(ctx context.Context, nodes []*v1.ForkChoiceNode) ([]
 	nodes = append(nodes, thisNode)
 	var err error
 	for _, child := range n.children {
+		// 遍历子节点
 		nodes, err = child.nodeTreeDump(ctx, nodes)
 		if err != nil {
 			return nil, err
@@ -178,11 +187,13 @@ func (n *Node) nodeTreeDump(ctx context.Context, nodes []*v1.ForkChoiceNode) ([]
 
 // VotedFraction returns the fraction of the committee that voted directly for
 // this node.
+// VotedFraction返回committee的分数，直接投票给这个node
 func (f *ForkChoice) VotedFraction(root [32]byte) (uint64, error) {
 	f.store.nodesLock.RLock()
 	defer f.store.nodesLock.RUnlock()
 
 	// Avoid division by zero before a block is inserted.
+	// 在block插入之前，避免除以0
 	if f.store.committeeBalance == 0 {
 		return 0, nil
 	}
@@ -191,5 +202,6 @@ func (f *ForkChoice) VotedFraction(root [32]byte) (uint64, error) {
 	if !ok || node == nil {
 		return 0, ErrNilNode
 	}
+	// 节点的balance除以committee balance
 	return node.balance * 100 / f.store.committeeBalance, nil
 }

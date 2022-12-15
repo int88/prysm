@@ -25,14 +25,17 @@ func TestNode_ApplyWeightChanges_PositiveChange(t *testing.T) {
 	require.NoError(t, f.InsertNode(ctx, state, blkRoot))
 
 	// The updated balances of each node is 100
+	// 每个node的updated balances是100
 	s := f.store
 
 	s.nodesLock.Lock()
 	defer s.nodesLock.Unlock()
+	// 设置balance
 	s.nodeByRoot[indexToHash(1)].balance = 100
 	s.nodeByRoot[indexToHash(2)].balance = 100
 	s.nodeByRoot[indexToHash(3)].balance = 100
 
+	// 应用weight changes
 	assert.NoError(t, s.treeRootNode.applyWeightChanges(ctx))
 
 	assert.Equal(t, uint64(300), s.nodeByRoot[indexToHash(1)].weight)
@@ -54,6 +57,7 @@ func TestNode_ApplyWeightChanges_NegativeChange(t *testing.T) {
 	require.NoError(t, f.InsertNode(ctx, state, blkRoot))
 
 	// The updated balances of each node is 100
+	// 更新balances，每个node是100
 	s := f.store
 	s.nodesLock.Lock()
 	defer s.nodesLock.Unlock()
@@ -76,11 +80,13 @@ func TestNode_UpdateBestDescendant_NonViableChild(t *testing.T) {
 	f := setup(1, 1)
 	ctx := context.Background()
 	// Input child is not viable.
+	// 输入的child不是可行的
 	state, blkRoot, err := prepareForkchoiceState(ctx, 1, indexToHash(1), params.BeaconConfig().ZeroHash, params.BeaconConfig().ZeroHash, 2, 3)
 	require.NoError(t, err)
 	require.NoError(t, f.InsertNode(ctx, state, blkRoot))
 
 	// Verify parent's best child and best descendant are `none`.
+	// 校验parent的best child和best descendant是`none`
 	s := f.store
 	assert.Equal(t, 1, len(s.treeRootNode.children))
 	nilBestDescendant := s.treeRootNode.bestDescendant == nil
@@ -91,12 +97,14 @@ func TestNode_UpdateBestDescendant_ViableChild(t *testing.T) {
 	f := setup(1, 1)
 	ctx := context.Background()
 	// Input child is best descendant
+	// 输入的child是best descendant
 	state, blkRoot, err := prepareForkchoiceState(ctx, 1, indexToHash(1), params.BeaconConfig().ZeroHash, params.BeaconConfig().ZeroHash, 1, 1)
 	require.NoError(t, err)
 	require.NoError(t, f.InsertNode(ctx, state, blkRoot))
 
 	s := f.store
 	assert.Equal(t, 1, len(s.treeRootNode.children))
+	// 第一个children就是best descendant
 	assert.Equal(t, s.treeRootNode.children[0], s.treeRootNode.bestDescendant)
 }
 
@@ -104,6 +112,7 @@ func TestNode_UpdateBestDescendant_HigherWeightChild(t *testing.T) {
 	f := setup(1, 1)
 	ctx := context.Background()
 	// Input child is best descendant
+	// 输入的child是best descendant
 	state, blkRoot, err := prepareForkchoiceState(ctx, 1, indexToHash(1), params.BeaconConfig().ZeroHash, params.BeaconConfig().ZeroHash, 1, 1)
 	require.NoError(t, err)
 	require.NoError(t, f.InsertNode(ctx, state, blkRoot))
@@ -117,6 +126,7 @@ func TestNode_UpdateBestDescendant_HigherWeightChild(t *testing.T) {
 	assert.NoError(t, s.treeRootNode.updateBestDescendant(ctx, 1, 1, 1))
 
 	assert.Equal(t, 2, len(s.treeRootNode.children))
+	// weight更高的child，是best descendant
 	assert.Equal(t, s.treeRootNode.children[1], s.treeRootNode.bestDescendant)
 }
 
@@ -137,6 +147,7 @@ func TestNode_UpdateBestDescendant_LowerWeightChild(t *testing.T) {
 	assert.NoError(t, s.treeRootNode.updateBestDescendant(ctx, 1, 1, 1))
 
 	assert.Equal(t, 2, len(s.treeRootNode.children))
+	// 第一个node是best descendant
 	assert.Equal(t, s.treeRootNode.children[0], s.treeRootNode.bestDescendant)
 }
 
@@ -163,6 +174,8 @@ func TestNode_ViableForHead(t *testing.T) {
 func TestNode_LeadsToViableHead(t *testing.T) {
 	f := setup(4, 3)
 	ctx := context.Background()
+	// 1, 3, 5
+	// 2, 4
 	state, blkRoot, err := prepareForkchoiceState(ctx, 1, indexToHash(1), params.BeaconConfig().ZeroHash, params.BeaconConfig().ZeroHash, 1, 1)
 	require.NoError(t, err)
 	require.NoError(t, f.InsertNode(ctx, state, blkRoot))
@@ -180,6 +193,7 @@ func TestNode_LeadsToViableHead(t *testing.T) {
 	require.NoError(t, f.InsertNode(ctx, state, blkRoot))
 
 	require.Equal(t, true, f.store.treeRootNode.leadsToViableHead(4, 3, 5))
+	// 2,4不能作为head
 	require.Equal(t, true, f.store.nodeByRoot[indexToHash(5)].leadsToViableHead(4, 3, 5))
 	require.Equal(t, false, f.store.nodeByRoot[indexToHash(2)].leadsToViableHead(4, 3, 5))
 	require.Equal(t, false, f.store.nodeByRoot[indexToHash(4)].leadsToViableHead(4, 3, 5))
@@ -191,6 +205,7 @@ func TestNode_SetFullyValidated(t *testing.T) {
 	storeNodes := make([]*Node, 6)
 	storeNodes[0] = f.store.treeRootNode
 	// insert blocks in the fork pattern (optimistic status in parenthesis)
+	// 插入blocks到fork pattern（在括号中的是optimistic status）
 	//
 	// 0 (false) -- 1 (false) -- 2 (false) -- 3 (true) -- 4 (true)
 	//               \
@@ -265,6 +280,7 @@ func TestNode_SetFullyValidated(t *testing.T) {
 func TestStore_VotedFraction(t *testing.T) {
 	f := setup(1, 1)
 	ctx := context.Background()
+	// 插入两个节点
 	state, blkRoot, err := prepareForkchoiceState(ctx, 100, [32]byte{'a'}, params.BeaconConfig().ZeroHash, [32]byte{'A'}, 1, 1)
 	require.NoError(t, err)
 	require.NoError(t, f.InsertNode(ctx, state, blkRoot))
@@ -278,12 +294,14 @@ func TestStore_VotedFraction(t *testing.T) {
 	require.Equal(t, uint64(0), vote)
 
 	// Zero balance in the node
+	// node是0 balance
 	f.store.committeeBalance = 100 * params.BeaconConfig().MaxEffectiveBalance
 	vote, err = f.VotedFraction([32]byte{'b'})
 	require.NoError(t, err)
 	require.Equal(t, uint64(0), vote)
 
 	// Attestations are not counted until we process Head
+	// Attestations不被统计，直到我们处理Head
 	balances := []uint64{params.BeaconConfig().MaxEffectiveBalance, params.BeaconConfig().MaxEffectiveBalance}
 	_, err = f.Head(context.Background(), balances)
 	require.NoError(t, err)
@@ -293,6 +311,7 @@ func TestStore_VotedFraction(t *testing.T) {
 	require.Equal(t, uint64(0), vote)
 
 	// After we call head the voted fraction is obtained.
+	// 在我们调用head之后，voted fraction已经被获取
 	_, err = f.Head(context.Background(), balances)
 	require.NoError(t, err)
 	vote, err = f.VotedFraction([32]byte{'b'})
@@ -300,6 +319,7 @@ func TestStore_VotedFraction(t *testing.T) {
 	require.Equal(t, uint64(2), vote)
 
 	// Check for non-existent root
+	// 检查不存在的root
 	_, err = f.VotedFraction([32]byte{'c'})
 	require.ErrorIs(t, err, ErrNilNode)
 }
