@@ -26,8 +26,10 @@ func StartTime(genesis uint64, slot types.Slot) time.Time {
 
 // SinceGenesis returns the number of slots since
 // the provided genesis time.
+// SinceGenesis返回从提供的genesis time以来的slots的数目
 func SinceGenesis(genesis time.Time) types.Slot {
 	if genesis.After(prysmTime.Now()) { // Genesis has not occurred yet.
+		// genesis还没有到来
 		return 0
 	}
 	return types.Slot(uint64(prysmTime.Since(genesis).Seconds()) / params.BeaconConfig().SecondsPerSlot)
@@ -35,6 +37,7 @@ func SinceGenesis(genesis time.Time) types.Slot {
 
 // EpochsSinceGenesis returns the number of epochs since
 // the provided genesis time.
+// EpochsSinceGenesis返回从提供的genesis time以来的epochs的数目
 func EpochsSinceGenesis(genesis time.Time) types.Epoch {
 	return types.Epoch(SinceGenesis(genesis) / params.BeaconConfig().SlotsPerEpoch)
 }

@@ -25,15 +25,19 @@ type ForkChoice struct {
 // Store defines the fork choice store which includes block nodes and the last view of checkpoint information.
 // Store定义了fork choice store，包含block nodes以及checkpoint信息的last view
 type Store struct {
-	justifiedCheckpoint           *forkchoicetypes.Checkpoint  // latest justified epoch in store.
-	bestJustifiedCheckpoint       *forkchoicetypes.Checkpoint  // best justified checkpoint in store.
-	unrealizedJustifiedCheckpoint *forkchoicetypes.Checkpoint  // best unrealized justified checkpoint in store.
-	unrealizedFinalizedCheckpoint *forkchoicetypes.Checkpoint  // best unrealized finalized checkpoint in store.
-	prevJustifiedCheckpoint       *forkchoicetypes.Checkpoint  // previous justified checkpoint in store.
-	finalizedCheckpoint           *forkchoicetypes.Checkpoint  // latest finalized epoch in store.
-	proposerBoostRoot             [fieldparams.RootLength]byte // latest block root that was boosted after being received in a timely manner.
-	previousProposerBoostRoot     [fieldparams.RootLength]byte // previous block root that was boosted after being received in a timely manner.
-	previousProposerBoostScore    uint64                       // previous proposer boosted root score.
+	// store中最后justified epoch
+	justifiedCheckpoint *forkchoicetypes.Checkpoint // latest justified epoch in store.
+	// store中的best justified checkpoint
+	bestJustifiedCheckpoint *forkchoicetypes.Checkpoint // best justified checkpoint in store.
+	// 在store中unrealized justified和finalized checkpoint
+	unrealizedJustifiedCheckpoint *forkchoicetypes.Checkpoint // best unrealized justified checkpoint in store.
+	unrealizedFinalizedCheckpoint *forkchoicetypes.Checkpoint // best unrealized finalized checkpoint in store.
+	prevJustifiedCheckpoint       *forkchoicetypes.Checkpoint // previous justified checkpoint in store.
+	// 在store中最后finalized的epoch
+	finalizedCheckpoint        *forkchoicetypes.Checkpoint  // latest finalized epoch in store.
+	proposerBoostRoot          [fieldparams.RootLength]byte // latest block root that was boosted after being received in a timely manner.
+	previousProposerBoostRoot  [fieldparams.RootLength]byte // previous block root that was boosted after being received in a timely manner.
+	previousProposerBoostScore uint64                       // previous proposer boosted root score.
 	// store tree的root node
 	treeRootNode        *Node                                  // the root node of the store tree.
 	headNode            *Node                                  // last head Node

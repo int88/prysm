@@ -72,7 +72,7 @@ func (f *ForkChoice) Head(
 	f.store.nodesLock.Lock()
 	defer f.store.nodesLock.Unlock()
 
-	// 更新balance
+	// 更新balance，有的validator可能更改了投票
 	if err := f.updateBalances(justifiedStateBalances); err != nil {
 		return [32]byte{}, errors.Wrap(err, "could not update balances")
 	}
@@ -87,6 +87,7 @@ func (f *ForkChoice) Head(
 		return [32]byte{}, errors.Wrap(err, "could not apply weight changes")
 	}
 
+	// 从fork choice中返回justified和finalized checkpoint
 	jc := f.JustifiedCheckpoint()
 	fc := f.FinalizedCheckpoint()
 	currentEpoch := slots.EpochsSinceGenesis(time.Unix(int64(f.store.genesisTime), 0))
@@ -504,6 +505,7 @@ func (f *ForkChoice) InsertSlashedIndex(_ context.Context, index types.Validator
 }
 
 // UpdateJustifiedCheckpoint sets the justified checkpoint to the given one
+// UpdateJustifiedCheckpoint将justified checkpoint设置到指定值
 func (f *ForkChoice) UpdateJustifiedCheckpoint(jc *forkchoicetypes.Checkpoint) error {
 	if jc == nil {
 		return errInvalidNilCheckpoint
@@ -514,6 +516,7 @@ func (f *ForkChoice) UpdateJustifiedCheckpoint(jc *forkchoicetypes.Checkpoint) e
 	f.store.justifiedCheckpoint = jc
 	bj := f.store.bestJustifiedCheckpoint
 	if bj == nil || bj.Root == params.BeaconConfig().ZeroHash || jc.Epoch > bj.Epoch {
+		// best justified checkpoint没设置，或者justified epoch大于best justified epoch
 		f.store.bestJustifiedCheckpoint = &forkchoicetypes.Checkpoint{Epoch: jc.Epoch, Root: jc.Root}
 	}
 	return nil

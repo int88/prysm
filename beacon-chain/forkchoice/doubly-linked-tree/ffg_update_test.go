@@ -17,6 +17,7 @@ func TestFFGUpdates_OneBranch(t *testing.T) {
 	ctx := context.Background()
 
 	// The head should always start at the finalized block.
+	// head总是应该从finalized block开始
 	r, err := f.Head(context.Background(), balances)
 	require.NoError(t, err)
 	assert.Equal(t, params.BeaconConfig().ZeroHash, r, "Incorrect head with genesis")
@@ -40,6 +41,7 @@ func TestFFGUpdates_OneBranch(t *testing.T) {
 	require.NoError(t, f.InsertNode(ctx, state, blkRoot))
 
 	// With starting justified epoch at 0, the head should be 3:
+	// justified epoch从0开始，head应该为3
 	//            0 <- start
 	//            |
 	//            1
@@ -52,6 +54,7 @@ func TestFFGUpdates_OneBranch(t *testing.T) {
 	assert.Equal(t, indexToHash(3), r, "Incorrect head for with justified epoch at 0")
 
 	// With starting justified epoch at 1, the head should be 2:
+	// justified epoch从2开始，head应该是2
 	//            0
 	//            |
 	//            1 <- start
@@ -66,6 +69,7 @@ func TestFFGUpdates_OneBranch(t *testing.T) {
 	assert.Equal(t, indexToHash(2), r, "Incorrect head with justified epoch at 1")
 
 	// With starting justified epoch at 2, the head should be 3:
+	// justified epoch从2开始，head应该为3
 	//            0
 	//            |
 	//            1
@@ -134,6 +138,7 @@ func TestFFGUpdates_TwoBranches(t *testing.T) {
 	require.NoError(t, f.InsertNode(ctx, state, blkRoot))
 
 	// With start at 0, the head should be 10:
+	// 从0开始，head应该为10
 	//           0  <-- start
 	//          / \
 	//         1   2
@@ -150,6 +155,7 @@ func TestFFGUpdates_TwoBranches(t *testing.T) {
 	assert.Equal(t, indexToHash(10), r, "Incorrect head with justified epoch at 0")
 
 	// Add a vote to 1:
+	// 添加一个vote到1
 	//                 0
 	//                / \
 	//    +1 vote -> 1   2
@@ -164,6 +170,7 @@ func TestFFGUpdates_TwoBranches(t *testing.T) {
 	f.ProcessAttestation(context.Background(), []uint64{0}, indexToHash(1), 0)
 
 	// With the additional vote to the left branch, the head should be 9:
+	// 有额外的vote到左边的分支，head应该为9
 	//           0  <-- start
 	//          / \
 	//         1   2
@@ -194,6 +201,7 @@ func TestFFGUpdates_TwoBranches(t *testing.T) {
 	f.ProcessAttestation(context.Background(), []uint64{1}, indexToHash(2), 0)
 
 	// With the additional vote to the right branch, the head should be 10:
+	// 有额外的vote到右边的分支，head应该为10
 	//           0  <-- start
 	//          / \
 	//         1   2

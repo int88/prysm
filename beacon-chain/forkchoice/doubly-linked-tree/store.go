@@ -214,6 +214,8 @@ func (s *Store) insert(ctx context.Context,
 // pruneFinalizedNodeByRootMap prunes the `nodeByRoot` map
 // starting from `node` down to the finalized Node or to a leaf of the Fork
 // choice store. This method assumes a lock on nodesLock.
+// pruneFinalizedNodeByRootMap清理`nodeByRoot`这个map，从`node`开始往下到finalized Node或者
+// 到Fork choice store的leaf，这个方法假设持有nodesLock
 func (s *Store) pruneFinalizedNodeByRootMap(ctx context.Context, node, finalizedNode *Node) error {
 	if ctx.Err() != nil {
 		return ctx.Err()
@@ -222,11 +224,13 @@ func (s *Store) pruneFinalizedNodeByRootMap(ctx context.Context, node, finalized
 		return nil
 	}
 	for _, child := range node.children {
+		// 遍历children，移除node
 		if err := s.pruneFinalizedNodeByRootMap(ctx, child, finalizedNode); err != nil {
 			return err
 		}
 	}
 
+	// 重置node的children，从nodeByRoot中移除
 	node.children = nil
 	delete(s.nodeByRoot, node.root)
 	return nil
@@ -234,6 +238,8 @@ func (s *Store) pruneFinalizedNodeByRootMap(ctx context.Context, node, finalized
 
 // prune prunes the fork choice store. It removes all nodes that compete with the finalized root.
 // This function does not prune for invalid optimistically synced nodes, it deals only with pruning upon finalization
+// prune修剪fork choice store，它移除所有和finalized root竞争的nodes
+// 这个函数不移除非法的optimistically synced nodes，它只修理到finalization
 func (s *Store) prune(ctx context.Context) error {
 	ctx, span := trace.StartSpan(ctx, "doublyLinkedForkchoice.Prune")
 	defer span.End()
@@ -249,16 +255,19 @@ func (s *Store) prune(ctx context.Context) error {
 		return errors.WithMessage(errUnknownFinalizedRoot, fmt.Sprintf("%#x", finalizedRoot))
 	}
 	// return early if we haven't changed the finalized checkpoint
+	// 尽早返回，如果我们没有改变finalized checkpoint
 	if finalizedNode.parent == nil {
 		return nil
 	}
 
 	// Prune nodeByRoot starting from root
+	// 修剪从root开始的nodeByRoot
 	if err := s.pruneFinalizedNodeByRootMap(ctx, s.treeRootNode, finalizedNode); err != nil {
 		return err
 	}
 
 	finalizedNode.parent = nil
+	// 将finalizedNode作为treeRootNode
 	s.treeRootNode = finalizedNode
 
 	prunedCount.Inc()

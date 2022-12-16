@@ -38,6 +38,7 @@ import (
 //				        store.justified_checkpoint = store.best_justified_checkpoint
 func (f *ForkChoice) NewSlot(ctx context.Context, slot types.Slot) error {
 	// Reset proposer boost root
+	// 重置proposer boost root，将它设置为0
 	if err := f.ResetBoostedProposerRoot(ctx); err != nil {
 		return errors.Wrap(err, "could not reset boosted proposer root in fork choice")
 	}
@@ -56,6 +57,7 @@ func (f *ForkChoice) NewSlot(ctx context.Context, slot types.Slot) error {
 	fcp := f.store.finalizedCheckpoint
 	f.store.checkpointsLock.RUnlock()
 	if bjcp.Epoch > jcp.Epoch {
+		// 如果best justified checkpoint的epoch大于justified checkpoint的epoch
 		finalizedSlot, err := slots.EpochStart(fcp.Epoch)
 		if err != nil {
 			return err
@@ -73,6 +75,7 @@ func (f *ForkChoice) NewSlot(ctx context.Context, slot types.Slot) error {
 		}
 		if r == fcp.Root {
 			f.store.checkpointsLock.Lock()
+			// 更新previous justifed checkpoint和justified checkpoint
 			f.store.prevJustifiedCheckpoint = jcp
 			f.store.justifiedCheckpoint = bjcp
 			f.store.checkpointsLock.Unlock()

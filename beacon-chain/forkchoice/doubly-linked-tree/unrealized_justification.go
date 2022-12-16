@@ -44,22 +44,29 @@ func (s *Store) setUnrealizedFinalizedEpoch(root [32]byte, epoch types.Epoch) er
 
 // updateUnrealizedCheckpoints "realizes" the unrealized justified and finalized
 // epochs stored within nodes. It should be called at the beginning of each epoch.
+// updateUnrealizedCheckpoints意识到unrealized justified和finalized epochs存储在nodes中
+// 它应该在每个epoch的开始的时候被调用
 func (f *ForkChoice) updateUnrealizedCheckpoints() {
 	f.store.nodesLock.Lock()
 	defer f.store.nodesLock.Unlock()
 	f.store.checkpointsLock.Lock()
 	defer f.store.checkpointsLock.Unlock()
+	// 遍历fork choice中的所有nodes
 	for _, node := range f.store.nodeByRoot {
+		// 将unrealized justified和finalized epoch赋值给justified epoch和finalized epoch
 		node.justifiedEpoch = node.unrealizedJustifiedEpoch
 		node.finalizedEpoch = node.unrealizedFinalizedEpoch
 		if node.justifiedEpoch > f.store.justifiedCheckpoint.Epoch {
 			f.store.prevJustifiedCheckpoint = f.store.justifiedCheckpoint
 			f.store.justifiedCheckpoint = f.store.unrealizedJustifiedCheckpoint
 			if node.justifiedEpoch > f.store.bestJustifiedCheckpoint.Epoch {
+				// 更新checkpoint store中的best justified checkpoint
 				f.store.bestJustifiedCheckpoint = f.store.unrealizedJustifiedCheckpoint
 			}
 		}
 		if node.finalizedEpoch > f.store.finalizedCheckpoint.Epoch {
+			// 如果node的finalized epoch，大于store中的finalized checkpoint epoch
+			// 则更新store的justified和finalized checkpoint
 			f.store.justifiedCheckpoint = f.store.unrealizedJustifiedCheckpoint
 			f.store.finalizedCheckpoint = f.store.unrealizedFinalizedCheckpoint
 		}
