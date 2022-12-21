@@ -46,6 +46,7 @@ func (n *Node) updateBestDescendant(ctx context.Context, justifiedEpoch, finaliz
 		return ctx.Err()
 	}
 	if len(n.children) == 0 {
+		// 如果没有children，则设置bestDescendant为nil
 		n.bestDescendant = nil
 		return nil
 	}
@@ -74,6 +75,7 @@ func (n *Node) updateBestDescendant(ctx context.Context, justifiedEpoch, finaliz
 			// 如果都是可行的，比较它们的weight
 			if child.weight == bestWeight {
 				// Tie-breaker of equal weights by root.
+				// 通过比root的大小，决定best child
 				if bytes.Compare(child.root[:], bestChild.root[:]) > 0 {
 					bestChild = child
 				}

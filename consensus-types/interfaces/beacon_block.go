@@ -35,8 +35,10 @@ type SignedBeaconBlock interface {
 
 // BeaconBlock describes an interface which states the methods
 // employed by an object that is a beacon block.
+// BeaconBlock描述了一个接口，它是一个beacon block对象的拥有的方法
 type BeaconBlock interface {
 	Slot() types.Slot
+	// proposer的index?
 	ProposerIndex() types.ValidatorIndex
 	ParentRoot() [field_params.RootLength]byte
 	StateRoot() [field_params.RootLength]byte

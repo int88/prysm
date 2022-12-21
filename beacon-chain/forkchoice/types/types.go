@@ -24,6 +24,7 @@ type Checkpoint struct {
 }
 
 // BlockAndCheckpoints to call the InsertOptimisticChain function
+// BlockAndCheckpoints用于调用InsertOptimisticChain函数
 type BlockAndCheckpoints struct {
 	Block               interfaces.BeaconBlock
 	JustifiedCheckpoint *ethpb.Checkpoint

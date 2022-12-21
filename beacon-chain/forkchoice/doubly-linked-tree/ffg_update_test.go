@@ -227,6 +227,7 @@ func setup(justifiedEpoch, finalizedEpoch types.Epoch) *ForkChoice {
 	ctx := context.Background()
 	f := New()
 	f.store.justifiedCheckpoint = &forkchoicetypes.Checkpoint{Epoch: justifiedEpoch, Root: params.BeaconConfig().ZeroHash}
+	// best justified checkpoint一开始也设置为justified epoch
 	f.store.bestJustifiedCheckpoint = &forkchoicetypes.Checkpoint{Epoch: justifiedEpoch, Root: params.BeaconConfig().ZeroHash}
 	f.store.finalizedCheckpoint = &forkchoicetypes.Checkpoint{Epoch: finalizedEpoch, Root: params.BeaconConfig().ZeroHash}
 	// 第二个参数是slot

@@ -52,8 +52,10 @@ type Store struct {
 	highestReceivedNode *Node // The highest slot node.
 	// 使用`highestReceivedSlot`，在最后一个epoch接收到的blocks的slot
 	receivedBlocksLastEpoch [fieldparams.SlotsPerEpoch]types.Slot // Using `highestReceivedSlot`. The slot of blocks received in the last epoch.
-	allTipsAreInvalid       bool                                  // tracks if all tips are not viable for head
-	committeeBalance        uint64                                // tracks the total active validator balance divided by slots per epoch. Requires a lock on nodes to read/write
+	// 追踪是否所有的tips都不能当head
+	allTipsAreInvalid bool // tracks if all tips are not viable for head
+	// 追踪所有active validator的balance，除以slots，对于每个epoch，需要一个锁，对nodes进行读写
+	committeeBalance uint64 // tracks the total active validator balance divided by slots per epoch. Requires a lock on nodes to read/write
 }
 
 // Node defines the individual block which includes its block parent, ancestor and how much weight accounted for it.

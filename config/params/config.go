@@ -65,7 +65,8 @@ type BeaconChainConfig struct {
 	ShardCommitteePeriod             types.Epoch `yaml:"SHARD_COMMITTEE_PERIOD" spec:"true"`              // ShardCommitteePeriod is the minimum amount of epochs a validator must participate before exiting.
 	MinEpochsToInactivityPenalty     types.Epoch `yaml:"MIN_EPOCHS_TO_INACTIVITY_PENALTY" spec:"true"`    // MinEpochsToInactivityPenalty defines the minimum amount of epochs since finality to begin penalizing inactivity.
 	// Eth1FollowDistance是需要等待的eth1.0 blocks的数目，在考虑新的deposit用于voting之前，它只在chain启动之后应用
-	Eth1FollowDistance                        uint64     `yaml:"ETH1_FOLLOW_DISTANCE" spec:"true"`                // Eth1FollowDistance is the number of eth1.0 blocks to wait before considering a new deposit for voting. This only applies after the chain as been started.
+	Eth1FollowDistance uint64 `yaml:"ETH1_FOLLOW_DISTANCE" spec:"true"` // Eth1FollowDistance is the number of eth1.0 blocks to wait before considering a new deposit for voting. This only applies after the chain as been started.
+	// SafeSlotsToUpdateJustified是更新justified checkpoint所需的最小的slots
 	SafeSlotsToUpdateJustified                types.Slot `yaml:"SAFE_SLOTS_TO_UPDATE_JUSTIFIED" spec:"true"`      // SafeSlotsToUpdateJustified is the minimal slots needed to update justified check point.
 	DeprecatedSafeSlotsToImportOptimistically types.Slot `yaml:"SAFE_SLOTS_TO_IMPORT_OPTIMISTICALLY" spec:"true"` // SafeSlotsToImportOptimistically is the minimal number of slots to wait before importing optimistically a pre-merge block
 	// 产生单个eth1 block的时间

@@ -12,6 +12,7 @@ import (
 
 // BalanceByRooter is a handler to obtain the effective balances of the state
 // with the given block root
+// BalanceByRooter是一个handler用于获取state对应的effective balances，对于给定的block root
 type BalancesByRooter func(context.Context, [32]byte) ([]uint64, error)
 
 // ForkChoicer represents the full fork choice interface composed of all the sub-interfaces.

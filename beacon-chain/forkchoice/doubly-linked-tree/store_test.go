@@ -14,6 +14,7 @@ import (
 
 func TestStore_JustifiedEpoch(t *testing.T) {
 	j := types.Epoch(100)
+	// 将finalized和justified都设置为100
 	f := setup(j, j)
 	require.Equal(t, j, f.JustifiedCheckpoint().Epoch)
 }
@@ -73,6 +74,7 @@ func TestStore_Head_UnknownJustifiedRoot(t *testing.T) {
 
 	f.store.justifiedCheckpoint = &forkchoicetypes.Checkpoint{Epoch: 1, Root: [32]byte{'a'}}
 	_, err := f.store.head(context.Background())
+	// 未知的justified root
 	assert.ErrorContains(t, errUnknownJustifiedRoot.Error(), err)
 }
 
@@ -84,6 +86,7 @@ func TestStore_Head_Itself(t *testing.T) {
 
 	// Since the justified node does not have a best descendant so the best node
 	// is itself.
+	// 因为justified node没有一个best descendant，因此best node是它自己
 	f.store.justifiedCheckpoint = &forkchoicetypes.Checkpoint{Epoch: 0, Root: indexToHash(1)}
 	h, err := f.store.head(context.Background())
 	require.NoError(t, err)
@@ -108,6 +111,7 @@ func TestStore_Head_BestDescendant(t *testing.T) {
 	f.store.justifiedCheckpoint = &forkchoicetypes.Checkpoint{Epoch: 0, Root: indexToHash(1)}
 	h, err := f.store.head(context.Background())
 	require.NoError(t, err)
+	// best descendant是最长的那个
 	require.Equal(t, h, indexToHash(4))
 }
 
@@ -312,6 +316,7 @@ func TestStore_PruneMapsNodes(t *testing.T) {
 	require.NoError(t, f.InsertNode(ctx, state, blkRoot))
 
 	s := f.store
+	// 设置finalized checkpoint的root
 	s.finalizedCheckpoint.Root = indexToHash(1)
 	require.NoError(t, s.prune(context.Background()))
 	require.Equal(t, len(s.nodeByRoot), 1)

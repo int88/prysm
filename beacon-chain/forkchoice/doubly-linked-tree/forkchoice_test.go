@@ -266,6 +266,7 @@ func TestForkChoice_AncestorRoot(t *testing.T) {
 	root, err = f.AncestorRoot(ctx, indexToHash(3), 1)
 	require.NoError(t, err)
 	hash1 := indexToHash(1)
+	// ancestor root是1，不是genesis?
 	require.DeepEqual(t, hash1, root)
 }
 
@@ -300,9 +301,11 @@ func TestForkChoice_AncestorLowerSlot(t *testing.T) {
 }
 
 func TestForkChoice_RemoveEquivocating(t *testing.T) {
+	// 移除模棱两可
 	ctx := context.Background()
 	f := setup(1, 1)
 	// Insert a block it will be head
+	// 插入一个block，它会变为head
 	st, blkRoot, err := prepareForkchoiceState(ctx, 1, [32]byte{'a'}, params.BeaconConfig().ZeroHash, [32]byte{'A'}, 1, 1)
 	require.NoError(t, err)
 	require.NoError(t, f.InsertNode(ctx, st, blkRoot))
@@ -311,6 +314,7 @@ func TestForkChoice_RemoveEquivocating(t *testing.T) {
 	require.Equal(t, [32]byte{'a'}, head)
 
 	// Insert two extra blocks
+	// 插入两个额外的blocks
 	st, blkRoot, err = prepareForkchoiceState(ctx, 2, [32]byte{'b'}, [32]byte{'a'}, [32]byte{'B'}, 1, 1)
 	require.NoError(t, err)
 	require.NoError(t, f.InsertNode(ctx, st, blkRoot))
@@ -319,9 +323,11 @@ func TestForkChoice_RemoveEquivocating(t *testing.T) {
 	require.NoError(t, f.InsertNode(ctx, st, blkRoot))
 	head, err = f.Head(ctx, []uint64{})
 	require.NoError(t, err)
+	// 后插入的'c'变为head
 	require.Equal(t, [32]byte{'c'}, head)
 
 	// Insert two attestations for block b, one for c it becomes head
+	// 插入两个attestations为b，一个为c，b变为head
 	f.ProcessAttestation(ctx, []uint64{1, 2}, [32]byte{'b'}, 1)
 	f.ProcessAttestation(ctx, []uint64{3}, [32]byte{'c'}, 1)
 	head, err = f.Head(ctx, []uint64{100, 200, 200, 300})
@@ -329,6 +335,7 @@ func TestForkChoice_RemoveEquivocating(t *testing.T) {
 	require.Equal(t, [32]byte{'b'}, head)
 
 	// Process b's slashing, c is now head
+	// 处理b的slashing，c现在变为head
 	f.InsertSlashedIndex(ctx, 1)
 	require.Equal(t, uint64(200), f.store.nodeByRoot[[32]byte{'b'}].balance)
 	head, err = f.Head(ctx, []uint64{100, 200, 200, 300})
@@ -338,6 +345,7 @@ func TestForkChoice_RemoveEquivocating(t *testing.T) {
 	require.Equal(t, [32]byte{'c'}, head)
 
 	// Process b's slashing again, should be a noop
+	// 再次处理b的slashing，应该是noop
 	f.InsertSlashedIndex(ctx, 1)
 	require.Equal(t, uint64(200), f.store.nodeByRoot[[32]byte{'b'}].balance)
 	head, err = f.Head(ctx, []uint64{100, 200, 200, 300})
@@ -347,8 +355,10 @@ func TestForkChoice_RemoveEquivocating(t *testing.T) {
 	require.Equal(t, [32]byte{'c'}, head)
 
 	// Process index where index == vote length. Should not panic.
+	// 处理index，其中index等于vote length，不应该panic
 	f.InsertSlashedIndex(ctx, types.ValidatorIndex(len(f.balances)))
 	f.InsertSlashedIndex(ctx, types.ValidatorIndex(len(f.votes)))
+	// slashed indices不为空
 	require.Equal(t, true, len(f.store.slashedIndices) > 0)
 }
 
@@ -366,6 +376,7 @@ func TestForkChoice_UpdateJustifiedAndFinalizedCheckpoints(t *testing.T) {
 	fc := &forkchoicetypes.Checkpoint{Root: fr, Epoch: 2}
 	require.NoError(t, f.UpdateJustifiedCheckpoint(jc))
 	require.NoError(t, f.UpdateFinalizedCheckpoint(fc))
+	// 校验f.store中的justified和finalized checkpoint的值
 	require.Equal(t, f.store.justifiedCheckpoint.Epoch, jc.Epoch)
 	require.Equal(t, f.store.justifiedCheckpoint.Root, jc.Root)
 	require.Equal(t, f.store.finalizedCheckpoint.Epoch, fc.Epoch)
@@ -598,6 +609,7 @@ func TestStore_InsertOptimisticChain(t *testing.T) {
 		FinalizedCheckpoint: &ethpb.Checkpoint{Epoch: 1, Root: params.BeaconConfig().ZeroHash[:]},
 	})
 	for i := uint64(2); i < 11; i++ {
+		// 再建9个BlockAndCheckpoints
 		blk := util.NewBeaconBlock()
 		blk.Block.Slot = types.Slot(i)
 		copiedRoot := root
@@ -637,6 +649,7 @@ func TestForkChoice_UpdateCheckpoints(t *testing.T) {
 		wantedErr           string
 	}{
 		{
+			// 比存储的justified和finalized更低
 			name:                "lower than store justified and finalized",
 			justified:           &forkchoicetypes.Checkpoint{Epoch: 2, Root: [32]byte{'j'}},
 			finalized:           &forkchoicetypes.Checkpoint{Epoch: 1, Root: [32]byte{'f'}},
@@ -724,6 +737,9 @@ func TestForkChoice_UpdateCheckpoints(t *testing.T) {
 			fcs.store.bestJustifiedCheckpoint = tt.bestJustified
 			fcs.store.genesisTime = uint64(time.Now().Unix()) - uint64(tt.currentSlot)*params.BeaconConfig().SecondsPerSlot
 
+			// f -> j -> b ->
+			// f -> c
+			// f -> h
 			st, blkRoot, err := prepareForkchoiceState(ctx, 32, [32]byte{'f'},
 				[32]byte{}, [32]byte{}, tt.finalized.Epoch, tt.finalized.Epoch)
 			require.NoError(t, err)
@@ -745,6 +761,7 @@ func TestForkChoice_UpdateCheckpoints(t *testing.T) {
 			require.NoError(t, err)
 			require.NoError(t, fcs.InsertNode(ctx, st, blkRoot))
 			// restart justifications cause insertion messed it up
+			// 重启justifications，因为插入把它弄乱了
 			fcs.store.justifiedCheckpoint = tt.justified
 			fcs.store.finalizedCheckpoint = tt.finalized
 			fcs.store.bestJustifiedCheckpoint = tt.bestJustified

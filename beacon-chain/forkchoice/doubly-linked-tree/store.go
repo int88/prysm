@@ -109,6 +109,7 @@ func (s *Store) head(ctx context.Context) ([32]byte, error) {
 	if bestDescendant != s.headNode {
 		headChangesCount.Inc()
 		headSlotNumber.Set(float64(bestDescendant.slot))
+		// 重新设置head node
 		s.headNode = bestDescendant
 	}
 
@@ -293,6 +294,7 @@ func (s *Store) tips() ([][32]byte, []types.Slot) {
 }
 
 // HighestReceivedBlockSlot returns the highest slot received by the forkchoice
+// HighestReceivedBlockSlot返回forkchoice接收到的最高的slot
 func (f *ForkChoice) HighestReceivedBlockSlot() types.Slot {
 	f.store.nodesLock.RLock()
 	defer f.store.nodesLock.RUnlock()
@@ -313,6 +315,7 @@ func (f *ForkChoice) HighestReceivedBlockRoot() [32]byte {
 }
 
 // ReceivedBlocksLastEpoch returns the number of blocks received in the last epoch
+// ReceivedBlocksLastEpoch返回在上一个epoch中接收到的blocks
 func (f *ForkChoice) ReceivedBlocksLastEpoch() (uint64, error) {
 	f.store.nodesLock.RLock()
 	defer f.store.nodesLock.RUnlock()

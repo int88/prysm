@@ -190,6 +190,7 @@ func (f *ForkChoice) updateCheckpoints(ctx context.Context, jc, fc *ethpb.Checkp
 		currentSlot := slots.CurrentSlot(f.store.genesisTime)
 		if slots.SinceEpochStarts(currentSlot) < params.BeaconConfig().SafeSlotsToUpdateJustified {
 			f.store.prevJustifiedCheckpoint = f.store.justifiedCheckpoint
+			// 直接更新store中的justified checkpoint
 			f.store.justifiedCheckpoint = &forkchoicetypes.Checkpoint{Epoch: jc.Epoch,
 				Root: bytesutil.ToBytes32(jc.Root)}
 		} else {
@@ -207,7 +208,10 @@ func (f *ForkChoice) updateCheckpoints(ctx context.Context, jc, fc *ethpb.Checkp
 			// Releasing here the checkpoints lock because
 			// AncestorRoot acquires a lock on nodes and that can
 			// cause a double lock.
+			// 这里释放checkpoints lock，因为AncestorRoot需要对于nodes的lock
+			// 这会导致double lock
 			f.store.checkpointsLock.Unlock()
+			// 找到jcRoot在jSlot的ancestor root，如果两者相等，即更新store中的justified checkpoint?
 			root, err := f.AncestorRoot(ctx, jcRoot, jSlot)
 			if err != nil {
 				return err
@@ -297,6 +301,7 @@ func (f *ForkChoice) IsOptimistic(root [32]byte) (bool, error) {
 }
 
 // AncestorRoot returns the ancestor root of input block root at a given slot.
+// AncestorRoot返回输入的block root的ancestor root，在一个给定的slot
 func (f *ForkChoice) AncestorRoot(ctx context.Context, root [32]byte, slot types.Slot) ([32]byte, error) {
 	ctx, span := trace.StartSpan(ctx, "doublyLinkedForkchoice.AncestorRoot")
 	defer span.End()
@@ -470,6 +475,8 @@ func (f *ForkChoice) SetOptimisticToInvalid(ctx context.Context, root, parentRoo
 // InsertSlashedIndex adds the given slashed validator index to the
 // store-tracked list. Votes from these validators are not accounted for
 // in forkchoice.
+// InsertSlashedIndex添加给定的slashed  validator索引到store-tracked list
+// 来自这些validators的投票在forkchoice中将不再算数
 func (f *ForkChoice) InsertSlashedIndex(_ context.Context, index types.ValidatorIndex) {
 	f.votesLock.RLock()
 	defer f.votesLock.RUnlock()
@@ -477,14 +484,17 @@ func (f *ForkChoice) InsertSlashedIndex(_ context.Context, index types.Validator
 	f.store.nodesLock.Lock()
 	defer f.store.nodesLock.Unlock()
 	// return early if the index was already included:
+	// 尽早返回，如果index已经包含了
 	if f.store.slashedIndices[index] {
 		return
 	}
 	f.store.slashedIndices[index] = true
 
 	// Subtract last vote from this equivocating validator
+	// 将这个模棱两可的validator从最后的vote抽去
 
 	if index >= types.ValidatorIndex(len(f.balances)) {
+		// 如果index大于等于f.balances的长度或者f.votes的长度，则直接返回
 		return
 	}
 
@@ -492,6 +502,7 @@ func (f *ForkChoice) InsertSlashedIndex(_ context.Context, index types.Validator
 		return
 	}
 
+	// 找到这个validator投票的block，将这个validator的balance从block的balance中减去
 	node, ok := f.store.nodeByRoot[f.votes[index].currentRoot]
 	if !ok || node == nil {
 		return
@@ -588,6 +599,10 @@ func (f *ForkChoice) CommonAncestor(ctx context.Context, r1 [32]byte, r2 [32]byt
 // number). All blocks are assumed to be a strict chain
 // where blocks[i].Parent = blocks[i+1]. Also we assume that the parent of the
 // last block in this list is already included in forkchoice store.
+// InsertOptimisticChain插入所有nodes，对应到slice `chain`对应的所有blocks
+// 这个slice必须从child到parent进行排序，它包含所有的blocks，除了第一个（这是有着最高slot的那个）
+// 所有的blocks假设有一个严格的链条，blocks[i].Parent = blocks[i+1]，另外我们假设list中
+// 最后一个block的parent已经包含在fork choice中了
 func (f *ForkChoice) InsertOptimisticChain(ctx context.Context, chain []*forkchoicetypes.BlockAndCheckpoints) error {
 	if len(chain) == 0 {
 		return nil
@@ -600,6 +615,7 @@ func (f *ForkChoice) InsertOptimisticChain(ctx context.Context, chain []*forkcho
 		if err != nil {
 			return err
 		}
+		// 在store中进行插入
 		if _, err := f.store.insert(ctx,
 			b.Slot(), r, parentRoot, payloadHash,
 			chain[i].JustifiedCheckpoint.Epoch, chain[i].FinalizedCheckpoint.Epoch); err != nil {

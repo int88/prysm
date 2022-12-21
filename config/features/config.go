@@ -62,7 +62,8 @@ type Flags struct {
 	EnableSlashingProtectionPruning bool
 
 	// DisablePullTips禁止实验性的对于boundary checks的关闭
-	DisablePullTips                   bool // DisablePullTips disables experimental disabling of boundary checks.
+	DisablePullTips bool // DisablePullTips disables experimental disabling of boundary checks.
+	// EnableDefensivePull使能实验性的back boundary checks
 	EnableDefensivePull               bool // EnableDefensivePull enables exerimental back boundary checks.
 	EnableVectorizedHTR               bool // EnableVectorizedHTR specifies whether the beacon state will use the optimized sha256 routines.
 	DisableForkchoiceDoublyLinkedTree bool // DisableForkChoiceDoublyLinkedTree specifies whether fork choice store will use a doubly linked tree.
