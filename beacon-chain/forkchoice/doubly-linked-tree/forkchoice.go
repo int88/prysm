@@ -194,6 +194,7 @@ func (f *ForkChoice) updateCheckpoints(ctx context.Context, jc, fc *ethpb.Checkp
 			f.store.justifiedCheckpoint = &forkchoicetypes.Checkpoint{Epoch: jc.Epoch,
 				Root: bytesutil.ToBytes32(jc.Root)}
 		} else {
+			// 获取store中的jcp以及对应的jcp
 			currentJcp := f.store.justifiedCheckpoint
 			currentRoot := currentJcp.Root
 			if currentRoot == params.BeaconConfig().ZeroHash {
@@ -251,6 +252,7 @@ func (f *ForkChoice) HasNode(root [32]byte) bool {
 
 // HasParent returns true if the node parent exists in fork choice store,
 // false else wise.
+// HasParent返回true，如果node parent存在于fork choice store，否则返回false
 func (f *ForkChoice) HasParent(root [32]byte) bool {
 	f.store.nodesLock.RLock()
 	defer f.store.nodesLock.RUnlock()
@@ -423,6 +425,7 @@ func (f *ForkChoice) Tips() ([][32]byte, []types.Slot) {
 }
 
 // ProposerBoost returns the proposerBoost of the store
+// ProposerBoost返回store中的proposerBoost
 func (f *ForkChoice) ProposerBoost() [fieldparams.RootLength]byte {
 	return f.store.proposerBoost()
 }
@@ -546,6 +549,7 @@ func (f *ForkChoice) UpdateFinalizedCheckpoint(fc *forkchoicetypes.Checkpoint) e
 }
 
 // CommonAncestor returns the common ancestor root and slot between the two block roots r1 and r2.
+// CommonAncestor返回两个block roots r1和r2的公共的ancestor的root和slot
 func (f *ForkChoice) CommonAncestor(ctx context.Context, r1 [32]byte, r2 [32]byte) ([32]byte, types.Slot, error) {
 	ctx, span := trace.StartSpan(ctx, "doublyLinkedForkchoice.CommonAncestorRoot")
 	defer span.End()
@@ -634,11 +638,13 @@ func (f *ForkChoice) SetGenesisTime(genesisTime uint64) {
 }
 
 // SetOriginRoot sets the genesis block root
+// SetOriginRoot设置genesis block root
 func (f *ForkChoice) SetOriginRoot(root [32]byte) {
 	f.store.originRoot = root
 }
 
 // CachedHeadRoot returns the last cached head root
+// CachedHeadRoot返回最新缓存的head root
 func (f *ForkChoice) CachedHeadRoot() [32]byte {
 	f.store.nodesLock.RLock()
 	defer f.store.nodesLock.RUnlock()

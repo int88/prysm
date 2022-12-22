@@ -123,6 +123,7 @@ func IsEpochEnd(slot types.Slot) bool {
 }
 
 // SinceEpochStarts returns number of slots since the start of the epoch.
+// SinceEpochStarts返回从epoch开始以来slots的数目
 func SinceEpochStarts(slot types.Slot) types.Slot {
 	return slot % params.BeaconConfig().SlotsPerEpoch
 }

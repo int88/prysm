@@ -53,6 +53,7 @@ func (s *Store) applyProposerBoostScore(newBalances []uint64) error {
 }
 
 // ProposerBoost of fork choice store.
+// fork choice store中的Proposer Boost
 func (s *Store) proposerBoost() [fieldparams.RootLength]byte {
 	s.proposerBoostLock.RLock()
 	defer s.proposerBoostLock.RUnlock()
@@ -99,6 +100,7 @@ func (s *Store) head(ctx context.Context) ([32]byte, error) {
 	currentEpoch := slots.EpochsSinceGenesis(time.Unix(int64(s.genesisTime), 0))
 	if !bestDescendant.viableForHead(s.justifiedCheckpoint.Epoch, s.finalizedCheckpoint.Epoch, currentEpoch) {
 		s.allTipsAreInvalid = true
+		// 如果best descendant不适合当head，则返回错误
 		return [32]byte{}, fmt.Errorf("head at slot %d with weight %d is not eligible, finalizedEpoch, justified Epoch %d, %d != %d, %d",
 			bestDescendant.slot, bestDescendant.weight/10e9, bestDescendant.finalizedEpoch, bestDescendant.justifiedEpoch, s.finalizedCheckpoint.Epoch, s.justifiedCheckpoint.Epoch)
 	}
@@ -113,6 +115,7 @@ func (s *Store) head(ctx context.Context) ([32]byte, error) {
 		s.headNode = bestDescendant
 	}
 
+	// 返回bestDescendant的root
 	return bestDescendant.root, nil
 }
 
@@ -277,6 +280,7 @@ func (s *Store) prune(ctx context.Context) error {
 
 // tips returns a list of possible heads from fork choice store, it returns the
 // roots and the slots of the leaf nodes.
+// tips返回一系列可能的heads，从fork choice store，它返回roots以及leaf nodes的slots
 func (s *Store) tips() ([][32]byte, []types.Slot) {
 	var roots [][32]byte
 	var slots []types.Slot
@@ -285,6 +289,7 @@ func (s *Store) tips() ([][32]byte, []types.Slot) {
 	defer s.nodesLock.RUnlock()
 
 	for root, node := range s.nodeByRoot {
+		// 获取所有没有children的node
 		if len(node.children) == 0 {
 			roots = append(roots, root)
 			slots = append(slots, node.slot)

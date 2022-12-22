@@ -8,6 +8,7 @@ import (
 )
 
 // ResetBoostedProposerRoot sets the value of the proposer boosted root to zeros.
+// ResetBoostedProposerRoot设置proposer boosted root到0
 func (f *ForkChoice) ResetBoostedProposerRoot(_ context.Context) error {
 	f.store.proposerBoostLock.Lock()
 	f.store.proposerBoostRoot = [32]byte{}
@@ -28,6 +29,8 @@ func computeProposerBoostScore(validatorBalances []uint64) (score uint64, err er
 	for _, balance := range validatorBalances {
 		// We only consider balances > 0. The input slice should be constructed
 		// as balance > 0 for all active validators and 0 for inactive ones.
+		// 我们只考虑balances > 0，输入的slice应该被构建为balance > 0，对于所有的active validators
+		// 以及0，对于inactive ones
 		if balance == 0 {
 			continue
 		}

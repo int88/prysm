@@ -85,6 +85,7 @@ func (s *Store) removeNode(ctx context.Context, node *Node) ([][32]byte, error) 
 }
 
 // removeNodeAndChildren removes `node` and all of its descendant from the Store
+// removeNodeAndChildren从Store中移除`node`以及它们所有的descendant
 func (s *Store) removeNodeAndChildren(ctx context.Context, node *Node, invalidRoots [][32]byte) ([][32]byte, error) {
 	var err error
 	for _, child := range node.children {
@@ -98,9 +99,11 @@ func (s *Store) removeNodeAndChildren(ctx context.Context, node *Node, invalidRo
 	invalidRoots = append(invalidRoots, node.root)
 	s.proposerBoostLock.Lock()
 	if node.root == s.proposerBoostRoot {
+		// 重置s.proposerBoostRoot
 		s.proposerBoostRoot = [32]byte{}
 	}
 	if node.root == s.previousProposerBoostRoot {
+		// 重置previous proposer boost root
 		s.previousProposerBoostRoot = params.BeaconConfig().ZeroHash
 		s.previousProposerBoostScore = 0
 	}
