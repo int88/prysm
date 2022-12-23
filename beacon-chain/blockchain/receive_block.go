@@ -99,23 +99,28 @@ func (s *Service) ReceiveBlock(ctx context.Context, block interfaces.SignedBeaco
 // ReceiveBlockBatch processes the whole block batch at once, assuming the block batch is linear ,transitioning
 // the state, performing batch verification of all collected signatures and then performing the appropriate
 // actions for a block post-transition.
+// ReceiveBlockBatch一次性处理整个block batch，假设block batch是线性的，转换state，处理批量校验对于所有collected signatures
+// 并且之后执行合适的actions，对于一个block post-transition
 func (s *Service) ReceiveBlockBatch(ctx context.Context, blocks []interfaces.SignedBeaconBlock, blkRoots [][32]byte) error {
 	ctx, span := trace.StartSpan(ctx, "blockChain.ReceiveBlockBatch")
 	defer span.End()
 
 	// Apply state transition on the incoming newly received block batches, one by one.
+	// 对于新接收到的block batches，应用state transition，一个接一个
 	if err := s.onBlockBatch(ctx, blocks, blkRoots); err != nil {
 		err := errors.Wrap(err, "could not process block in batch")
 		tracing.AnnotateError(span, err)
 		return err
 	}
 
+	// 遍历所有的blocks
 	for i, b := range blocks {
 		blockCopy, err := b.Copy()
 		if err != nil {
 			return err
 		}
 		// Send notification of the processed block to the state feed.
+		// 发送processed block通知到state feed
 		s.cfg.StateNotifier.StateFeed().Send(&feed.Event{
 			Type: statefeed.BlockProcessed,
 			Data: &statefeed.BlockProcessedData{
@@ -127,10 +132,12 @@ func (s *Service) ReceiveBlockBatch(ctx context.Context, blocks []interfaces.Sig
 		})
 
 		// Reports on blockCopy and fork choice metrics.
+		// 报告一个blockCopy以及fork choice metrics
 		finalized := s.FinalizedCheckpt()
 		reportSlotMetrics(blockCopy.Block().Slot(), s.HeadSlot(), s.CurrentSlot(), finalized)
 	}
 
+	// 在db中保存blocks
 	if err := s.cfg.BeaconDB.SaveBlocks(ctx, s.getInitSyncBlocks()); err != nil {
 		return err
 	}
@@ -142,6 +149,7 @@ func (s *Service) ReceiveBlockBatch(ctx context.Context, blocks []interfaces.Sig
 		// log.Fatalf will prevent defer from being called
 		span.End()
 		// Exit run time if the node failed to verify weak subjectivity checkpoint.
+		// 退出运行时，如果node校验weak subjectivity checkpoint失败
 		log.WithError(err).Fatal("Could not verify weak subjectivity checkpoint")
 	}
 

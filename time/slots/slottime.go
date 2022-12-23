@@ -172,6 +172,7 @@ func Since(time time.Time) types.Slot {
 
 // CurrentSlot returns the current slot as determined by the local clock and
 // provided genesis time.
+// CurrentSlot返回当前的slot，由本地的clock以及提供的genesis  time决定
 func CurrentSlot(genesisTimeSec uint64) types.Slot {
 	now := uint64(prysmTime.Now().Unix())
 	if now < genesisTimeSec {

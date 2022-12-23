@@ -126,6 +126,7 @@ type ReadOnlyBalances interface {
 }
 
 // ReadOnlyCheckpoint defines a struct which only has read access to checkpoint methods.
+// ReadOnlyCheckpoint定义了一个结构，对于checkpoint的方法只有读权限
 type ReadOnlyCheckpoint interface {
 	PreviousJustifiedCheckpoint() *ethpb.Checkpoint
 	CurrentJustifiedCheckpoint() *ethpb.Checkpoint

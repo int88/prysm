@@ -41,6 +41,7 @@ func prepareForkchoiceState(
 		BlockHash: payloadHash[:],
 	}
 
+	// 设置justified checkpoint和finalized checkpoint
 	justifiedCheckpoint := &ethpb.Checkpoint{
 		Epoch: justifiedEpoch,
 	}

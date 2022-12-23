@@ -362,6 +362,7 @@ func (s *Service) onBlockBatch(ctx context.Context, blks []interfaces.SignedBeac
 	b := blks[0].Block()
 
 	// Retrieve incoming block's pre state.
+	// 获取到来的block的prestate
 	if err := s.verifyBlkPreState(ctx, b); err != nil {
 		return err
 	}
@@ -374,6 +375,7 @@ func (s *Service) onBlockBatch(ctx context.Context, blks []interfaces.SignedBeac
 	}
 
 	// Fill in missing blocks
+	// 填充fork choice中丢失的blocks
 	if err := s.fillInForkChoiceMissingBlocks(ctx, blks[0].Block(), preState.CurrentJustifiedCheckpoint(), preState.FinalizedCheckpoint()); err != nil {
 		return errors.Wrap(err, "could not fill in missing blocks to forkchoice")
 	}
@@ -393,7 +395,9 @@ func (s *Service) onBlockBatch(ctx context.Context, blks []interfaces.SignedBeac
 	postVersionAndHeaders := make([]*versionAndHeader, len(blks))
 	var set *bls.SignatureBatch
 	boundaries := make(map[[32]byte]state.BeaconState)
+	// 遍历blocks
 	for i, b := range blks {
+		// 获取state version以及payload
 		v, h, err := getStateVersionAndPayload(preState)
 		if err != nil {
 			return err
@@ -408,12 +412,14 @@ func (s *Service) onBlockBatch(ctx context.Context, blks []interfaces.SignedBeac
 			return invalidBlock{error: err}
 		}
 		// Save potential boundary states.
+		// 保存临时的boundary state
 		if slots.IsEpochStart(preState.Slot()) {
 			boundaries[blockRoots[i]] = preState.Copy()
 		}
 		jCheckpoints[i] = preState.CurrentJustifiedCheckpoint()
 		fCheckpoints[i] = preState.FinalizedCheckpoint()
 
+		// 获取state version以及payload
 		v, h, err = getStateVersionAndPayload(preState)
 		if err != nil {
 			return err
@@ -433,6 +439,7 @@ func (s *Service) onBlockBatch(ctx context.Context, blks []interfaces.SignedBeac
 	}
 
 	// blocks have been verified, save them and call the engine
+	// blocks已经校验完成了，保存它们并且调用引擎
 	pendingNodes := make([]*forkchoicetypes.BlockAndCheckpoints, len(blks))
 	var isValidPayload bool
 	for i, b := range blks {
@@ -477,15 +484,18 @@ func (s *Service) onBlockBatch(ctx context.Context, blks []interfaces.SignedBeac
 		}
 	}
 	// Insert all nodes but the last one to forkchoice
+	// 插入所有的nodes，除了最后一个到forkchoice
 	if err := s.cfg.ForkChoiceStore.InsertOptimisticChain(ctx, pendingNodes); err != nil {
 		return errors.Wrap(err, "could not insert batch to forkchoice")
 	}
 	// Insert the last block to forkchoice
+	// 插入最后一个block到forkchoice
 	lastBR := blockRoots[len(blks)-1]
 	if err := s.cfg.ForkChoiceStore.InsertNode(ctx, preState, lastBR); err != nil {
 		return errors.Wrap(err, "could not insert last block in batch to forkchoice")
 	}
 	// Set their optimistic status
+	// 设置它们的optimistic status
 	if isValidPayload {
 		if err := s.cfg.ForkChoiceStore.SetOptimisticToValid(ctx, lastBR); err != nil {
 			return errors.Wrap(err, "could not set optimistic block to valid")
@@ -498,6 +508,7 @@ func (s *Service) onBlockBatch(ctx context.Context, blks []interfaces.SignedBeac
 		}
 	}
 	// Also saves the last post state which to be used as pre state for the next batch.
+	// 同时保存最后的post state，它可以用作下一个batch的pre state
 	lastB := blks[len(blks)-1]
 	if err := s.cfg.StateGen.SaveState(ctx, lastBR, preState); err != nil {
 		return err

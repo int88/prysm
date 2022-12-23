@@ -34,10 +34,11 @@ type Store struct {
 	unrealizedFinalizedCheckpoint *forkchoicetypes.Checkpoint // best unrealized finalized checkpoint in store.
 	prevJustifiedCheckpoint       *forkchoicetypes.Checkpoint // previous justified checkpoint in store.
 	// 在store中最后finalized的epoch
-	finalizedCheckpoint        *forkchoicetypes.Checkpoint  // latest finalized epoch in store.
-	proposerBoostRoot          [fieldparams.RootLength]byte // latest block root that was boosted after being received in a timely manner.
-	previousProposerBoostRoot  [fieldparams.RootLength]byte // previous block root that was boosted after being received in a timely manner.
-	previousProposerBoostScore uint64                       // previous proposer boosted root score.
+	finalizedCheckpoint       *forkchoicetypes.Checkpoint  // latest finalized epoch in store.
+	proposerBoostRoot         [fieldparams.RootLength]byte // latest block root that was boosted after being received in a timely manner.
+	previousProposerBoostRoot [fieldparams.RootLength]byte // previous block root that was boosted after being received in a timely manner.
+	// 之前的proposer的boosted root score
+	previousProposerBoostScore uint64 // previous proposer boosted root score.
 	// store tree的root node
 	treeRootNode        *Node                                  // the root node of the store tree.
 	headNode            *Node                                  // last head Node
@@ -72,6 +73,7 @@ type Node struct {
 	justifiedEpoch types.Epoch // justifiedEpoch of this node.
 	// 这个epoch会被justified，如果block会被推进到下一个epoch
 	unrealizedJustifiedEpoch types.Epoch // the epoch that would be justified if the block would be advanced to the next epoch.
+	// 这个node的finalizedEpoch
 	finalizedEpoch           types.Epoch // finalizedEpoch of this node.
 	unrealizedFinalizedEpoch types.Epoch // the epoch that would be finalized if the block would be advanced to the next epoch.
 	// 直接投票给这个节点的balance

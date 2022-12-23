@@ -15,6 +15,7 @@ func TestVotes_CanFindHead(t *testing.T) {
 	ctx := context.Background()
 
 	// The head should always start at the finalized block.
+	// head总是应该从finalized block开始
 	r, err := f.Head(context.Background(), balances)
 	require.NoError(t, err)
 	assert.Equal(t, params.BeaconConfig().ZeroHash, r, "Incorrect head with genesis")
@@ -57,13 +58,14 @@ func TestVotes_CanFindHead(t *testing.T) {
 	// 添加一个vote到block 2，校验head转换为2
 	//                     0
 	//                    / \
-	// vote, new head -> 2  1
+	// vote, new head -> 2   1
 	f.ProcessAttestation(context.Background(), []uint64{1}, indexToHash(2), 2)
 	r, err = f.Head(context.Background(), balances)
 	require.NoError(t, err)
 	assert.Equal(t, indexToHash(2), r, "Incorrect head for with justified epoch at 1")
 
 	// Insert block 3 into the tree and verify head is still at 2:
+	// 插入block 3到tree中并且校验head还是2
 	//            0
 	//           / \
 	//  head -> 2  1
@@ -102,6 +104,7 @@ func TestVotes_CanFindHead(t *testing.T) {
 	assert.Equal(t, indexToHash(3), r, "Incorrect head for with justified epoch at 1")
 
 	// Insert block 4 into the tree and verify head is at 4:
+	// 插入block 4到tree并校验head是4
 	//            0
 	//           / \
 	//          2  1
@@ -118,6 +121,7 @@ func TestVotes_CanFindHead(t *testing.T) {
 	assert.Equal(t, indexToHash(4), r, "Incorrect head for with justified epoch at 1")
 
 	// Insert block 5 with justified epoch 2, it becomes head
+	// 插入block 5，其中justified epoch为2，它变为head
 	//            0
 	//           / \
 	//          2  1
@@ -136,6 +140,7 @@ func TestVotes_CanFindHead(t *testing.T) {
 	assert.Equal(t, indexToHash(5), r, "Incorrect head for with justified epoch at 1")
 
 	// Insert block 6 with justified epoch 3: verify it's head
+	// 插入block 6，并且justified epoch为3，校验它是head
 	//            0
 	//           / \
 	//          2  1
@@ -153,6 +158,7 @@ func TestVotes_CanFindHead(t *testing.T) {
 	assert.Equal(t, indexToHash(6), r, "Incorrect head for with justified epoch at 1")
 
 	// Moved 2 votes to block 5:
+	// 移动2个votes到block 5
 	f.ProcessAttestation(context.Background(), []uint64{0, 1}, indexToHash(5), 4)
 
 	// Inset blocks 7 and 8
@@ -183,6 +189,7 @@ func TestVotes_CanFindHead(t *testing.T) {
 
 	// Insert block 9 with justified epoch 3, it becomes head
 	// Verify 9 is the head:
+	// 插入block 9，有着justified epoch 3，它变为head
 	//            0
 	//           / \
 	//          2  1
@@ -230,6 +237,7 @@ func TestVotes_CanFindHead(t *testing.T) {
 	assert.Equal(t, indexToHash(9), r, "Incorrect head for with justified epoch at 3")
 
 	// Move two votes for 10, verify it's head
+	// 将两个votes移动到10，校验它变为head
 
 	f.ProcessAttestation(context.Background(), []uint64{0, 1}, indexToHash(10), 5)
 	r, err = f.Head(context.Background(), balances)
@@ -237,31 +245,40 @@ func TestVotes_CanFindHead(t *testing.T) {
 	assert.Equal(t, indexToHash(10), r, "Incorrect head for with justified epoch at 3")
 
 	// Add 3 more validators to the system.
+	// 添加3个validators到系统中
 	balances = []uint64{1, 1, 1, 1, 1}
 	// The new validators voted for 9
+	// 新的validators投票给9
 	f.ProcessAttestation(context.Background(), []uint64{2, 3, 4}, indexToHash(9), 5)
 	// The new head should be 9.
+	// 新的head应该变为9
 	r, err = f.Head(context.Background(), balances)
 	require.NoError(t, err)
 	assert.Equal(t, indexToHash(9), r, "Incorrect head for with justified epoch at 3")
 
 	// Set the balances of the last 2 validators to 0.
+	// 设置最后两个validators的balances为0
 	balances = []uint64{1, 1, 1, 0, 0}
 	// The head should be back to 10.
+	// head应该重新回到10
 	r, err = f.Head(context.Background(), balances)
 	require.NoError(t, err)
 	assert.Equal(t, indexToHash(10), r, "Incorrect head for with justified epoch at 3")
 
 	// Set the balances back to normal.
+	// 将balances重回正常
 	balances = []uint64{1, 1, 1, 1, 1}
 	// The head should be back to 9.
+	// head应该回到9
 	r, err = f.Head(context.Background(), balances)
 	require.NoError(t, err)
 	assert.Equal(t, indexToHash(9), r, "Incorrect head for with justified epoch at 3")
 
 	// Remove the last 2 validators.
+	// 移除最后两个validators
 	balances = []uint64{1, 1, 1}
 	// The head should be back to 10.
+	// head应该重新回到10
 	r, err = f.Head(context.Background(), balances)
 	require.NoError(t, err)
 	assert.Equal(t, indexToHash(10), r, "Incorrect head for with justified epoch at 3")
@@ -271,6 +288,7 @@ func TestVotes_CanFindHead(t *testing.T) {
 	assert.Equal(t, indexToHash(10), r, "Incorrect head for with justified epoch at 3")
 
 	// Verify pruning above the prune threshold does prune:
+	// 校验prune threshold之上的pruning真的会进行prune
 	//          0
 	//         / \
 	//        2   1
@@ -286,6 +304,7 @@ func TestVotes_CanFindHead(t *testing.T) {
 	//          8
 	//         / \
 	//        9  10
+	// 设置5为finalizedCheckpoint root
 	f.store.finalizedCheckpoint.Root = indexToHash(5)
 	require.NoError(t, f.store.prune(context.Background()))
 	assert.Equal(t, 5, len(f.store.nodeByRoot), "Incorrect nodes length after prune")
@@ -297,6 +316,7 @@ func TestVotes_CanFindHead(t *testing.T) {
 	assert.Equal(t, indexToHash(10), r, "Incorrect head for with justified epoch at 2")
 
 	// Insert new block 11 and verify head is at 11.
+	// 插入新的block 11并且校验head是11
 	//          5   6
 	//          |
 	//          7

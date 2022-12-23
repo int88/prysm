@@ -36,8 +36,9 @@ func New() *ForkChoice {
 		proposerBoostRoot:             [32]byte{},
 		nodeByRoot:                    make(map[[fieldparams.RootLength]byte]*Node),
 		nodeByPayload:                 make(map[[fieldparams.RootLength]byte]*Node),
-		slashedIndices:                make(map[types.ValidatorIndex]bool),
-		receivedBlocksLastEpoch:       [fieldparams.SlotsPerEpoch]types.Slot{},
+		// 被驱逐的validator的索引
+		slashedIndices:          make(map[types.ValidatorIndex]bool),
+		receivedBlocksLastEpoch: [fieldparams.SlotsPerEpoch]types.Slot{},
 	}
 
 	b := make([]uint64, 0)
@@ -69,6 +70,8 @@ func (f *ForkChoice) Head(
 
 	// Using the write lock here because subsequent calls to `updateBalances`, `applyProposerBoostScore`,
 	// `applyWeightChanges`, `updateBestDescendant`, and `head` require write operations on nodes.
+	// 使用写锁，因为后续对于`updateBalances`，`applyProposerBoostScore`，`applyWeightChanges`、`updateBestDescendant`
+	// 以及`head`的调用，需要对于nodes的写操作
 	f.store.nodesLock.Lock()
 	defer f.store.nodesLock.Unlock()
 
@@ -122,6 +125,7 @@ func (f *ForkChoice) ProcessAttestation(ctx context.Context, validatorIndices []
 		// Vote gets updated if it's newly allocated or high target epoch.
 		// Vote被更新，如果这是新分配的或者是搞target epoch
 		if newVote || targetEpoch > f.votes[index].nextEpoch {
+			// 重置对应votes的nextEpoch和nextRoot
 			f.votes[index].nextEpoch = targetEpoch
 			f.votes[index].nextRoot = blockRoot
 		}
@@ -398,6 +402,7 @@ func (f *ForkChoice) updateBalances(newBalances []uint64) error {
 						"proposerBoostRoot":          fmt.Sprintf("%#x", bytesutil.Trunc(f.store.proposerBoostRoot[:])),
 						"previousProposerBoostRoot":  fmt.Sprintf("%#x", bytesutil.Trunc(f.store.previousProposerBoostRoot[:])),
 						"previousProposerBoostScore": f.store.previousProposerBoostScore,
+						// node有着非法的balance，设置为0
 					}).Warning("node with invalid balance, setting it to zero")
 					f.store.proposerBoostLock.RUnlock()
 					// node有着非法的balance，设置为0
@@ -420,6 +425,7 @@ func (f *ForkChoice) updateBalances(newBalances []uint64) error {
 
 // Tips returns a list of possible heads from fork choice store, it returns the
 // roots and the slots of the leaf nodes.
+// Tips从fork choice store返回一系列的可能的heads，它返回leaf nodes的roots以及slots
 func (f *ForkChoice) Tips() ([][32]byte, []types.Slot) {
 	return f.store.tips()
 }
