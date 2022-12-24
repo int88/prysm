@@ -224,6 +224,7 @@ func ValidatorChurnLimit(activeValidatorCount uint64) (uint64, error) {
 }
 
 // BeaconProposerIndex returns proposer index of a current slot.
+// BeaconProposerIndex返回当前slot的proposer index
 //
 // Spec pseudocode definition:
 //
@@ -274,15 +275,18 @@ func BeaconProposerIndex(ctx context.Context, state state.ReadOnlyBeaconState) (
 	seedWithSlot := append(seed[:], bytesutil.Bytes8(uint64(state.Slot()))...)
 	seedWithSlotHash := hash.Hash(seedWithSlot)
 
+	// 获取活跃的validator的indices
 	indices, err := ActiveValidatorIndices(ctx, state, e)
 	if err != nil {
 		return 0, errors.Wrap(err, "could not get active indices")
 	}
 
+	// 计算proposer index
 	return ComputeProposerIndex(state, indices, seedWithSlotHash)
 }
 
 // ComputeProposerIndex returns the index sampled by effective balance, which is used to calculate proposer.
+// ComputeProposerIndex返回索引，通过effective balance进行采样 ，用于计算proposer
 //
 // Spec pseudocode definition:
 //

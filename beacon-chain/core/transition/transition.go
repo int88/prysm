@@ -1,6 +1,8 @@
 // Package transition implements the whole state transition
 // function which consists of per slot, per-epoch transitions.
 // It also bootstraps the genesis beacon state for slot 0.
+// transition实现了整个的state transition功能，包括每个slot，每个epoch的transitions
+// 它同时生成genesis beacon state，对于slot 0
 package transition
 
 import (
@@ -107,10 +109,12 @@ func ProcessSlot(ctx context.Context, state state.BeaconState) (state.BeaconStat
 	defer span.End()
 	span.AddAttributes(trace.Int64Attribute("slot", int64(state.Slot()))) // lint:ignore uintcast -- This is OK for tracing.
 
+	// 获取之前的state root
 	prevStateRoot, err := state.HashTreeRoot(ctx)
 	if err != nil {
 		return nil, err
 	}
+	// 更新state root
 	if err := state.UpdateStateRootAtIndex(
 		uint64(state.Slot()%params.BeaconConfig().SlotsPerHistoricalRoot),
 		prevStateRoot,
@@ -120,6 +124,7 @@ func ProcessSlot(ctx context.Context, state state.BeaconState) (state.BeaconStat
 
 	zeroHash := params.BeaconConfig().ZeroHash
 	// Cache latest block header state root.
+	// 缓存最新的block header state root
 	header := state.LatestBlockHeader()
 	if header.StateRoot == nil || bytes.Equal(header.StateRoot, zeroHash[:]) {
 		header.StateRoot = prevStateRoot[:]
@@ -133,6 +138,7 @@ func ProcessSlot(ctx context.Context, state state.BeaconState) (state.BeaconStat
 		return nil, errors.Wrap(err, "could not determine prev block root")
 	}
 	// Cache the block root.
+	// 缓存block root
 	if err := state.UpdateBlockRootAtIndex(
 		uint64(state.Slot()%params.BeaconConfig().SlotsPerHistoricalRoot),
 		prevBlockRoot,
@@ -143,6 +149,7 @@ func ProcessSlot(ctx context.Context, state state.BeaconState) (state.BeaconStat
 }
 
 // ProcessSlotsUsingNextSlotCache processes slots by using next slot cache for higher efficiency.
+// ProcessSlotsUsingNextSlotCache处理slots，使用下一个slot cache，为了更高的效率
 func ProcessSlotsUsingNextSlotCache(
 	ctx context.Context,
 	parentState state.BeaconState,
@@ -152,6 +159,7 @@ func ProcessSlotsUsingNextSlotCache(
 	defer span.End()
 
 	// Check whether the parent state has been advanced by 1 slot in next slot cache.
+	// 检查是否parent state已经移动了1个slot，在下一个slot cache
 	nextSlotState, err := NextSlotState(ctx, parentRoot)
 	if err != nil {
 		return nil, err
@@ -159,17 +167,21 @@ func ProcessSlotsUsingNextSlotCache(
 	cachedStateExists := nextSlotState != nil && !nextSlotState.IsNil()
 	// If the next slot state is not nil (i.e. cache hit).
 	// We replace next slot state with parent state.
+	// 如果next slot cache不是nil（例如，cache命中）
+	// 我们将parent state替换为next slot state
 	if cachedStateExists {
 		parentState = nextSlotState
 	}
 
 	// In the event our cached state has advanced our
 	// state to the desired slot, we exit early.
+	// 如果我们缓存的state已经移动我们的state到了期望的slot，我们尽早退出
 	if cachedStateExists && parentState.Slot() == slot {
 		return parentState, nil
 	}
 	// Since next slot cache only advances state by 1 slot,
 	// we check if there's more slots that need to process.
+	// 因为next slot cache只会将state移动1个slot，我们检查是否有更多的slots需要处理
 	parentState, err = ProcessSlots(ctx, parentState, slot)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not process slots")
@@ -287,8 +299,10 @@ func ProcessSlots(ctx context.Context, state state.BeaconState, slot types.Slot)
 				return nil, errors.New("beacon state should have a version")
 			}
 		}
+		// 自增state slot
 		if err := state.SetSlot(state.Slot() + 1); err != nil {
 			tracing.AnnotateError(span, err)
+			// 自增state slot失败
 			return nil, errors.Wrap(err, "failed to increment state slot")
 		}
 

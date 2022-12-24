@@ -32,6 +32,8 @@ var (
 // NextSlotState returns the saved state if the input root matches the root in `nextSlotCache`. Returns nil otherwise.
 // This is useful to check before processing slots. With a cache hit, it will return last processed state with slot plus
 // one advancement.
+// NextSlotState返回保存的state，如果输入的root匹配 `nextSlotCache`中的root，否则返回nil，这在处理slots之前检查是有用的
+// 它会返回最新的processed state，slot向前移动一格
 func NextSlotState(_ context.Context, root []byte) (state.BeaconState, error) {
 	nsc.RLock()
 	defer nsc.RUnlock()
@@ -41,6 +43,7 @@ func NextSlotState(_ context.Context, root []byte) (state.BeaconState, error) {
 	}
 	nextSlotCacheHit.Inc()
 	// Returning copied state.
+	// 返回拷贝的state
 	return nsc.state.Copy(), nil
 }
 

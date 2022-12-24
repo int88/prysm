@@ -62,6 +62,7 @@ func ProcessProposerSlashings(
 }
 
 // ProcessProposerSlashing processes individual proposer slashing.
+// ProcessProposerSlashing处理单个的proposer slashing
 func ProcessProposerSlashing(
 	ctx context.Context,
 	beaconState state.BeaconState,

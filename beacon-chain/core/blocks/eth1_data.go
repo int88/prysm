@@ -13,13 +13,16 @@ import (
 // ProcessEth1DataInBlock is an operation performed on each
 // beacon block to ensure the ETH1 data votes are processed
 // into the beacon state.
+// ProcessEth1DataInBlock是执行在每个beacon block之上的操作，来确保ETH1 data votes
+// 在beacon state中被处理
 //
 // Official spec definition:
 //
-//	def process_eth1_data(state: BeaconState, body: BeaconBlockBody) -> None:
-//	 state.eth1_data_votes.append(body.eth1_data)
-//	 if state.eth1_data_votes.count(body.eth1_data) * 2 > EPOCHS_PER_ETH1_VOTING_PERIOD * SLOTS_PER_EPOCH:
-//	     state.eth1_data = body.eth1_data
+//		def process_eth1_data(state: BeaconState, body: BeaconBlockBody) -> None:
+//		 state.eth1_data_votes.append(body.eth1_data)
+//	  扩展eth1_data_votes
+//		 if state.eth1_data_votes.count(body.eth1_data) * 2 > EPOCHS_PER_ETH1_VOTING_PERIOD * SLOTS_PER_EPOCH:
+//		     state.eth1_data = body.eth1_data
 func ProcessEth1DataInBlock(_ context.Context, beaconState state.BeaconState, eth1Data *ethpb.Eth1Data) (state.BeaconState, error) {
 	if beaconState == nil || beaconState.IsNil() {
 		return nil, errors.New("nil state")

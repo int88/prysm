@@ -118,6 +118,7 @@ func VerifyBlockSignatureUsingCurrentFork(beaconState state.ReadOnlyBeaconState,
 }
 
 // BlockSignatureBatch retrieves the block signature batch from the provided block and its corresponding state.
+// BlockSignatureBatch从提供的block以及对应的state获取block signature batch
 func BlockSignatureBatch(beaconState state.ReadOnlyBeaconState,
 	proposerIndex types.ValidatorIndex,
 	sig []byte,

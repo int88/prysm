@@ -407,6 +407,7 @@ func (s *Service) onBlockBatch(ctx context.Context, blks []interfaces.SignedBeac
 			header:  h,
 		}
 
+		// 返回的第一个值是signatureBatch
 		set, preState, err = transition.ExecuteStateTransitionNoVerifyAnySig(ctx, preState, b)
 		if err != nil {
 			return invalidBlock{error: err}
@@ -435,6 +436,7 @@ func (s *Service) onBlockBatch(ctx context.Context, blks []interfaces.SignedBeac
 		return invalidBlock{error: err}
 	}
 	if !verify {
+		// batch block signature校验失败
 		return errors.New("batch block signature verification failed")
 	}
 
@@ -443,6 +445,7 @@ func (s *Service) onBlockBatch(ctx context.Context, blks []interfaces.SignedBeac
 	pendingNodes := make([]*forkchoicetypes.BlockAndCheckpoints, len(blks))
 	var isValidPayload bool
 	for i, b := range blks {
+		// 通知有新的payload
 		isValidPayload, err = s.notifyNewPayload(ctx,
 			postVersionAndHeaders[i].version,
 			postVersionAndHeaders[i].header, b)
@@ -471,12 +474,14 @@ func (s *Service) onBlockBatch(ctx context.Context, blks []interfaces.SignedBeac
 			return err
 		}
 		if i > 0 && jCheckpoints[i].Epoch > jCheckpoints[i-1].Epoch {
+			// 保存justified checkpoint到db中
 			if err := s.cfg.BeaconDB.SaveJustifiedCheckpoint(ctx, jCheckpoints[i]); err != nil {
 				tracing.AnnotateError(span, err)
 				return err
 			}
 		}
 		if i > 0 && fCheckpoints[i].Epoch > fCheckpoints[i-1].Epoch {
+			// 更新finalized
 			if err := s.updateFinalized(ctx, fCheckpoints[i]); err != nil {
 				tracing.AnnotateError(span, err)
 				return err

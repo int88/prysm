@@ -75,6 +75,8 @@ func IsExecutionBlock(body interfaces.BeaconBlockBody) (bool, error) {
 
 // IsExecutionEnabled returns true if the beacon chain can begin executing.
 // Meaning the payload header is beacon state is non-empty or the payload in block body is non-empty.
+// IsExecutionEnabled返回true，如果beacon chain开始执行，意味着payload header在beacon state中不为空，或者
+// 在block body中的payload不为空
 //
 // Spec code:
 // def is_execution_enabled(state: BeaconState, body: BeaconBlockBody) -> bool:

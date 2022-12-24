@@ -94,6 +94,8 @@ func (s *State) BalancesByRoot(ctx context.Context, blockRoot [32]byte) ([]uint6
 // It assumes initial syncing using a block list rather than a block tree hence the returned
 // state is not copied (block batches returned from initial sync are linear).
 // It invalidates cache for parent root because pre-state will get mutated.
+// StateByRootInitialSync从DB中获取state，用于初始的同步阶段，它假设syncing使用一个block list而不是一个block tree
+// 因此返回的state不是拷贝的（从initial sync返回的block batches是线性的）
 //
 // WARNING: Do not use this method for anything other than initial syncing purpose or block tree is applied.
 func (s *State) StateByRootInitialSync(ctx context.Context, blockRoot [32]byte) (state.BeaconState, error) {
