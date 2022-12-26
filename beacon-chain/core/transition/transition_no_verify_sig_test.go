@@ -28,7 +28,9 @@ func TestExecuteStateTransitionNoVerify_FullProcess(t *testing.T) {
 	e := beaconState.Eth1Data()
 	e.DepositCount = 100
 	require.NoError(t, beaconState.SetEth1Data(e))
+	// 获取最新的block header
 	bh := beaconState.LatestBlockHeader()
+	// 设置block header的slot
 	bh.Slot = beaconState.Slot()
 	require.NoError(t, beaconState.SetLatestBlockHeader(bh))
 	require.NoError(t, beaconState.SetEth1DataVotes([]*ethpb.Eth1Data{eth1Data}))
@@ -39,13 +41,16 @@ func TestExecuteStateTransitionNoVerify_FullProcess(t *testing.T) {
 	require.NoError(t, err)
 	require.NoError(t, beaconState.SetSlot(beaconState.Slot()-1))
 
+	// 处理slots
 	nextSlotState, err := transition.ProcessSlots(context.Background(), beaconState.Copy(), beaconState.Slot()+1)
 	require.NoError(t, err)
 	parentRoot, err := nextSlotState.LatestBlockHeader().HashTreeRoot()
 	require.NoError(t, err)
+	// 获取proposer index
 	proposerIdx, err := helpers.BeaconProposerIndex(context.Background(), nextSlotState)
 	require.NoError(t, err)
 	block := util.NewBeaconBlock()
+	// 设置proposer idnex
 	block.Block.ProposerIndex = proposerIdx
 	block.Block.Slot = beaconState.Slot() + 1
 	block.Block.ParentRoot = parentRoot[:]
@@ -54,6 +59,7 @@ func TestExecuteStateTransitionNoVerify_FullProcess(t *testing.T) {
 
 	wsb, err := blocks.NewSignedBeaconBlock(block)
 	require.NoError(t, err)
+	// 计算state root
 	stateRoot, err := transition.CalculateStateRoot(context.Background(), beaconState, wsb)
 	require.NoError(t, err)
 
@@ -113,6 +119,7 @@ func TestExecuteStateTransitionNoVerifySignature_CouldNotVerifyStateRoot(t *test
 	stateRoot, err := transition.CalculateStateRoot(context.Background(), beaconState, wsb)
 	require.NoError(t, err)
 
+	// 配置block的state root
 	block.Block.StateRoot = stateRoot[:]
 
 	sig, err := util.BlockSignature(beaconState, block.Block, privKeys)
@@ -123,6 +130,7 @@ func TestExecuteStateTransitionNoVerifySignature_CouldNotVerifyStateRoot(t *test
 	wsb, err = blocks.NewSignedBeaconBlock(block)
 	require.NoError(t, err)
 	_, _, err = transition.ExecuteStateTransitionNoVerifyAnySig(context.Background(), beaconState, wsb)
+	// 不能校验state root
 	require.ErrorContains(t, "could not validate state root", err)
 }
 

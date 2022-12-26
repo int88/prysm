@@ -29,6 +29,7 @@ func (s *SignatureBatch) Join(set *SignatureBatch) *SignatureBatch {
 }
 
 // Verify the current signature batch using the batch verify algorithm.
+// 校验当前的signature batch，使用批量校验算法
 func (s *SignatureBatch) Verify() (bool, error) {
 	return VerifyMultipleSignatures(s.Signatures, s.Messages, s.PublicKeys)
 }

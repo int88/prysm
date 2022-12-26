@@ -87,6 +87,7 @@ func ProcessDeposits(
 ) (state.BeaconState, error) {
 	// Attempt to verify all deposit signatures at once, if this fails then fall back to processing
 	// individual deposits with signature verification enabled.
+	// 试着一次性校验所有的deposit signatures，如果失败，之后回退到处理单个的depsits，使能signature verification
 	batchVerified, err := BatchVerifyDepositsSignatures(ctx, deposits)
 	if err != nil {
 		return nil, err
@@ -129,40 +130,44 @@ func BatchVerifyDepositsSignatures(ctx context.Context, deposits []*ethpb.Deposi
 // Spec pseudocode definition:
 // def process_deposit(state: BeaconState, deposit: Deposit) -> None:
 //
-//	# Verify the Merkle branch
-//	assert is_valid_merkle_branch(
-//	    leaf=hash_tree_root(deposit.data),
-//	    branch=deposit.proof,
-//	    depth=DEPOSIT_CONTRACT_TREE_DEPTH + 1,  # Add 1 for the List length mix-in
-//	    index=state.eth1_deposit_index,
-//	    root=state.eth1_data.deposit_root,
-//	)
+//				# Verify the Merkle branch
+//			 # 校验Merkel branch
+//				assert is_valid_merkle_branch(
+//				    leaf=hash_tree_root(deposit.data),
+//				    branch=deposit.proof,
+//				    depth=DEPOSIT_CONTRACT_TREE_DEPTH + 1,  # Add 1 for the List length mix-in
+//				    index=state.eth1_deposit_index,
+//				    root=state.eth1_data.deposit_root,
+//				)
 //
-//	# Deposits must be processed in order
-//	state.eth1_deposit_index += 1
+//				# Deposits must be processed in order
+//		     # Deposits必须按顺序处理
+//				state.eth1_deposit_index += 1
 //
-//	pubkey = deposit.data.pubkey
-//	amount = deposit.data.amount
-//	validator_pubkeys = [v.pubkey for v in state.validators]
-//	if pubkey not in validator_pubkeys:
-//	    # Verify the deposit signature (proof of possession) which is not checked by the deposit contract
-//	    deposit_message = DepositMessage(
-//	        pubkey=deposit.data.pubkey,
-//	        withdrawal_credentials=deposit.data.withdrawal_credentials,
-//	        amount=deposit.data.amount,
-//	    )
-//	    domain = compute_domain(DOMAIN_DEPOSIT)  # Fork-agnostic domain since deposits are valid across forks
-//	    signing_root = compute_signing_root(deposit_message, domain)
-//	    if not bls.Verify(pubkey, signing_root, deposit.data.signature):
-//	        return
+//				pubkey = deposit.data.pubkey
+//				amount = deposit.data.amount
+//				validator_pubkeys = [v.pubkey for v in state.validators]
+//				if pubkey not in validator_pubkeys:
+//				    # Verify the deposit signature (proof of possession) which is not checked by the deposit contract
+//				    deposit_message = DepositMessage(
+//				        pubkey=deposit.data.pubkey,
+//				        withdrawal_credentials=deposit.data.withdrawal_credentials,
+//				        amount=deposit.data.amount,
+//				    )
+//				    domain = compute_domain(DOMAIN_DEPOSIT)  # Fork-agnostic domain since deposits are valid across forks
+//				    signing_root = compute_signing_root(deposit_message, domain)
+//				    if not bls.Verify(pubkey, signing_root, deposit.data.signature):
+//				        return
 //
-//	    # Add validator and balance entries
-//	    state.validators.append(get_validator_from_deposit(state, deposit))
-//	    state.balances.append(amount)
-//	else:
-//	    # Increase balance by deposit amount
-//	    index = ValidatorIndex(validator_pubkeys.index(pubkey))
-//	    increase_balance(state, index, amount)
+//				    # Add validator and balance entries
+//	             # 添加validator以及balance entries
+//				    state.validators.append(get_validator_from_deposit(state, deposit))
+//				    state.balances.append(amount)
+//				else:
+//				    # Increase balance by deposit amount
+//	             # 通过deposit amount增加balance
+//				    index = ValidatorIndex(validator_pubkeys.index(pubkey))
+//				    increase_balance(state, index, amount)
 func ProcessDeposit(beaconState state.BeaconState, deposit *ethpb.Deposit, verifySignature bool) (state.BeaconState, bool, error) {
 	var newValidator bool
 	if err := verifyDeposit(beaconState, deposit); err != nil {
@@ -190,10 +195,12 @@ func ProcessDeposit(beaconState state.BeaconState, deposit *ethpb.Deposit, verif
 			}
 		}
 
+		// 获取effective balance
 		effectiveBalance := amount - (amount % params.BeaconConfig().EffectiveBalanceIncrement)
 		if params.BeaconConfig().MaxEffectiveBalance < effectiveBalance {
 			effectiveBalance = params.BeaconConfig().MaxEffectiveBalance
 		}
+		// 扩展validators
 		if err := beaconState.AppendValidator(&ethpb.Validator{
 			PublicKey:                  pubKey,
 			WithdrawalCredentials:      deposit.Data.WithdrawalCredentials,
@@ -210,6 +217,7 @@ func ProcessDeposit(beaconState state.BeaconState, deposit *ethpb.Deposit, verif
 			return nil, newValidator, err
 		}
 	} else if err := helpers.IncreaseBalance(beaconState, index, amount); err != nil {
+		// 如果validator已经存在了，则增加balance
 		return nil, newValidator, err
 	}
 

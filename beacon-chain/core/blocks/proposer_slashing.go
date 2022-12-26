@@ -22,29 +22,36 @@ type slashValidatorFunc func(ctx context.Context, st state.BeaconState, vid type
 // ProcessProposerSlashings is one of the operations performed
 // on each processed beacon block to slash proposers based on
 // slashing conditions if any slashable events occurred.
+// ProcessProposerSlashings是在每个处理的beacon block至少执行的操作，来slash proposers
+// 基于slashing conditions，如果任何的slashable events发生的话
 //
 // Spec pseudocode definition:
 //
-//	def process_proposer_slashing(state: BeaconState, proposer_slashing: ProposerSlashing) -> None:
-//	 header_1 = proposer_slashing.signed_header_1.message
-//	 header_2 = proposer_slashing.signed_header_2.message
+//					def process_proposer_slashing(state: BeaconState, proposer_slashing: ProposerSlashing) -> None:
+//					 header_1 = proposer_slashing.signed_header_1.message
+//					 header_2 = proposer_slashing.signed_header_2.message
 //
-//	 # Verify header slots match
-//	 assert header_1.slot == header_2.slot
-//	 # Verify header proposer indices match
-//	 assert header_1.proposer_index == header_2.proposer_index
-//	 # Verify the headers are different
-//	 assert header_1 != header_2
-//	 # Verify the proposer is slashable
-//	 proposer = state.validators[header_1.proposer_index]
-//	 assert is_slashable_validator(proposer, get_current_epoch(state))
-//	 # Verify signatures
-//	 for signed_header in (proposer_slashing.signed_header_1, proposer_slashing.signed_header_2):
-//	     domain = get_domain(state, DOMAIN_BEACON_PROPOSER, compute_epoch_at_slot(signed_header.message.slot))
-//	     signing_root = compute_signing_root(signed_header.message, domain)
-//	     assert bls.Verify(proposer.pubkey, signing_root, signed_header.signature)
+//					 # Verify header slots match
+//				  # 校验slots匹配
+//					 assert header_1.slot == header_2.slot
+//					 # Verify header proposer indices match
+//			      # 校验header proposer indices匹配
+//					 assert header_1.proposer_index == header_2.proposer_index
+//					 # Verify the headers are different
+//		          # 确认headers是不同的
+//					 assert header_1 != header_2
+//					 # Verify the proposer is slashable
+//		          # 校验proposer是可以slash的
+//					 proposer = state.validators[header_1.proposer_index]
+//					 assert is_slashable_validator(proposer, get_current_epoch(state))
+//					 # Verify signatures
+//	              # 校验signatures
+//					 for signed_header in (proposer_slashing.signed_header_1, proposer_slashing.signed_header_2):
+//					     domain = get_domain(state, DOMAIN_BEACON_PROPOSER, compute_epoch_at_slot(signed_header.message.slot))
+//					     signing_root = compute_signing_root(signed_header.message, domain)
+//					     assert bls.Verify(proposer.pubkey, signing_root, signed_header.signature)
 //
-//	 slash_validator(state, header_1.proposer_index)
+//					 slash_validator(state, header_1.proposer_index)
 func ProcessProposerSlashings(
 	ctx context.Context,
 	beaconState state.BeaconState,
@@ -88,6 +95,7 @@ func ProcessProposerSlashing(
 	default:
 		return nil, errors.New("unknown state version")
 	}
+	// 执行slash func
 	beaconState, err = slashFunc(ctx, beaconState, slashing.Header_1.Header.ProposerIndex, slashingQuotient, cfg.ProposerRewardQuotient)
 	if err != nil {
 		return nil, errors.Wrapf(err, "could not slash proposer index %d", slashing.Header_1.Header.ProposerIndex)
@@ -96,6 +104,7 @@ func ProcessProposerSlashing(
 }
 
 // VerifyProposerSlashing verifies that the data provided from slashing is valid.
+// VerifyProposerSlashing校验slashing提供的数据是合法的
 func VerifyProposerSlashing(
 	beaconState state.ReadOnlyBeaconState,
 	slashing *ethpb.ProposerSlashing,

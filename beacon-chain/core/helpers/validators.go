@@ -143,6 +143,7 @@ func ActiveValidatorIndices(ctx context.Context, s state.ReadOnlyBeaconState, ep
 
 // ActiveValidatorCount returns the number of active validators in the state
 // at the given epoch.
+// ActiveValidatorCount返回active validators的数目，在state中，在给定的epcoh
 func ActiveValidatorCount(ctx context.Context, s state.ReadOnlyBeaconState, epoch types.Epoch) (uint64, error) {
 	seed, err := Seed(s, epoch, params.BeaconConfig().DomainBeaconAttester)
 	if err != nil {

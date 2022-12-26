@@ -23,6 +23,7 @@ type readOnlyValidator struct {
 var _ = state.ReadOnlyValidator(readOnlyValidator{})
 
 // NewValidator initializes the read only wrapper for validator.
+// NewValidator初始化只读的wrapper，对于validator
 func NewValidator(v *ethpb.Validator) (state.ReadOnlyValidator, error) {
 	rov := readOnlyValidator{
 		validator: v,

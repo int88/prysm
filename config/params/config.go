@@ -50,13 +50,15 @@ type BeaconChainConfig struct {
 	ZeroHash                        [32]byte // ZeroHash is used to represent a zeroed out 32 byte array.
 
 	// Time parameters constants.
-	GenesisDelay                 uint64      `yaml:"GENESIS_DELAY" spec:"true"`                   // GenesisDelay is the minimum number of seconds to delay starting the Ethereum Beacon Chain genesis. Must be at least 1 second.
-	MinAttestationInclusionDelay types.Slot  `yaml:"MIN_ATTESTATION_INCLUSION_DELAY" spec:"true"` // MinAttestationInclusionDelay defines how many slots validator has to wait to include attestation for beacon block.
-	SecondsPerSlot               uint64      `yaml:"SECONDS_PER_SLOT" spec:"true"`                // SecondsPerSlot is how many seconds are in a single slot.
-	SlotsPerEpoch                types.Slot  `yaml:"SLOTS_PER_EPOCH" spec:"true"`                 // SlotsPerEpoch is the number of slots in an epoch.
-	SqrRootSlotsPerEpoch         types.Slot  // SqrRootSlotsPerEpoch is a hard coded value where we take the square root of `SlotsPerEpoch` and round down.
-	MinSeedLookahead             types.Epoch `yaml:"MIN_SEED_LOOKAHEAD" spec:"true"` // MinSeedLookahead is the duration of randao look ahead seed.
-	MaxSeedLookahead             types.Epoch `yaml:"MAX_SEED_LOOKAHEAD" spec:"true"` // MaxSeedLookahead is the duration a validator has to wait for entry and exit in epoch.
+	GenesisDelay uint64 `yaml:"GENESIS_DELAY" spec:"true"` // GenesisDelay is the minimum number of seconds to delay starting the Ethereum Beacon Chain genesis. Must be at least 1 second.
+	// MinAttestationInclusionDelay定义了validator需要等待多少slots，从而能包含attestation用于beacon block
+	MinAttestationInclusionDelay types.Slot `yaml:"MIN_ATTESTATION_INCLUSION_DELAY" spec:"true"` // MinAttestationInclusionDelay defines how many slots validator has to wait to include attestation for beacon block.
+	SecondsPerSlot               uint64     `yaml:"SECONDS_PER_SLOT" spec:"true"`                // SecondsPerSlot is how many seconds are in a single slot.
+	// SlotsPerEpoch是一个epoch中slots的数目
+	SlotsPerEpoch        types.Slot  `yaml:"SLOTS_PER_EPOCH" spec:"true"` // SlotsPerEpoch is the number of slots in an epoch.
+	SqrRootSlotsPerEpoch types.Slot  // SqrRootSlotsPerEpoch is a hard coded value where we take the square root of `SlotsPerEpoch` and round down.
+	MinSeedLookahead     types.Epoch `yaml:"MIN_SEED_LOOKAHEAD" spec:"true"` // MinSeedLookahead is the duration of randao look ahead seed.
+	MaxSeedLookahead     types.Epoch `yaml:"MAX_SEED_LOOKAHEAD" spec:"true"` // MaxSeedLookahead is the duration a validator has to wait for entry and exit in epoch.
 	// EpochsPerEth1VotingPeriod定义了deposit receipts的merkle root的更新频率，在beacon node中，在每个epoch的基础上
 	EpochsPerEth1VotingPeriod types.Epoch `yaml:"EPOCHS_PER_ETH1_VOTING_PERIOD" spec:"true"` // EpochsPerEth1VotingPeriod defines how often the merkle root of deposit receipts get updated in beacon node on per epoch basis.
 	// SlotsPerHistoricalRoot定义了historical root保存的频率
@@ -103,6 +105,7 @@ type BeaconChainConfig struct {
 	ProportionalSlashingMultiplier uint64 `yaml:"PROPORTIONAL_SLASHING_MULTIPLIER" spec:"true"` // ProportionalSlashingMultiplier is used as a multiplier on slashed penalties.
 
 	// Max operations per block constants.
+	// 每个block中最大的操作数
 	MaxProposerSlashings     uint64 `yaml:"MAX_PROPOSER_SLASHINGS" spec:"true"`       // MaxProposerSlashings defines the maximum number of slashings of proposers possible in a block.
 	MaxAttesterSlashings     uint64 `yaml:"MAX_ATTESTER_SLASHINGS" spec:"true"`       // MaxAttesterSlashings defines the maximum number of casper FFG slashings possible in a block.
 	MaxAttestations          uint64 `yaml:"MAX_ATTESTATIONS" spec:"true"`             // MaxAttestations defines the maximum allowed attestations in a beacon block.

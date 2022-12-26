@@ -185,6 +185,7 @@ func (b *BeaconState) AppendValidator(val *ethpb.Validator) error {
 
 // AppendBalance for the beacon state. Appends the new value
 // to the the end of list.
+// AppendBalance对于beacon state，扩展新的值到list的尾部
 func (b *BeaconState) AppendBalance(bal uint64) error {
 	b.lock.Lock()
 	defer b.lock.Unlock()

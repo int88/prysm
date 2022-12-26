@@ -228,6 +228,7 @@ type WriteOnlyCheckpoint interface {
 }
 
 // WriteOnlyAttestations defines a struct which only has write access to attestations methods.
+// WriteOnlyAttestations定义了一个结构，对于attestations方法只有写权限
 type WriteOnlyAttestations interface {
 	AppendCurrentEpochAttestations(val *ethpb.PendingAttestation) error
 	AppendPreviousEpochAttestations(val *ethpb.PendingAttestation) error

@@ -339,12 +339,14 @@ func ProcessSlots(ctx context.Context, state state.BeaconState, slot types.Slot)
 }
 
 // VerifyOperationLengths verifies that block operation lengths are valid.
+// VerifyOperationLengths校验block operation的长度是合法的
 func VerifyOperationLengths(_ context.Context, state state.BeaconState, b interfaces.SignedBeaconBlock) (state.BeaconState, error) {
 	if err := blocks.BeaconBlockIsNil(b); err != nil {
 		return nil, err
 	}
 	body := b.Block().Body()
 
+	// 校验proposer slashings的长度
 	if uint64(len(body.ProposerSlashings())) > params.BeaconConfig().MaxProposerSlashings {
 		return nil, fmt.Errorf(
 			"number of proposer slashings (%d) in block body exceeds allowed threshold of %d",
@@ -353,6 +355,7 @@ func VerifyOperationLengths(_ context.Context, state state.BeaconState, b interf
 		)
 	}
 
+	// 校验attester slashings的长度
 	if uint64(len(body.AttesterSlashings())) > params.BeaconConfig().MaxAttesterSlashings {
 		return nil, fmt.Errorf(
 			"number of attester slashings (%d) in block body exceeds allowed threshold of %d",
@@ -361,6 +364,7 @@ func VerifyOperationLengths(_ context.Context, state state.BeaconState, b interf
 		)
 	}
 
+	// 校验attestations的长度
 	if uint64(len(body.Attestations())) > params.BeaconConfig().MaxAttestations {
 		return nil, fmt.Errorf(
 			"number of attestations (%d) in block body exceeds allowed threshold of %d",
@@ -369,6 +373,7 @@ func VerifyOperationLengths(_ context.Context, state state.BeaconState, b interf
 		)
 	}
 
+	// 校验voluntary exits的长度
 	if uint64(len(body.VoluntaryExits())) > params.BeaconConfig().MaxVoluntaryExits {
 		return nil, fmt.Errorf(
 			"number of voluntary exits (%d) in block body exceeds allowed threshold of %d",
@@ -380,11 +385,13 @@ func VerifyOperationLengths(_ context.Context, state state.BeaconState, b interf
 	if eth1Data == nil {
 		return nil, errors.New("nil eth1data in state")
 	}
+	// state中的Eth1 deposit index是合法的
 	if state.Eth1DepositIndex() > eth1Data.DepositCount {
 		return nil, fmt.Errorf("expected state.deposit_index %d <= eth1data.deposit_count %d", state.Eth1DepositIndex(), eth1Data.DepositCount)
 	}
 	maxDeposits := math.Min(params.BeaconConfig().MaxDeposits, eth1Data.DepositCount-state.Eth1DepositIndex())
 	// Verify outstanding deposits are processed up to max number of deposits
+	// 校验outstanding deposits已经处理到最大的deposits的数目
 	if uint64(len(body.Deposits())) != maxDeposits {
 		return nil, fmt.Errorf("incorrect outstanding deposits in block body, wanted: %d, got: %d",
 			maxDeposits, len(body.Deposits()))

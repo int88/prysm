@@ -21,6 +21,8 @@ import (
 
 // ProcessAttestationsNoVerifySignature applies processing operations to a block's inner attestation
 // records. The only difference would be that the attestation signature would not be verified.
+// ProcessAttestationsNoVerifySignature应用操作到一个block的内部的attestation records，唯一的区别是
+// attestation signature不会被校验
 func ProcessAttestationsNoVerifySignature(
 	ctx context.Context,
 	beaconState state.BeaconState,
@@ -32,6 +34,7 @@ func ProcessAttestationsNoVerifySignature(
 	body := b.Block().Body()
 	var err error
 	for idx, att := range body.Attestations() {
+		// 处理attestation，仅仅只是做一些校验并且添加到beacon state中
 		beaconState, err = ProcessAttestationNoVerifySignature(ctx, beaconState, att)
 		if err != nil {
 			return nil, errors.Wrapf(err, "could not verify attestation at index %d in block", idx)
@@ -42,6 +45,7 @@ func ProcessAttestationsNoVerifySignature(
 
 // VerifyAttestationNoVerifySignature verifies the attestation without verifying the attestation signature. This is
 // used before processing attestation with the beacon state.
+// VerifyAttestationNoVerifySignature校验attestation，而不校验attestation signature，这用于在beacon state处理attestation之前
 func VerifyAttestationNoVerifySignature(
 	ctx context.Context,
 	beaconState state.ReadOnlyBeaconState,
@@ -57,6 +61,7 @@ func VerifyAttestationNoVerifySignature(
 	prevEpoch := time.PrevEpoch(beaconState)
 	data := att.Data
 	if data.Target.Epoch != prevEpoch && data.Target.Epoch != currEpoch {
+		// 期望target epoch是previous epoch或者current epoch
 		return fmt.Errorf(
 			"expected target epoch (%d) to be the previous epoch (%d) or the current epoch (%d)",
 			data.Target.Epoch,
@@ -67,10 +72,12 @@ func VerifyAttestationNoVerifySignature(
 
 	if data.Target.Epoch == currEpoch {
 		if !beaconState.MatchCurrentJustifiedCheckpoint(data.Source) {
+			// source checkpoint和当前的justified checkpoint不匹配
 			return errors.New("source check point not equal to current justified checkpoint")
 		}
 	} else {
 		if !beaconState.MatchPreviousJustifiedCheckpoint(data.Source) {
+			// source checkpoint和之前的justified checkpoint不匹配
 			return errors.New("source check point not equal to previous justified checkpoint")
 		}
 	}
@@ -98,20 +105,24 @@ func VerifyAttestationNoVerifySignature(
 			params.BeaconConfig().SlotsPerEpoch,
 		)
 	}
+	// 获取active validator的数目
 	activeValidatorCount, err := helpers.ActiveValidatorCount(ctx, beaconState, att.Data.Target.Epoch)
 	if err != nil {
 		return err
 	}
 	c := helpers.SlotCommitteeCount(activeValidatorCount)
 	if uint64(att.Data.CommitteeIndex) >= c {
+		// committee的索引不能大于等于committee的数目
 		return fmt.Errorf("committee index %d >= committee count %d", att.Data.CommitteeIndex, c)
 	}
 
 	if err := helpers.VerifyAttestationBitfieldLengths(ctx, beaconState, att); err != nil {
+		// 校验attestation bitfields
 		return errors.Wrap(err, "could not verify attestation bitfields")
 	}
 
 	// Verify attesting indices are correct.
+	// 确保attesting indices是正确的
 	committee, err := helpers.BeaconCommitteeFromState(ctx, beaconState, att.Data.Slot, att.Data.CommitteeIndex)
 	if err != nil {
 		return err
@@ -121,11 +132,14 @@ func VerifyAttestationNoVerifySignature(
 		return err
 	}
 
+	// 校验是不是合法的attestation indices
 	return attestation.IsValidAttestationIndices(ctx, indexedAtt)
 }
 
 // ProcessAttestationNoVerifySignature processes the attestation without verifying the attestation signature. This
 // method is used to validate attestations whose signatures have already been verified.
+// ProcessAttestationNoVerifySignature处理attestation，而不校验attestation signature
+// 这个方法用于校验signature已经被校验过的attestations
 func ProcessAttestationNoVerifySignature(
 	ctx context.Context,
 	beaconState state.BeaconState,
@@ -149,14 +163,17 @@ func ProcessAttestationNoVerifySignature(
 		Data:            data,
 		AggregationBits: att.AggregationBits,
 		InclusionDelay:  beaconState.Slot() - s,
-		ProposerIndex:   proposerIndex,
+		// 设置proposer index
+		ProposerIndex: proposerIndex,
 	}
 
 	if data.Target.Epoch == currEpoch {
+		// 扩展当前epoch的attestations
 		if err := beaconState.AppendCurrentEpochAttestations(pendingAtt); err != nil {
 			return nil, err
 		}
 	} else {
+		// 扩展之前epoch的attestations
 		if err := beaconState.AppendPreviousEpochAttestations(pendingAtt); err != nil {
 			return nil, err
 		}

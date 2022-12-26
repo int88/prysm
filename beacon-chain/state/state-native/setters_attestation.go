@@ -45,6 +45,7 @@ func (b *BeaconState) setCurrentEpochAttestations(val []*ethpb.PendingAttestatio
 
 // AppendCurrentEpochAttestations for the beacon state. Appends the new value
 // to the the end of list.
+// AppendCurrentEpochAttestations对于beacon state，
 func (b *BeaconState) AppendCurrentEpochAttestations(val *ethpb.PendingAttestation) error {
 	b.lock.Lock()
 	defer b.lock.Unlock()
@@ -56,6 +57,7 @@ func (b *BeaconState) AppendCurrentEpochAttestations(val *ethpb.PendingAttestati
 	atts := b.currentEpochAttestations
 	max := uint64(fieldparams.CurrentEpochAttestationsLength)
 	if uint64(len(atts)) >= max {
+		// 当前的pending attestation超过了最大的长度
 		return fmt.Errorf("current pending attestation exceeds max length %d", max)
 	}
 
@@ -67,6 +69,7 @@ func (b *BeaconState) AppendCurrentEpochAttestations(val *ethpb.PendingAttestati
 		b.sharedFieldReferences[nativetypes.CurrentEpochAttestations] = stateutil.NewRef(1)
 	}
 
+	// 扩展当前的epoch attestations
 	b.currentEpochAttestations = append(atts, val)
 	b.markFieldAsDirty(nativetypes.CurrentEpochAttestations)
 	b.addDirtyIndices(nativetypes.CurrentEpochAttestations, []uint64{uint64(len(b.currentEpochAttestations) - 1)})
@@ -75,11 +78,13 @@ func (b *BeaconState) AppendCurrentEpochAttestations(val *ethpb.PendingAttestati
 
 // AppendPreviousEpochAttestations for the beacon state. Appends the new value
 // to the the end of list.
+// AppendPreviousEpochAttestations对于beacon state，将新的值扩展到list的尾部
 func (b *BeaconState) AppendPreviousEpochAttestations(val *ethpb.PendingAttestation) error {
 	b.lock.Lock()
 	defer b.lock.Unlock()
 
 	if b.version != version.Phase0 {
+		// 只有phase0支持？
 		return errNotSupported("AppendPreviousEpochAttestations", b.version)
 	}
 

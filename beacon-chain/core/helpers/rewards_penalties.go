@@ -88,6 +88,7 @@ func TotalActiveBalance(s state.ReadOnlyBeaconState) (uint64, error) {
 }
 
 // IncreaseBalance increases validator with the given 'index' balance by 'delta' in Gwei.
+// IncreaseBalance增加给定`index`的validator的balance，即delta
 //
 // Spec pseudocode definition:
 //

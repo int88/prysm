@@ -20,28 +20,32 @@ import (
 
 // InitiateValidatorExit takes in validator index and updates
 // validator with correct voluntary exit parameters.
+// InitiateValidatorExit获取一个validator index并且更新validator，用正确的voluntary exit参数
 //
 // Spec pseudocode definition:
 //
-//	def initiate_validator_exit(state: BeaconState, index: ValidatorIndex) -> None:
-//	  """
-//	  Initiate the exit of the validator with index ``index``.
-//	  """
-//	  # Return if validator already initiated exit
-//	  validator = state.validators[index]
-//	  if validator.exit_epoch != FAR_FUTURE_EPOCH:
-//	      return
+//		def initiate_validator_exit(state: BeaconState, index: ValidatorIndex) -> None:
+//		  """
+//		  Initiate the exit of the validator with index ``index``.
+//		  """
+//		  # Return if validator already initiated exit
+//	   # 如果validator已经初始化exit，则退出
+//		  validator = state.validators[index]
+//		  if validator.exit_epoch != FAR_FUTURE_EPOCH:
+//		      return
 //
-//	  # Compute exit queue epoch
-//	  exit_epochs = [v.exit_epoch for v in state.validators if v.exit_epoch != FAR_FUTURE_EPOCH]
-//	  exit_queue_epoch = max(exit_epochs + [compute_activation_exit_epoch(get_current_epoch(state))])
-//	  exit_queue_churn = len([v for v in state.validators if v.exit_epoch == exit_queue_epoch])
-//	  if exit_queue_churn >= get_validator_churn_limit(state):
-//	      exit_queue_epoch += Epoch(1)
+//		  # Compute exit queue epoch
+//	   # 计算exit queue epoch
+//		  exit_epochs = [v.exit_epoch for v in state.validators if v.exit_epoch != FAR_FUTURE_EPOCH]
+//		  exit_queue_epoch = max(exit_epochs + [compute_activation_exit_epoch(get_current_epoch(state))])
+//		  exit_queue_churn = len([v for v in state.validators if v.exit_epoch == exit_queue_epoch])
+//		  if exit_queue_churn >= get_validator_churn_limit(state):
+//		      exit_queue_epoch += Epoch(1)
 //
-//	  # Set validator exit epoch and withdrawable epoch
-//	  validator.exit_epoch = exit_queue_epoch
-//	  validator.withdrawable_epoch = Epoch(validator.exit_epoch + MIN_VALIDATOR_WITHDRAWABILITY_DELAY)
+//		  # Set validator exit epoch and withdrawable epoch
+//	   # 设置validator的exit epoch以及withdrawable epoch
+//		  validator.exit_epoch = exit_queue_epoch
+//		  validator.withdrawable_epoch = Epoch(validator.exit_epoch + MIN_VALIDATOR_WITHDRAWABILITY_DELAY)
 func InitiateValidatorExit(ctx context.Context, s state.BeaconState, idx types.ValidatorIndex) (state.BeaconState, error) {
 	validator, err := s.ValidatorAtIndex(idx)
 	if err != nil {
@@ -71,6 +75,7 @@ func InitiateValidatorExit(ctx context.Context, s state.BeaconState, idx types.V
 	}
 
 	// We use the exit queue churn to determine if we have passed a churn limit.
+	// 我们使用exit queue churn来决定是否我们已经经过了一个churn limit
 	exitQueueChurn := uint64(0)
 	err = s.ReadFromEveryValidator(func(idx int, val state.ReadOnlyValidator) error {
 		if val.ExitEpoch() == exitQueueEpoch {
@@ -100,6 +105,7 @@ func InitiateValidatorExit(ctx context.Context, s state.BeaconState, idx types.V
 			return nil, err
 		}
 	}
+	// 更新validator的ExitEpoch和WithdrawableEpoch
 	validator.ExitEpoch = exitQueueEpoch
 	validator.WithdrawableEpoch, err = exitQueueEpoch.SafeAddEpoch(params.BeaconConfig().MinValidatorWithdrawabilityDelay)
 	if err != nil {
@@ -113,31 +119,34 @@ func InitiateValidatorExit(ctx context.Context, s state.BeaconState, idx types.V
 
 // SlashValidator slashes the malicious validator's balance and awards
 // the whistleblower's balance.
+// SlashValidator slashes malicious validator的balance并且奖励whistleblower的balance
 //
 // Spec pseudocode definition:
 //
-//	def slash_validator(state: BeaconState,
-//	                  slashed_index: ValidatorIndex,
-//	                  whistleblower_index: ValidatorIndex=None) -> None:
-//	  """
-//	  Slash the validator with index ``slashed_index``.
-//	  """
-//	  epoch = get_current_epoch(state)
-//	  initiate_validator_exit(state, slashed_index)
-//	  validator = state.validators[slashed_index]
-//	  validator.slashed = True
-//	  validator.withdrawable_epoch = max(validator.withdrawable_epoch, Epoch(epoch + EPOCHS_PER_SLASHINGS_VECTOR))
-//	  state.slashings[epoch % EPOCHS_PER_SLASHINGS_VECTOR] += validator.effective_balance
-//	  decrease_balance(state, slashed_index, validator.effective_balance // MIN_SLASHING_PENALTY_QUOTIENT)
+//			def slash_validator(state: BeaconState,
+//			                  slashed_index: ValidatorIndex,
+//			                  whistleblower_index: ValidatorIndex=None) -> None:
+//			  """
+//			  Slash the validator with index ``slashed_index``.
+//			  """
+//			  epoch = get_current_epoch(state)
+//			  initiate_validator_exit(state, slashed_index)
+//			  validator = state.validators[slashed_index]
+//		   将validator标记为slashed
+//			  validator.slashed = True
+//			  validator.withdrawable_epoch = max(validator.withdrawable_epoch, Epoch(epoch + EPOCHS_PER_SLASHINGS_VECTOR))
+//			  state.slashings[epoch % EPOCHS_PER_SLASHINGS_VECTOR] += validator.effective_balance
+//			  decrease_balance(state, slashed_index, validator.effective_balance // MIN_SLASHING_PENALTY_QUOTIENT)
 //
-//	  # Apply proposer and whistleblower rewards
-//	  proposer_index = get_beacon_proposer_index(state)
-//	  if whistleblower_index is None:
-//	      whistleblower_index = proposer_index
-//	  whistleblower_reward = Gwei(validator.effective_balance // WHISTLEBLOWER_REWARD_QUOTIENT)
-//	  proposer_reward = Gwei(whistleblower_reward // PROPOSER_REWARD_QUOTIENT)
-//	  increase_balance(state, proposer_index, proposer_reward)
-//	  increase_balance(state, whistleblower_index, Gwei(whistleblower_reward - proposer_reward))
+//			  # Apply proposer and whistleblower rewards
+//	       # 应用proposer以及whistleblower rewards
+//			  proposer_index = get_beacon_proposer_index(state)
+//			  if whistleblower_index is None:
+//			      whistleblower_index = proposer_index
+//			  whistleblower_reward = Gwei(validator.effective_balance // WHISTLEBLOWER_REWARD_QUOTIENT)
+//			  proposer_reward = Gwei(whistleblower_reward // PROPOSER_REWARD_QUOTIENT)
+//			  increase_balance(state, proposer_index, proposer_reward)
+//			  increase_balance(state, whistleblower_index, Gwei(whistleblower_reward - proposer_reward))
 func SlashValidator(
 	ctx context.Context,
 	s state.BeaconState,
@@ -146,17 +155,21 @@ func SlashValidator(
 	proposerRewardQuotient uint64) (state.BeaconState, error) {
 	s, err := InitiateValidatorExit(ctx, s, slashedIdx)
 	if err != nil {
+		// 不能初始化一个validator的退出
 		return nil, errors.Wrapf(err, "could not initiate validator %d exit", slashedIdx)
 	}
 	currentEpoch := slots.ToEpoch(s.Slot())
+	// 获取对应的validator
 	validator, err := s.ValidatorAtIndex(slashedIdx)
 	if err != nil {
 		return nil, err
 	}
+	// 将slashed设置为true
 	validator.Slashed = true
 	maxWithdrawableEpoch := types.MaxEpoch(validator.WithdrawableEpoch, currentEpoch+params.BeaconConfig().EpochsPerSlashingsVector)
 	validator.WithdrawableEpoch = maxWithdrawableEpoch
 
+	// 更新在index的validator
 	if err := s.UpdateValidatorAtIndex(slashedIdx, validator); err != nil {
 		return nil, err
 	}
@@ -170,6 +183,7 @@ func SlashValidator(
 	); err != nil {
 		return nil, err
 	}
+	// 降低balance
 	if err := helpers.DecreaseBalance(s, slashedIdx, validator.EffectiveBalance/penaltyQuotient); err != nil {
 		return nil, err
 	}
@@ -179,13 +193,16 @@ func SlashValidator(
 		return nil, errors.Wrap(err, "could not get proposer idx")
 	}
 	// In phase 0, the proposer is the whistleblower.
+	// 在phase0，proposer就是告密者
 	whistleBlowerIdx := proposerIdx
 	whistleblowerReward := validator.EffectiveBalance / params.BeaconConfig().WhistleBlowerRewardQuotient
 	proposerReward := whistleblowerReward / proposerRewardQuotient
+	// 增加proposer的balance
 	err = helpers.IncreaseBalance(s, proposerIdx, proposerReward)
 	if err != nil {
 		return nil, err
 	}
+	// 增加告密者的balance?
 	err = helpers.IncreaseBalance(s, whistleBlowerIdx, whistleblowerReward-proposerReward)
 	if err != nil {
 		return nil, err

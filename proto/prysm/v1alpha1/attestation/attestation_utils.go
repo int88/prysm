@@ -48,6 +48,7 @@ func ConvertToIndexed(ctx context.Context, attestation *ethpb.Attestation, commi
 	}
 
 	sort.Slice(attIndices, func(i, j int) bool {
+		// 对attIndices进行索引
 		return attIndices[i] < attIndices[j]
 	})
 	inAtt := &ethpb.IndexedAttestation{
@@ -61,6 +62,8 @@ func ConvertToIndexed(ctx context.Context, attestation *ethpb.Attestation, commi
 // AttestingIndices returns the attesting participants indices from the attestation data. The
 // committee is provided as an argument rather than a imported implementation from the spec definition.
 // Having the committee as an argument allows for re-use of beacon committees when possible.
+// AttestingIndices返回attesting participants indices，从attestation data，committee作为一个参数提供
+// 而不是imported implementation，从spec definition
 //
 // Spec pseudocode definition:
 //
@@ -74,6 +77,7 @@ func ConvertToIndexed(ctx context.Context, attestation *ethpb.Attestation, commi
 //	 return set(index for i, index in enumerate(committee) if bits[i])
 func AttestingIndices(bf bitfield.Bitfield, committee []types.ValidatorIndex) ([]uint64, error) {
 	if bf.Len() != uint64(len(committee)) {
+		// bitfield的长度和committee length必须相等
 		return nil, fmt.Errorf("bitfield length %d is not equal to committee length %d", bf.Len(), len(committee))
 	}
 	indices := make([]uint64, 0, bf.Count())
@@ -82,6 +86,7 @@ func AttestingIndices(bf bitfield.Bitfield, committee []types.ValidatorIndex) ([
 			indices = append(indices, uint64(committee[idx]))
 		}
 	}
+	// 获取committee中的各个indices
 	return indices, nil
 }
 
@@ -128,22 +133,27 @@ func VerifyIndexedAttestationSig(ctx context.Context, indexedAtt *ethpb.IndexedA
 // IsValidAttestationIndices this helper function performs the first part of the
 // spec indexed attestation validation starting at Check if “indexed_attestation“
 // comment and ends at Verify aggregate signature comment.
+// IsValidAttestationIndices这个帮助函数执行indexed attestation validation的第一部分，从检查是否
+// "indexed_attestation" comment开始，在Verify aggregate signature comment结束
 //
 // Spec pseudocode definition:
 //
-//	def is_valid_indexed_attestation(state: BeaconState, indexed_attestation: IndexedAttestation) -> bool:
-//	  """
-//	  Check if ``indexed_attestation`` is not empty, has sorted and unique indices and has a valid aggregate signature.
-//	  """
-//	  # Verify indices are sorted and unique
-//	  indices = indexed_attestation.attesting_indices
-//	  if len(indices) == 0 or not indices == sorted(set(indices)):
-//	      return False
-//	  # Verify aggregate signature
-//	  pubkeys = [state.validators[i].pubkey for i in indices]
-//	  domain = get_domain(state, DOMAIN_BEACON_ATTESTER, indexed_attestation.data.target.epoch)
-//	  signing_root = compute_signing_root(indexed_attestation.data, domain)
-//	  return bls.FastAggregateVerify(pubkeys, signing_root, indexed_attestation.signature)
+//				def is_valid_indexed_attestation(state: BeaconState, indexed_attestation: IndexedAttestation) -> bool:
+//				  """
+//				  Check if ``indexed_attestation`` is not empty, has sorted and unique indices and has a valid aggregate signature.
+//			   检查是否"indexed_attestation"不为空，已经排序并且索引唯一并且有一个合法的aggregate signature
+//				  """
+//				  # Verify indices are sorted and unique
+//		       校验indices是排序并且唯一的
+//				  indices = indexed_attestation.attesting_indices
+//				  if len(indices) == 0 or not indices == sorted(set(indices)):
+//				      return False
+//				  # Verify aggregate signature
+//	           校验aggregate signature
+//				  pubkeys = [state.validators[i].pubkey for i in indices]
+//				  domain = get_domain(state, DOMAIN_BEACON_ATTESTER, indexed_attestation.data.target.epoch)
+//				  signing_root = compute_signing_root(indexed_attestation.data, domain)
+//				  return bls.FastAggregateVerify(pubkeys, signing_root, indexed_attestation.signature)
 func IsValidAttestationIndices(ctx context.Context, indexedAttestation *ethpb.IndexedAttestation) error {
 	ctx, span := trace.StartSpan(ctx, "attestationutil.IsValidAttestationIndices")
 	defer span.End()
@@ -156,10 +166,12 @@ func IsValidAttestationIndices(ctx context.Context, indexedAttestation *ethpb.In
 		return errors.New("expected non-empty attesting indices")
 	}
 	if uint64(len(indices)) > params.BeaconConfig().MaxValidatorsPerCommittee {
+		// validtor indices的数目超过了MAX_VALIDATORS_PER_COMMITTEE
 		return fmt.Errorf("validator indices count exceeds MAX_VALIDATORS_PER_COMMITTEE, %d > %d", len(indices), params.BeaconConfig().MaxValidatorsPerCommittee)
 	}
 	for i := 1; i < len(indices); i++ {
 		if indices[i-1] >= indices[i] {
+			// attesting indices不是唯一排序的
 			return errors.New("attesting indices is not uniquely sorted")
 		}
 	}

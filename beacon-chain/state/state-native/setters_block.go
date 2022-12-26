@@ -11,6 +11,7 @@ import (
 )
 
 // SetLatestBlockHeader in the beacon state.
+// 在beacon state中设置latest block header
 func (b *BeaconState) SetLatestBlockHeader(val *ethpb.BeaconBlockHeader) error {
 	b.lock.Lock()
 	defer b.lock.Unlock()

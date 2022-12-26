@@ -21,6 +21,8 @@ import (
 
 // ProcessAttestationsNoVerifySignature applies processing operations to a block's inner attestation
 // records. The only difference would be that the attestation signature would not be verified.
+// ProcessAttestationsNoVerifySignature应用操作，对于一个block内部的attestation records
+// 唯一的区别在于attestation signature不会被校验
 func ProcessAttestationsNoVerifySignature(
 	ctx context.Context,
 	beaconState state.BeaconState,
@@ -66,10 +68,12 @@ func ProcessAttestationNoVerifySignature(
 	if err != nil {
 		return nil, err
 	}
+	// 获取committee
 	committee, err := helpers.BeaconCommitteeFromState(ctx, beaconState, att.Data.Slot, att.Data.CommitteeIndex)
 	if err != nil {
 		return nil, err
 	}
+	// 获取indices
 	indices, err := attestation.AttestingIndices(att.AggregationBits, committee)
 	if err != nil {
 		return nil, err
@@ -80,26 +84,28 @@ func ProcessAttestationNoVerifySignature(
 
 // SetParticipationAndRewardProposer retrieves and sets the epoch participation bits in state. Based on the epoch participation, it rewards
 // the proposer in state.
+// SetParticipationAndRewardProposer获取并且设置state中的epoch participation bits，基于epoch participation，它奖励state中的proposer
 //
 // Spec code:
 //
-//	 # Update epoch participation flags
-//	if data.target.epoch == get_current_epoch(state):
-//	    epoch_participation = state.current_epoch_participation
-//	else:
-//	    epoch_participation = state.previous_epoch_participation
+//		 # Update epoch participation flags
+//		if data.target.epoch == get_current_epoch(state):
+//		    epoch_participation = state.current_epoch_participation
+//		else:
+//		    epoch_participation = state.previous_epoch_participation
 //
-//	proposer_reward_numerator = 0
-//	for index in get_attesting_indices(state, data, attestation.aggregation_bits):
-//	    for flag_index, weight in enumerate(PARTICIPATION_FLAG_WEIGHTS):
-//	        if flag_index in participation_flag_indices and not has_flag(epoch_participation[index], flag_index):
-//	            epoch_participation[index] = add_flag(epoch_participation[index], flag_index)
-//	            proposer_reward_numerator += get_base_reward(state, index) * weight
+//		proposer_reward_numerator = 0
+//		for index in get_attesting_indices(state, data, attestation.aggregation_bits):
+//		    for flag_index, weight in enumerate(PARTICIPATION_FLAG_WEIGHTS):
+//		        if flag_index in participation_flag_indices and not has_flag(epoch_participation[index], flag_index):
+//		            epoch_participation[index] = add_flag(epoch_participation[index], flag_index)
+//		            proposer_reward_numerator += get_base_reward(state, index) * weight
 //
-//	# Reward proposer
-//	proposer_reward_denominator = (WEIGHT_DENOMINATOR - PROPOSER_WEIGHT) * WEIGHT_DENOMINATOR // PROPOSER_WEIGHT
-//	proposer_reward = Gwei(proposer_reward_numerator // proposer_reward_denominator)
-//	increase_balance(state, get_beacon_proposer_index(state), proposer_reward)
+//		# Reward proposer
+//	 # 对proposer进行奖励
+//		proposer_reward_denominator = (WEIGHT_DENOMINATOR - PROPOSER_WEIGHT) * WEIGHT_DENOMINATOR // PROPOSER_WEIGHT
+//		proposer_reward = Gwei(proposer_reward_numerator // proposer_reward_denominator)
+//		increase_balance(state, get_beacon_proposer_index(state), proposer_reward)
 func SetParticipationAndRewardProposer(
 	ctx context.Context,
 	beaconState state.BeaconState,

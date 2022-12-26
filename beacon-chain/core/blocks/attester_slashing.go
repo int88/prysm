@@ -20,6 +20,8 @@ import (
 // ProcessAttesterSlashings is one of the operations performed
 // on each processed beacon block to slash attesters based on
 // Casper FFG slashing conditions if any slashable events occurred.
+// ProcessAttesterSlashings是每个处理的beacon block之上执行的一个操作，来slash
+// attesters，基于Casper FFG slashing condition，如果任何的slashable events发生的话
 //
 // Spec pseudocode definition:
 //
@@ -54,6 +56,7 @@ func ProcessAttesterSlashings(
 }
 
 // ProcessAttesterSlashing processes individual attester slashing.
+// ProcessAttesterSlashing处理单个的attester slashing
 func ProcessAttesterSlashing(
 	ctx context.Context,
 	beaconState state.BeaconState,
@@ -71,6 +74,7 @@ func ProcessAttesterSlashing(
 	var err error
 	var slashedAny bool
 	var val state.ReadOnlyValidator
+	// 遍历slashing indices
 	for _, validatorIndex := range slashableIndices {
 		val, err = beaconState.ValidatorAtIndexReadOnly(types.ValidatorIndex(validatorIndex))
 		if err != nil {
@@ -104,6 +108,7 @@ func ProcessAttesterSlashing(
 }
 
 // VerifyAttesterSlashing validates the attestation data in both attestations in the slashing object.
+// VerifyAttesterSlashing校验attestation，在两个attestations，在slashing对象中
 func VerifyAttesterSlashing(ctx context.Context, beaconState state.ReadOnlyBeaconState, slashing *ethpb.AttesterSlashing) error {
 	if slashing == nil {
 		return errors.New("nil slashing")
@@ -131,6 +136,7 @@ func VerifyAttesterSlashing(ctx context.Context, beaconState state.ReadOnlyBeaco
 }
 
 // IsSlashableAttestationData verifies a slashing against the Casper Proof of Stake FFG rules.
+// IsSlashableAttestationData校验一个slashing，对于Casper Proof of Stake FFG rules
 //
 // Spec pseudocode definition:
 //

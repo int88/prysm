@@ -55,6 +55,7 @@ func ProcessRandao(
 
 // ProcessRandaoNoVerify generates a new randao mix to update
 // in the beacon state's latest randao mixes slice.
+// ProcessRandaoNoVerify生成一个新的randao mix来更新beacon state中最新的randao mixes slice
 //
 // Spec pseudocode definition:
 //
@@ -70,6 +71,8 @@ func ProcessRandaoNoVerify(
 	currentEpoch := slots.ToEpoch(beaconState.Slot())
 	// If block randao passed verification, we XOR the state's latest randao mix with the block's
 	// randao and update the state's corresponding latest randao mix value.
+	// 如果block randao通过了校验，我们异或state的最新的randao和block的randao并且更新state对应的，最新的
+	// randao mix值
 	latestMixesLength := params.BeaconConfig().EpochsPerHistoricalVector
 	latestMixSlice, err := beaconState.RandaoMixAtIndex(uint64(currentEpoch % latestMixesLength))
 	if err != nil {

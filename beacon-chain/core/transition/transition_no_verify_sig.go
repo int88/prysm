@@ -187,6 +187,7 @@ func ProcessBlockNoVerifyAnySig(
 	}
 
 	blk := signed.Block()
+	// 处理block用于state root
 	st, err := ProcessBlockForStateRoot(ctx, st, signed)
 	if err != nil {
 		return nil, nil, err
@@ -378,6 +379,7 @@ func ProcessBlockForStateRoot(
 
 	sa, err := signed.Block().Body().SyncAggregate()
 	if err != nil {
+		// 不能从block中获取sync aggregate
 		return nil, errors.Wrap(err, "could not get sync aggregate from block")
 	}
 	// 处理sync aggregate
@@ -394,21 +396,26 @@ func altairOperations(
 	ctx context.Context,
 	st state.BeaconState,
 	signedBeaconBlock interfaces.SignedBeaconBlock) (state.BeaconState, error) {
+	// 处理proposer slashings
 	st, err := b.ProcessProposerSlashings(ctx, st, signedBeaconBlock.Block().Body().ProposerSlashings(), v.SlashValidator)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not process altair proposer slashing")
 	}
+	// 处理attester slashings
 	st, err = b.ProcessAttesterSlashings(ctx, st, signedBeaconBlock.Block().Body().AttesterSlashings(), v.SlashValidator)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not process altair attester slashing")
 	}
+	// 处理attestations
 	st, err = altair.ProcessAttestationsNoVerifySignature(ctx, st, signedBeaconBlock)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not process altair attestation")
 	}
+	// 处理deposits
 	if _, err := altair.ProcessDeposits(ctx, st, signedBeaconBlock.Block().Body().Deposits()); err != nil {
 		return nil, errors.Wrap(err, "could not process altair deposit")
 	}
+	// 处理voluntary exits
 	st, err = b.ProcessVoluntaryExits(ctx, st, signedBeaconBlock.Block().Body().VoluntaryExits())
 	if err != nil {
 		return nil, errors.Wrap(err, "could not process voluntary exits")
@@ -422,20 +429,25 @@ func phase0Operations(
 	ctx context.Context,
 	st state.BeaconState,
 	signedBeaconBlock interfaces.SignedBeaconBlock) (state.BeaconState, error) {
+	// 处理proposer slashings
 	st, err := b.ProcessProposerSlashings(ctx, st, signedBeaconBlock.Block().Body().ProposerSlashings(), v.SlashValidator)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not process block proposer slashings")
 	}
+	// 处理attester slashings
 	st, err = b.ProcessAttesterSlashings(ctx, st, signedBeaconBlock.Block().Body().AttesterSlashings(), v.SlashValidator)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not process block attester slashings")
 	}
+	// 处理block attestations
 	st, err = b.ProcessAttestationsNoVerifySignature(ctx, st, signedBeaconBlock)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not process block attestations")
 	}
+	// 处理block deposits
 	if _, err := b.ProcessDeposits(ctx, st, signedBeaconBlock.Block().Body().Deposits()); err != nil {
 		return nil, errors.Wrap(err, "could not process deposits")
 	}
+	// 最后处理voluntary exits
 	return b.ProcessVoluntaryExits(ctx, st, signedBeaconBlock.Block().Body().VoluntaryExits())
 }
