@@ -237,6 +237,7 @@ type WriteOnlyAttestations interface {
 
 // FutureForkStub defines methods that are used for future forks. This is a low cost solution to enable
 // various state casting of interface to work.
+// FutureForkStub定义了方法用于future forks，这是一个低成本的方案，用于使能interface的state casting来工作
 type FutureForkStub interface {
 	AppendCurrentParticipationBits(val byte) error
 	AppendPreviousParticipationBits(val byte) error

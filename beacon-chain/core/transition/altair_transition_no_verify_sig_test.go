@@ -232,8 +232,10 @@ func TestProcessEpoch_BadBalanceAltair(t *testing.T) {
 func createFullAltairBlockWithOperations(t *testing.T) (state.BeaconState,
 	*ethpb.SignedBeaconBlockAltair) {
 	beaconState, privKeys := util.DeterministicGenesisStateAltair(t, 32)
+	// 构建sync committee
 	sCom, err := altair.NextSyncCommittee(context.Background(), beaconState)
 	assert.NoError(t, err)
+	// 设置当前的sync committee
 	assert.NoError(t, beaconState.SetCurrentSyncCommittee(sCom))
 	tState := beaconState.Copy()
 	blk, err := util.GenerateFullBlockAltair(tState, privKeys,

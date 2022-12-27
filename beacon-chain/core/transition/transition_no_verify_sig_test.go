@@ -126,6 +126,7 @@ func TestExecuteStateTransitionNoVerifySignature_CouldNotVerifyStateRoot(t *test
 	require.NoError(t, err)
 	block.Signature = sig.Marshal()
 
+	// 重新设置错误的state root
 	block.Block.StateRoot = bytesutil.PadTo([]byte{'a'}, 32)
 	wsb, err = blocks.NewSignedBeaconBlock(block)
 	require.NoError(t, err)
@@ -193,16 +194,20 @@ func TestCalculateStateRootAltair_OK(t *testing.T) {
 	beaconState, block := createFullAltairBlockWithOperations(t)
 	wsb, err := blocks.NewSignedBeaconBlock(block)
 	require.NoError(t, err)
+	// 计算state root
 	r, err := transition.CalculateStateRoot(context.Background(), beaconState, wsb)
 	require.NoError(t, err)
 	require.DeepNotEqual(t, params.BeaconConfig().ZeroHash, r)
 }
 
 func TestProcessBlockDifferentVersion(t *testing.T) {
+	// 构建phase 0的state
 	beaconState, _ := util.DeterministicGenesisState(t, 64) // Phase 0 state
 	_, block := createFullAltairBlockWithOperations(t)
+	// 构建Altari block
 	wsb, err := blocks.NewSignedBeaconBlock(block) // Altair block
 	require.NoError(t, err)
 	_, _, err = transition.ProcessBlockNoVerifyAnySig(context.Background(), beaconState, wsb)
+	// 报state以及block处于不同version的错误
 	require.ErrorContains(t, "state and block are different version. 0 != 1", err)
 }

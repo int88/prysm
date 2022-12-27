@@ -96,6 +96,7 @@ func ExecuteStateTransitionNoVerifyAnySig(
 }
 
 // CalculateStateRoot defines the procedure for a state transition function.
+// CalculateStateRoot定义了一个state transition函数，它用于计算state root，让block proposer使用
 // This does not validate any BLS signatures in a block, it is used for calculating the
 // state root of the state for the block proposer to use.
 // This does not modify state.
@@ -105,18 +106,21 @@ func ExecuteStateTransitionNoVerifyAnySig(
 //
 // Spec pseudocode definition:
 //
-//	def state_transition(state: BeaconState, signed_block: SignedBeaconBlock, validate_result: bool=True) -> None:
-//	  block = signed_block.message
-//	  # Process slots (including those with no blocks) since block
-//	  process_slots(state, block.slot)
-//	  # Verify signature
-//	  if validate_result:
-//	      assert verify_block_signature(state, signed_block)
-//	  # Process block
-//	  process_block(state, block)
-//	  # Verify state root
-//	  if validate_result:
-//	      assert block.state_root == hash_tree_root(state)
+//			def state_transition(state: BeaconState, signed_block: SignedBeaconBlock, validate_result: bool=True) -> None:
+//			  block = signed_block.message
+//			  # Process slots (including those with no blocks) since block
+//		   # 处理slots（包括那些没有blocks），从block以来
+//			  process_slots(state, block.slot)
+//			  # Verify signature
+//			  if validate_result:
+//			      assert verify_block_signature(state, signed_block)
+//			  # Process block
+//	       # 处理block
+//			  process_block(state, block)
+//			  # Verify state root
+//	       # 校验state root
+//			  if validate_result:
+//			      assert block.state_root == hash_tree_root(state)
 func CalculateStateRoot(
 	ctx context.Context,
 	state state.BeaconState,
@@ -139,6 +143,7 @@ func CalculateStateRoot(
 	state = state.Copy()
 
 	// Execute per slots transition.
+	// 执行每个slots  transition
 	var err error
 	parentRoot := signed.Block().ParentRoot()
 	state, err = ProcessSlotsUsingNextSlotCache(ctx, state, parentRoot[:], signed.Block().Slot())
@@ -147,6 +152,7 @@ func CalculateStateRoot(
 	}
 
 	// Execute per block transition.
+	// 执行每个block的transition
 	state, err = ProcessBlockForStateRoot(ctx, state, signed)
 	if err != nil {
 		return [32]byte{}, errors.Wrap(err, "could not process block")
@@ -165,11 +171,15 @@ func CalculateStateRoot(
 //
 // Spec pseudocode definition:
 //
-//	def process_block(state: BeaconState, block: BeaconBlock) -> None:
-//	  process_block_header(state, block)
-//	  process_randao(state, block.body)
-//	  process_eth1_data(state, block.body)
-//	  process_operations(state, block.body)
+//				def process_block(state: BeaconState, block: BeaconBlock) -> None:
+//			   处理block header
+//				  process_block_header(state, block)
+//		       处理randao
+//				  process_randao(state, block.body)
+//		       处理eth1 data
+//				  process_eth1_data(state, block.body)
+//	        处理operations
+//				  process_operations(state, block.body)
 func ProcessBlockNoVerifyAnySig(
 	ctx context.Context,
 	st state.BeaconState,

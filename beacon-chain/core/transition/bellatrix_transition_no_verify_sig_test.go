@@ -219,6 +219,7 @@ func TestProcessEpoch_BadBalanceBellatrix(t *testing.T) {
 	assert.ErrorContains(t, "addition overflows", err)
 }
 
+// 构建Bellatrix block
 func createFullBellatrixBlockWithOperations(t *testing.T) (state.BeaconState,
 	*ethpb.SignedBeaconBlockBellatrix) {
 	_, altairBlk := createFullAltairBlockWithOperations(t)
@@ -258,6 +259,7 @@ func createFullBellatrixBlockWithOperations(t *testing.T) (state.BeaconState,
 	return beaconState, blk
 }
 
+// 构建capella block
 func createFullCapellaBlockWithOperations(t *testing.T) (state.BeaconState,
 	*ethpb.SignedBeaconBlockCapella) {
 	_, bellatrixBlk := createFullBellatrixBlockWithOperations(t)

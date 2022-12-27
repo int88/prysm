@@ -44,6 +44,7 @@ func ValidateNilSyncContribution(s *ethpb.SignedContributionAndProof) error {
 }
 
 // NextSyncCommittee returns the next sync committee for a given state.
+// NextSyncCommittee返回下一个sync committee，对于一个给定的state
 //
 // Spec code:
 // def get_next_sync_committee(state: BeaconState) -> SyncCommittee:

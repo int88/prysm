@@ -401,7 +401,9 @@ func VerifyOperationLengths(_ context.Context, state state.BeaconState, b interf
 }
 
 // ProcessEpochPrecompute describes the per epoch operations that are performed on the beacon state.
+// ProcessEpochPrecompute描述了在beacon state至少执行的，每个epoch operations的操作
 // It's optimized by pre computing validator attested info and epoch total/attested balances upfront.
+// 它的优化，通过提前计算validator attested info以及epoch total/attestd balance
 func ProcessEpochPrecompute(ctx context.Context, state state.BeaconState) (state.BeaconState, error) {
 	ctx, span := trace.StartSpan(ctx, "core.state.ProcessEpochPrecompute")
 	defer span.End()
@@ -414,31 +416,37 @@ func ProcessEpochPrecompute(ctx context.Context, state state.BeaconState) (state
 	if err != nil {
 		return nil, err
 	}
+	// 处理attestations
 	vp, bp, err = precompute.ProcessAttestations(ctx, state, vp, bp)
 	if err != nil {
 		return nil, err
 	}
 
+	// 处理justification以及finalization
 	state, err = precompute.ProcessJustificationAndFinalizationPreCompute(state, bp)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not process justification")
 	}
 
+	// 处理rewards以及penalties
 	state, err = precompute.ProcessRewardsAndPenaltiesPrecompute(state, bp, vp, precompute.AttestationsDelta, precompute.ProposersDelta)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not process rewards and penalties")
 	}
 
+	// 处理registry updates
 	state, err = e.ProcessRegistryUpdates(ctx, state)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not process registry updates")
 	}
 
+	// 处理slashings
 	err = precompute.ProcessSlashingsPrecompute(state, bp)
 	if err != nil {
 		return nil, err
 	}
 
+	// 处理final update
 	state, err = e.ProcessFinalUpdates(state)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not process final updates")

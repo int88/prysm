@@ -225,6 +225,7 @@ func GenerateAttestations(
 
 // HydrateAttestation hydrates an attestation object with correct field length sizes
 // to comply with fssz marshalling and unmarshalling rules.
+// HydrateAttestation混合一个attestation对象，用正确的字段长度，来符合fssz marshalling和unmarshalling规则
 func HydrateAttestation(a *ethpb.Attestation) *ethpb.Attestation {
 	if a.Signature == nil {
 		a.Signature = make([]byte, 96)

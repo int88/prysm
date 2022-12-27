@@ -123,6 +123,7 @@ func (b *BeaconState) UpdateBalancesAtIndex(idx types.ValidatorIndex, val uint64
 
 // SetSlashings for the beacon state. Updates the entire
 // list to a new value by overwriting the previous one.
+// SetSlashings为beacon state，更早完整的列表到一个新的值，通过覆盖之前的值
 func (b *BeaconState) SetSlashings(val []uint64) error {
 	b.lock.Lock()
 	defer b.lock.Unlock()

@@ -22,9 +22,10 @@ type BeaconChainConfig struct {
 	JustificationBitsLength  uint64      `yaml:"JUSTIFICATION_BITS_LENGTH"`   // JustificationBitsLength defines number of epochs to track when implementing k-finality in Casper FFG.
 
 	// Misc constants.
-	PresetBase                string `yaml:"PRESET_BASE" spec:"true"`                  // PresetBase represents the underlying spec preset this config is based on.
-	ConfigName                string `yaml:"CONFIG_NAME" spec:"true"`                  // ConfigName for allowing an easy human-readable way of knowing what chain is being used.
-	TargetCommitteeSize       uint64 `yaml:"TARGET_COMMITTEE_SIZE" spec:"true"`        // TargetCommitteeSize is the number of validators in a committee when the chain is healthy.
+	PresetBase          string `yaml:"PRESET_BASE" spec:"true"`           // PresetBase represents the underlying spec preset this config is based on.
+	ConfigName          string `yaml:"CONFIG_NAME" spec:"true"`           // ConfigName for allowing an easy human-readable way of knowing what chain is being used.
+	TargetCommitteeSize uint64 `yaml:"TARGET_COMMITTEE_SIZE" spec:"true"` // TargetCommitteeSize is the number of validators in a committee when the chain is healthy.
+	// MaxValidatorsPerCommittee定义了一个committee大小的上限
 	MaxValidatorsPerCommittee uint64 `yaml:"MAX_VALIDATORS_PER_COMMITTEE" spec:"true"` // MaxValidatorsPerCommittee defines the upper bound of the size of a committee.
 	// MaxCommitteesPerSlot定义了单个slot最大的committee的数目
 	MaxCommitteesPerSlot           uint64 `yaml:"MAX_COMMITTEES_PER_SLOT" spec:"true"`            // MaxCommitteesPerSlot defines the max amount of committee in a single slot.
@@ -190,6 +191,7 @@ type BeaconChainConfig struct {
 	SyncCommitteeSubnetCount             uint64 `yaml:"SYNC_COMMITTEE_SUBNET_COUNT" spec:"true"`              // SyncCommitteeSubnetCount for sync committee subnet count.
 
 	// Misc.
+	// SyncCommitteeSize是light sync committee的大小
 	SyncCommitteeSize            uint64      `yaml:"SYNC_COMMITTEE_SIZE" spec:"true"`              // SyncCommitteeSize for light client sync committee size.
 	InactivityScoreBias          uint64      `yaml:"INACTIVITY_SCORE_BIAS" spec:"true"`            // InactivityScoreBias for calculating score bias penalties during inactivity
 	InactivityScoreRecoveryRate  uint64      `yaml:"INACTIVITY_SCORE_RECOVERY_RATE" spec:"true"`   // InactivityScoreRecoveryRate for recovering score bias penalties during inactivity.

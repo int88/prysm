@@ -26,6 +26,7 @@ import (
 )
 
 // DeterministicGenesisStateAltair returns a genesis state in hard fork 1 format made using the deterministic deposits.
+// DeterministicGenesisStateAltair返回一个genesis state，在fork 1 format，使用deterministic deposits
 func DeterministicGenesisStateAltair(t testing.TB, numValidators uint64) (state.BeaconState, []bls.SecretKey) {
 	deposits, privKeys, err := DeterministicDepositsAndKeys(numValidators)
 	if err != nil {
@@ -315,6 +316,8 @@ func BlockSignatureAltair(
 
 // GenerateFullBlockAltair generates a fully valid Altair block with the requested parameters.
 // Use BlockGenConfig to declare the conditions you would like the block generated under.
+// GenerateFullBlockAltair生成一个完全合法的Altair block，根据请求的参数，使用BlockGenConfig来声明
+// 希望block生成的情况
 func GenerateFullBlockAltair(
 	bState state.BeaconState,
 	privs []bls.SecretKey,
@@ -336,6 +339,7 @@ func GenerateFullBlockAltair(
 	var pSlashings []*ethpb.ProposerSlashing
 	numToGen := conf.NumProposerSlashings
 	if numToGen > 0 {
+		// 生成proposer slashings
 		pSlashings, err = generateProposerSlashings(bState, privs, numToGen)
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed generating %d proposer slashings:", numToGen)
@@ -345,6 +349,7 @@ func GenerateFullBlockAltair(
 	numToGen = conf.NumAttesterSlashings
 	var aSlashings []*ethpb.AttesterSlashing
 	if numToGen > 0 {
+		// 生成attester slashing
 		aSlashings, err = generateAttesterSlashings(bState, privs, numToGen)
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed generating %d attester slashings:", numToGen)
@@ -354,6 +359,7 @@ func GenerateFullBlockAltair(
 	numToGen = conf.NumAttestations
 	var atts []*ethpb.Attestation
 	if numToGen > 0 {
+		// 生成attestations
 		atts, err = GenerateAttestations(bState, privs, numToGen, slot, false)
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed generating %d attestations:", numToGen)
@@ -364,6 +370,7 @@ func GenerateFullBlockAltair(
 	var newDeposits []*ethpb.Deposit
 	eth1Data := bState.Eth1Data()
 	if numToGen > 0 {
+		// 生成deposits以及eth1 data
 		newDeposits, eth1Data, err = generateDepositsAndEth1Data(bState, numToGen)
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed generating %d deposits:", numToGen)
@@ -373,6 +380,7 @@ func GenerateFullBlockAltair(
 	numToGen = conf.NumVoluntaryExits
 	var exits []*ethpb.SignedVoluntaryExit
 	if numToGen > 0 {
+		// 生成voluntary exits
 		exits, err = generateVoluntaryExits(bState, privs, numToGen)
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed generating %d attester slashings:", numToGen)
@@ -392,6 +400,7 @@ func GenerateFullBlockAltair(
 
 	var newSyncAggregate *ethpb.SyncAggregate
 	if conf.FullSyncAggregate {
+		// 生成sync aggregate
 		newSyncAggregate, err = generateSyncAggregate(bState, privs, parentRoot)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed generating syncAggregate")
@@ -427,6 +436,7 @@ func GenerateFullBlockAltair(
 		return nil, err
 	}
 
+	// 获取proposer index
 	idx, err := helpers.BeaconProposerIndex(ctx, stCopy)
 	if err != nil {
 		return nil, err

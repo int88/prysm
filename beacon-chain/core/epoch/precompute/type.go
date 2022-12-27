@@ -45,7 +45,9 @@ type Validator struct {
 }
 
 // Balance stores the pre computation of the total participated balances for a given epoch
+// Balance存储了对于一个给定的epoch，提前计算的total participated balances
 // Pre computing and storing such record is essential for process epoch optimizations.
+// 提前计算以及存储这样的record，对于epoch处理的优化是必要的
 type Balance struct {
 	// ActiveCurrentEpoch is the total effective balance of all active validators during current epoch.
 	ActiveCurrentEpoch uint64

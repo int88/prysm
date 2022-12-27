@@ -47,6 +47,7 @@ func TestExecuteStateTransition_IncorrectSlot(t *testing.T) {
 	wsb, err := consensusblocks.NewSignedBeaconBlock(block)
 	require.NoError(t, err)
 	_, err = transition.ExecuteStateTransition(context.Background(), beaconState, wsb)
+	// 不是期望的slot
 	assert.ErrorContains(t, want, err)
 }
 
@@ -65,6 +66,7 @@ func TestExecuteStateTransition_FullProcess(t *testing.T) {
 	bh := beaconState.LatestBlockHeader()
 	bh.Slot = beaconState.Slot()
 	require.NoError(t, beaconState.SetLatestBlockHeader(bh))
+	// 设置eth1 data votes
 	require.NoError(t, beaconState.SetEth1DataVotes([]*ethpb.Eth1Data{eth1Data}))
 
 	oldMix, err := beaconState.RandaoMixAtIndex(1)
@@ -76,12 +78,15 @@ func TestExecuteStateTransition_FullProcess(t *testing.T) {
 	require.NoError(t, err)
 	require.NoError(t, beaconState.SetSlot(beaconState.Slot()-1))
 
+	// 处理slots
 	nextSlotState, err := transition.ProcessSlots(context.Background(), beaconState.Copy(), beaconState.Slot()+1)
 	require.NoError(t, err)
 	parentRoot, err := nextSlotState.LatestBlockHeader().HashTreeRoot()
 	require.NoError(t, err)
+	// 获取proposer index
 	proposerIdx, err := helpers.BeaconProposerIndex(context.Background(), nextSlotState)
 	require.NoError(t, err)
+	// 构建新的block
 	block := util.NewBeaconBlock()
 	block.Block.ProposerIndex = proposerIdx
 	block.Block.Slot = beaconState.Slot() + 1
@@ -102,6 +107,7 @@ func TestExecuteStateTransition_FullProcess(t *testing.T) {
 
 	wsb, err = consensusblocks.NewSignedBeaconBlock(block)
 	require.NoError(t, err)
+	// 执行state transition
 	beaconState, err = transition.ExecuteStateTransition(context.Background(), beaconState, wsb)
 	require.NoError(t, err)
 
@@ -192,6 +198,7 @@ func TestProcessBlock_IncorrectProcessExits(t *testing.T) {
 	wsb, err := consensusblocks.NewSignedBeaconBlock(block)
 	require.NoError(t, err)
 	_, err = transition.VerifyOperationLengths(context.Background(), beaconState, wsb)
+	// block body中的voluntary exits的数目大于了允许的边界，即16
 	wanted := "number of voluntary exits (17) in block body exceeds allowed threshold of 16"
 	assert.ErrorContains(t, wanted, err)
 }
@@ -209,20 +216,26 @@ func createFullBlockWithOperations(t *testing.T) (state.BeaconState,
 		BodyRoot:   bodyRoot[:],
 	})
 	require.NoError(t, err)
+	// 设置slashing
 	err = beaconState.SetSlashings(make([]uint64, params.BeaconConfig().EpochsPerSlashingsVector))
 	require.NoError(t, err)
 	cp := beaconState.CurrentJustifiedCheckpoint()
 	mockRoot := [32]byte{}
 	copy(mockRoot[:], "hello-world")
+	// 重新设置checkpoint的root
 	cp.Root = mockRoot[:]
+	// 设置当前的justified checkpoint
 	require.NoError(t, beaconState.SetCurrentJustifiedCheckpoint(cp))
+	// 扩展当前epoch的attestations
 	require.NoError(t, beaconState.AppendCurrentEpochAttestations(&ethpb.PendingAttestation{}))
 
+	// 设置proposer slash的索引
 	proposerSlashIdx := types.ValidatorIndex(3)
 	slotsPerEpoch := params.BeaconConfig().SlotsPerEpoch
 	err = beaconState.SetSlot(slotsPerEpoch.Mul(uint64(params.BeaconConfig().ShardCommitteePeriod)) + params.BeaconConfig().MinAttestationInclusionDelay)
 	require.NoError(t, err)
 
+	// 创建两个epoch，stateRoot不同
 	currentEpoch := time.CurrentEpoch(beaconState)
 	header1 := util.HydrateSignedBeaconHeader(&ethpb.SignedBeaconBlockHeader{
 		Header: &ethpb.BeaconBlockHeader{
@@ -251,7 +264,9 @@ func createFullBlockWithOperations(t *testing.T) (state.BeaconState,
 		},
 	}
 	validators := beaconState.Validators()
+	// 设置proposer slash index的public key
 	validators[proposerSlashIdx].PublicKey = privKeys[proposerSlashIdx].PublicKey().Marshal()
+	// 设置validators
 	require.NoError(t, beaconState.SetValidators(validators))
 
 	mockRoot2 := [32]byte{'A'}
@@ -267,6 +282,7 @@ func createFullBlockWithOperations(t *testing.T) (state.BeaconState,
 	require.NoError(t, err)
 	sig0 := privKeys[0].Sign(hashTreeRoot[:])
 	sig1 := privKeys[1].Sign(hashTreeRoot[:])
+	// 合并signature
 	aggregateSig := bls.AggregateSignatures([]bls.Signature{sig0, sig1})
 	att1.Signature = aggregateSig.Marshal()
 
@@ -286,6 +302,7 @@ func createFullBlockWithOperations(t *testing.T) (state.BeaconState,
 	aggregateSig = bls.AggregateSignatures([]bls.Signature{sig0, sig1})
 	att2.Signature = aggregateSig.Marshal()
 
+	// 构建attester slashings
 	attesterSlashings := []*ethpb.AttesterSlashing{
 		{
 			Attestation_1: att1,
@@ -309,8 +326,10 @@ func createFullBlockWithOperations(t *testing.T) (state.BeaconState,
 		AggregationBits: aggBits,
 	})
 
+	// 获取committee
 	committee, err := helpers.BeaconCommitteeFromState(context.Background(), beaconState, blockAtt.Data.Slot, blockAtt.Data.CommitteeIndex)
 	assert.NoError(t, err)
+	// 获取attesting indices
 	attestingIndices, err := attestation.AttestingIndices(blockAtt.AggregationBits, committee)
 	require.NoError(t, err)
 	assert.NoError(t, err)
@@ -318,6 +337,7 @@ func createFullBlockWithOperations(t *testing.T) (state.BeaconState,
 	assert.NoError(t, err)
 	sigs := make([]bls.Signature, len(attestingIndices))
 	for i, indice := range attestingIndices {
+		// 遍历attesting indices
 		sig := privKeys[indice].Sign(hashTreeRoot[:])
 		sigs[i] = sig
 	}
@@ -341,17 +361,20 @@ func createFullBlockWithOperations(t *testing.T) (state.BeaconState,
 	require.NoError(t, err)
 	copied := beaconState.Copy()
 	require.NoError(t, copied.SetSlot(beaconState.Slot()+1))
+	// 构造randao reveal
 	randaoReveal, err := util.RandaoReveal(copied, currentEpoch, privKeys)
 	require.NoError(t, err)
 	proposerIndex, err := helpers.BeaconProposerIndex(context.Background(), copied)
 	require.NoError(t, err)
 	block := util.HydrateSignedBeaconBlock(&ethpb.SignedBeaconBlock{
+		// 真正构建block
 		Block: &ethpb.BeaconBlock{
 			ParentRoot:    parentRoot[:],
 			Slot:          beaconState.Slot() + 1,
 			ProposerIndex: proposerIndex,
 			Body: &ethpb.BeaconBlockBody{
-				RandaoReveal:      randaoReveal,
+				RandaoReveal: randaoReveal,
+				// 构造proposer slashing
 				ProposerSlashings: proposerSlashings,
 				AttesterSlashings: attesterSlashings,
 				Attestations:      []*ethpb.Attestation{blockAtt},
@@ -406,6 +429,7 @@ func TestProcessBlock_OverMaxProposerSlashings(t *testing.T) {
 	require.NoError(t, err)
 	wsb, err := consensusblocks.NewSignedBeaconBlock(b)
 	require.NoError(t, err)
+	// 超过了最大的proposer slashings的数目
 	_, err = transition.VerifyOperationLengths(context.Background(), s, wsb)
 	assert.ErrorContains(t, want, err)
 }
@@ -425,6 +449,7 @@ func TestProcessBlock_OverMaxAttesterSlashings(t *testing.T) {
 	require.NoError(t, err)
 	wsb, err := consensusblocks.NewSignedBeaconBlock(b)
 	require.NoError(t, err)
+	// 超过最大的attester slashings的数目
 	_, err = transition.VerifyOperationLengths(context.Background(), s, wsb)
 	assert.ErrorContains(t, want, err)
 }
@@ -443,6 +468,7 @@ func TestProcessBlock_OverMaxAttestations(t *testing.T) {
 	require.NoError(t, err)
 	wsb, err := consensusblocks.NewSignedBeaconBlock(b)
 	require.NoError(t, err)
+	// 超过最大的attestations的数目
 	_, err = transition.VerifyOperationLengths(context.Background(), s, wsb)
 	assert.ErrorContains(t, want, err)
 }
@@ -480,6 +506,7 @@ func TestProcessBlock_IncorrectDeposits(t *testing.T) {
 			},
 		},
 	}
+	// 错误的outstanding deposits
 	want := fmt.Sprintf("incorrect outstanding deposits in block body, wanted: %d, got: %d",
 		s.Eth1Data().DepositCount-s.Eth1DepositIndex(), len(b.Block.Body.Deposits))
 	wsb, err := consensusblocks.NewSignedBeaconBlock(b)
@@ -488,6 +515,7 @@ func TestProcessBlock_IncorrectDeposits(t *testing.T) {
 	assert.ErrorContains(t, want, err)
 }
 
+// 跟parent有着同样的slot
 func TestProcessSlots_SameSlotAsParentState(t *testing.T) {
 	slot := types.Slot(2)
 	parentState, err := state_native.InitializeFromProtoPhase0(&ethpb.BeaconState{Slot: slot})
@@ -605,10 +633,12 @@ func TestProcessSlots_OnlyBellatrixEpoch(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, params.BeaconConfig().MaxValidatorsPerCommittee, uint64(len(p)))
 
+	// 获取当前的sync committee
 	sc, err := st.CurrentSyncCommittee()
 	require.NoError(t, err)
 	require.Equal(t, params.BeaconConfig().SyncCommitteeSize, uint64(len(sc.Pubkeys)))
 
+	// 获取下一个sync committee
 	sc, err = st.NextSyncCommittee()
 	require.NoError(t, err)
 	require.Equal(t, params.BeaconConfig().SyncCommitteeSize, uint64(len(sc.Pubkeys)))
@@ -622,6 +652,7 @@ func TestProcessSlots_ThroughBellatrixEpoch(t *testing.T) {
 	params.OverrideBeaconConfig(conf)
 
 	st, _ := util.DeterministicGenesisStateAltair(t, params.BeaconConfig().MaxValidatorsPerCommittee)
+	// 处理slots
 	st, err := transition.ProcessSlots(context.Background(), st, params.BeaconConfig().SlotsPerEpoch*10)
 	require.NoError(t, err)
 	require.Equal(t, version.Bellatrix, st.Version())
