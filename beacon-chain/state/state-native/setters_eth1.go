@@ -44,6 +44,7 @@ func (b *BeaconState) SetEth1DepositIndex(val uint64) error {
 
 // AppendEth1DataVotes for the beacon state. Appends the new value
 // to the the end of list.
+// 扩展beacon state的Eth1DataVotes，扩展新的值到list的后端
 func (b *BeaconState) AppendEth1DataVotes(val *ethpb.Eth1Data) error {
 	b.lock.Lock()
 	defer b.lock.Unlock()

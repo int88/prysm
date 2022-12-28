@@ -11,6 +11,8 @@ import (
 
 // UpgradeToBellatrix updates inputs a generic state to return the version Bellatrix state.
 // It inserts an empty `ExecutionPayloadHeader` into the state.
+// UpgradeToBellatrix更新输入的generic state，返回version Bellatrix state，它插入一个空的
+// `ExecutionPayloadHeader`到state中
 func UpgradeToBellatrix(state state.BeaconState) (state.BeaconState, error) {
 	epoch := time.CurrentEpoch(state)
 

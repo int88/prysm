@@ -30,6 +30,7 @@ func (b *BeaconState) SetStateRoots(val [][]byte) error {
 
 // UpdateStateRootAtIndex for the beacon state. Updates the state root
 // at a specific index to a new value.
+// UpdateStateRootAtIndex对于beacon state，更新指定索引的state root到一个新的值
 func (b *BeaconState) UpdateStateRootAtIndex(idx uint64, stateRoot [32]byte) error {
 	b.lock.RLock()
 	if uint64(len(b.stateRoots)) <= idx {

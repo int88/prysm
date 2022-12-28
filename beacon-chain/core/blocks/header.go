@@ -131,10 +131,12 @@ func ProcessBlockHeaderNoVerify(
 
 	if !bytes.Equal(parentRoot, parentHeaderRoot[:]) {
 		return nil, fmt.Errorf(
+			// 参数中的parent root不匹配最新的block header的signing root，在state中
 			"parent root %#x does not match the latest block header signing root in state %#x",
 			parentRoot, parentHeaderRoot[:])
 	}
 
+	// 获取proposer
 	proposer, err := beaconState.ValidatorAtIndexReadOnly(idx)
 	if err != nil {
 		return nil, err

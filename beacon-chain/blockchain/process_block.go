@@ -169,6 +169,7 @@ func (s *Service) onBlock(ctx context.Context, signed interfaces.SignedBeaconBlo
 	if err := s.handleBlockAttestations(ctx, signed.Block(), postState); err != nil {
 		return errors.Wrap(err, "could not handle block's attestations")
 	}
+	// 处理block的BLSToExecutionChanges
 	if err := s.handleBlockBLSToExecChanges(signed.Block()); err != nil {
 		return errors.Wrap(err, "could not handle block's BLSToExecutionChanges")
 	}

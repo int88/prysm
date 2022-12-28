@@ -484,6 +484,7 @@ func (b *BeaconBlock) IsNil() bool {
 }
 
 // IsBlinded checks if the beacon block is a blinded block.
+// IsBlinded判断beacon block是不是一个blinded block
 func (b *BeaconBlock) IsBlinded() bool {
 	return b.body.isBlinded
 }

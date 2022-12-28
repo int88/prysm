@@ -67,6 +67,7 @@ func UpgradeToAltair(ctx context.Context, state state.BeaconState) (state.Beacon
 	epoch := time.CurrentEpoch(state)
 
 	numValidators := state.NumValidators()
+	// 重建Altair State
 	s := &ethpb.BeaconStateAltair{
 		GenesisTime:           state.GenesisTime(),
 		GenesisValidatorsRoot: state.GenesisValidatorsRoot(),
@@ -113,6 +114,7 @@ func UpgradeToAltair(ctx context.Context, state state.BeaconState) (state.Beacon
 	if err != nil {
 		return nil, err
 	}
+	// 设置sync committee
 	if err := newState.SetCurrentSyncCommittee(committee); err != nil {
 		return nil, err
 	}

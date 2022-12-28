@@ -132,6 +132,7 @@ func ProcessSlot(ctx context.Context, state state.BeaconState) (state.BeaconStat
 			return nil, err
 		}
 	}
+	// 获取之前的block root
 	prevBlockRoot, err := state.LatestBlockHeader().HashTreeRoot()
 	if err != nil {
 		tracing.AnnotateError(span, err)
@@ -238,6 +239,7 @@ func ProcessSlots(ctx context.Context, state state.BeaconState, slot types.Slot)
 	}
 
 	// Restart from cached value, if one exists.
+	// 从缓存的值重新开始，如果存在的话
 	cachedState, err := SkipSlotCache.Get(ctx, key)
 	if err != nil {
 		return nil, err
@@ -306,6 +308,7 @@ func ProcessSlots(ctx context.Context, state state.BeaconState, slot types.Slot)
 			return nil, errors.Wrap(err, "failed to increment state slot")
 		}
 
+		// 是否可以升级到Altair
 		if time.CanUpgradeToAltair(state.Slot()) {
 			state, err = altair.UpgradeToAltair(ctx, state)
 			if err != nil {
@@ -314,6 +317,7 @@ func ProcessSlots(ctx context.Context, state state.BeaconState, slot types.Slot)
 			}
 		}
 
+		// 是否可以升级到Bellatrix
 		if time.CanUpgradeToBellatrix(state.Slot()) {
 			state, err = execution.UpgradeToBellatrix(state)
 			if err != nil {

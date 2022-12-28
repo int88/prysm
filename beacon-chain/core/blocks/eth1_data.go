@@ -27,6 +27,7 @@ func ProcessEth1DataInBlock(_ context.Context, beaconState state.BeaconState, et
 	if beaconState == nil || beaconState.IsNil() {
 		return nil, errors.New("nil state")
 	}
+	// 扩展eth1 data votes
 	if err := beaconState.AppendEth1DataVotes(eth1Data); err != nil {
 		return nil, err
 	}
@@ -52,6 +53,7 @@ func AreEth1DataEqual(a, b *ethpb.Eth1Data) bool {
 	if a == nil || b == nil {
 		return false
 	}
+	// deposit的数目，block hash以及Deposit root是否都相等
 	return a.DepositCount == b.DepositCount &&
 		bytes.Equal(a.BlockHash, b.BlockHash) &&
 		bytes.Equal(a.DepositRoot, b.DepositRoot)

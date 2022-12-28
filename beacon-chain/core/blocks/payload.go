@@ -169,6 +169,7 @@ func ValidatePayload(st state.BeaconState, payload interfaces.ExecutionData) err
 }
 
 // ProcessPayload processes input execution payload using beacon state.
+// ProcessPayload使用beacon state处理输入的execution payload
 // ValidatePayloadWhenMergeCompletes validates if payload is valid versus input beacon state.
 // These validation steps ONLY apply to post merge.
 //
@@ -268,7 +269,9 @@ func ValidatePayloadHeader(st state.BeaconState, header interfaces.ExecutionData
 }
 
 // ProcessPayloadHeader processes the payload header.
+// ProcessPayloadHeader处理payload header
 func ProcessPayloadHeader(st state.BeaconState, header interfaces.ExecutionData) (state.BeaconState, error) {
+	// 校验payload header，当merge完成之后
 	if err := ValidatePayloadHeaderWhenMergeCompletes(st, header); err != nil {
 		return nil, err
 	}

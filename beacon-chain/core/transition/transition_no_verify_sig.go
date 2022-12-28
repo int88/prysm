@@ -384,6 +384,7 @@ func ProcessBlockForStateRoot(
 	}
 
 	if signed.Block().Version() == version.Phase0 {
+		// 如果依然处于phase 0，则直接返回
 		return state, nil
 	}
 

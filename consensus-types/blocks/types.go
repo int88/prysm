@@ -41,6 +41,7 @@ var (
 )
 
 // BeaconBlockBody is the main beacon block body structure. It can represent any block type.
+// BeaconBlockBody是主要的beacon block body结构，它可以代表任何block类型
 type BeaconBlockBody struct {
 	version                int
 	isBlinded              bool
