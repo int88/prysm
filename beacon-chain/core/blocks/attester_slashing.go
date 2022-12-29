@@ -76,14 +76,17 @@ func ProcessAttesterSlashing(
 	var val state.ReadOnlyValidator
 	// 遍历slashing indices
 	for _, validatorIndex := range slashableIndices {
+		// 获取对应的validator
 		val, err = beaconState.ValidatorAtIndexReadOnly(types.ValidatorIndex(validatorIndex))
 		if err != nil {
 			return nil, err
 		}
+		// 判断validator是否是slashable
 		if helpers.IsSlashableValidator(val.ActivationEpoch(), val.WithdrawableEpoch(), val.Slashed(), currentEpoch) {
 			cfg := params.BeaconConfig()
 			var slashingQuotient uint64
 			switch {
+			// 在不同的version，slashingQuotient有所不同
 			case beaconState.Version() == version.Phase0:
 				slashingQuotient = cfg.MinSlashingPenaltyQuotient
 			case beaconState.Version() == version.Altair:
@@ -93,6 +96,7 @@ func ProcessAttesterSlashing(
 			default:
 				return nil, errors.New("unknown state version")
 			}
+			// 最终也是调用slashFunc
 			beaconState, err = slashFunc(ctx, beaconState, types.ValidatorIndex(validatorIndex), slashingQuotient, cfg.ProposerRewardQuotient)
 			if err != nil {
 				return nil, errors.Wrapf(err, "could not slash validator index %d",
@@ -102,6 +106,7 @@ func ProcessAttesterSlashing(
 		}
 	}
 	if !slashedAny {
+		// 不能slash任何的validator，尽管确认了attester slashing
 		return nil, errors.New("unable to slash any validator despite confirmed attester slashing")
 	}
 	return beaconState, nil
@@ -163,6 +168,7 @@ func IsSlashableAttestationData(data1, data2 *ethpb.AttestationData) bool {
 }
 
 // SlashableAttesterIndices returns the intersection of attester indices from both attestations in this slashing.
+// SlashableAttesterIndices返回attester indices的交集，从这个slashing的两个attestations
 func SlashableAttesterIndices(slashing *ethpb.AttesterSlashing) []uint64 {
 	if slashing == nil || slashing.Attestation_1 == nil || slashing.Attestation_2 == nil {
 		return nil

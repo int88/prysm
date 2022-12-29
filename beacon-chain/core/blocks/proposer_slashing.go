@@ -110,6 +110,7 @@ func VerifyProposerSlashing(
 	slashing *ethpb.ProposerSlashing,
 ) error {
 	if slashing.Header_1 == nil || slashing.Header_1.Header == nil || slashing.Header_2 == nil || slashing.Header_2.Header == nil {
+		// 空的header不能被校验
 		return errors.New("nil header cannot be verified")
 	}
 	hSlot := slashing.Header_1.Header.Slot
@@ -128,6 +129,7 @@ func VerifyProposerSlashing(
 		return err
 	}
 	if !helpers.IsSlashableValidatorUsingTrie(proposer, time.CurrentEpoch(beaconState)) {
+		// proposer不能被slash?
 		return fmt.Errorf("validator with key %#x is not slashable", proposer.PublicKey())
 	}
 	headers := []*ethpb.SignedBeaconBlockHeader{slashing.Header_1, slashing.Header_2}

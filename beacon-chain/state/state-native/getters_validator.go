@@ -229,6 +229,7 @@ func (b *BeaconState) BalancesLength() int {
 }
 
 // Slashings of validators on the beacon chain.
+// 代表了beacon chain中的slashings of validators
 func (b *BeaconState) Slashings() []uint64 {
 	if b.slashings == nil {
 		return nil
@@ -242,6 +243,7 @@ func (b *BeaconState) Slashings() []uint64 {
 
 // slashingsVal of validators on the beacon chain.
 // This assumes that a lock is already held on BeaconState.
+// beacon chain中的slashingsVal of validators，这个假设已经持有了BeaconState的锁
 func (b *BeaconState) slashingsVal() []uint64 {
 	if b.slashings == nil {
 		return nil

@@ -47,16 +47,19 @@ import (
 //		  validator.exit_epoch = exit_queue_epoch
 //		  validator.withdrawable_epoch = Epoch(validator.exit_epoch + MIN_VALIDATOR_WITHDRAWABILITY_DELAY)
 func InitiateValidatorExit(ctx context.Context, s state.BeaconState, idx types.ValidatorIndex) (state.BeaconState, error) {
+	// 读取对应索引的validator
 	validator, err := s.ValidatorAtIndex(idx)
 	if err != nil {
 		return nil, err
 	}
 	if validator.ExitEpoch != params.BeaconConfig().FarFutureEpoch {
+		// 如果validator已经指定了ExitEpoch，则退出
 		return s, nil
 	}
 	var exitEpochs []types.Epoch
 	err = s.ReadFromEveryValidator(func(idx int, val state.ReadOnlyValidator) error {
 		if val.ExitEpoch() != params.BeaconConfig().FarFutureEpoch {
+			// 获取所有的exitEpochs
 			exitEpochs = append(exitEpochs, val.ExitEpoch())
 		}
 		return nil
@@ -67,6 +70,7 @@ func InitiateValidatorExit(ctx context.Context, s state.BeaconState, idx types.V
 	exitEpochs = append(exitEpochs, helpers.ActivationExitEpoch(time.CurrentEpoch(s)))
 
 	// Obtain the exit queue epoch as the maximum number in the exit epochs array.
+	// 获取exit queue epoch，作为exit epochs array的最大值
 	exitQueueEpoch := types.Epoch(0)
 	for _, i := range exitEpochs {
 		if exitQueueEpoch < i {
@@ -167,6 +171,7 @@ func SlashValidator(
 	// 将slashed设置为true
 	validator.Slashed = true
 	maxWithdrawableEpoch := types.MaxEpoch(validator.WithdrawableEpoch, currentEpoch+params.BeaconConfig().EpochsPerSlashingsVector)
+	// 设置withdrawable epoch
 	validator.WithdrawableEpoch = maxWithdrawableEpoch
 
 	// 更新在index的validator
@@ -175,8 +180,10 @@ func SlashValidator(
 	}
 
 	// The slashing amount is represented by epochs per slashing vector. The validator's effective balance is then applied to that amount.
+	// slashing amount由epochs per slashing vector代表，validator的effective balance之后映射到amount
 	slashings := s.Slashings()
 	currentSlashing := slashings[currentEpoch%params.BeaconConfig().EpochsPerSlashingsVector]
+	// 更新对应索引的slashings
 	if err := s.UpdateSlashingsAtIndex(
 		uint64(currentEpoch%params.BeaconConfig().EpochsPerSlashingsVector),
 		currentSlashing+validator.EffectiveBalance,

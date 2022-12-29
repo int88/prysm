@@ -13,8 +13,9 @@ import (
 // BeaconChainConfig contains constant configs for node to participate in beacon chain.
 type BeaconChainConfig struct {
 	// Constants (non-configurable)
-	GenesisSlot              types.Slot  `yaml:"GENESIS_SLOT"`                // GenesisSlot represents the first canonical slot number of the beacon chain.
-	GenesisEpoch             types.Epoch `yaml:"GENESIS_EPOCH"`               // GenesisEpoch represents the first canonical epoch number of the beacon chain.
+	GenesisSlot  types.Slot  `yaml:"GENESIS_SLOT"`  // GenesisSlot represents the first canonical slot number of the beacon chain.
+	GenesisEpoch types.Epoch `yaml:"GENESIS_EPOCH"` // GenesisEpoch represents the first canonical epoch number of the beacon chain.
+	// FarFutureEpoch代表一个在未来很远的epoch，作为默认的penalization epoch，对于validators
 	FarFutureEpoch           types.Epoch `yaml:"FAR_FUTURE_EPOCH"`            // FarFutureEpoch represents a epoch extremely far away in the future used as the default penalization epoch for validators.
 	FarFutureSlot            types.Slot  `yaml:"FAR_FUTURE_SLOT"`             // FarFutureSlot represents a slot extremely far away in the future.
 	BaseRewardsPerEpoch      uint64      `yaml:"BASE_REWARDS_PER_EPOCH"`      // BaseRewardsPerEpoch is used to calculate the per epoch rewards.

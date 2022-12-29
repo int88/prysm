@@ -1059,8 +1059,11 @@ type Eth1Data struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+	// Deposit的Root值
 	DepositRoot  []byte `protobuf:"bytes,1,opt,name=deposit_root,json=depositRoot,proto3" json:"deposit_root,omitempty" ssz-size:"32"`
+	// Deposit的数目
 	DepositCount uint64 `protobuf:"varint,2,opt,name=deposit_count,json=depositCount,proto3" json:"deposit_count,omitempty"`
+	// Block的hash值
 	BlockHash    []byte `protobuf:"bytes,3,opt,name=block_hash,json=blockHash,proto3" json:"block_hash,omitempty" ssz-size:"32"`
 }
 
