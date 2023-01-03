@@ -39,6 +39,7 @@ func IsActiveValidator(validator *ethpb.Validator, epoch types.Epoch) bool {
 }
 
 // IsActiveValidatorUsingTrie checks if a read only validator is active.
+// IsActiveValidatorUsingTrie检查是否一个read only的validator是active的
 func IsActiveValidatorUsingTrie(validator state.ReadOnlyValidator, epoch types.Epoch) bool {
 	return checkValidatorActiveStatus(validator.ActivationEpoch(), validator.ExitEpoch(), epoch)
 }
@@ -151,6 +152,7 @@ func ActiveValidatorCount(ctx context.Context, s state.ReadOnlyBeaconState, epoc
 	}
 	activeCount, err := committeeCache.ActiveIndicesCount(ctx, seed)
 	if err != nil {
+		// 获取active count
 		return 0, errors.Wrap(err, "could not interface with committee cache")
 	}
 	if activeCount != 0 && s.Slot() != 0 {
@@ -184,15 +186,19 @@ func ActiveValidatorCount(ctx context.Context, s state.ReadOnlyBeaconState, epoc
 		return 0, err
 	}
 
+	// 更新committee cache
 	if err := UpdateCommitteeCache(ctx, s, epoch); err != nil {
 		return 0, errors.Wrap(err, "could not update committee cache")
 	}
 
+	// 返回count
 	return count, nil
 }
 
 // ActivationExitEpoch takes in epoch number and returns when
 // the validator is eligible for activation and exit.
+// ActivationExitEpoch输入一个epoch number并且返回什么时候validator是合格的
+// 能够activation以及exit
 //
 // Spec pseudocode definition:
 //
@@ -207,6 +213,7 @@ func ActivationExitEpoch(epoch types.Epoch) types.Epoch {
 
 // ValidatorChurnLimit returns the number of validators that are allowed to
 // enter and exit validator pool for an epoch.
+// ValidatorChurnLimit返回允许进入以及退出validator pool的数目，对于一个epoch
 //
 // Spec pseudocode definition:
 //

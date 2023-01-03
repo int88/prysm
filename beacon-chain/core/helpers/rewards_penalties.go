@@ -115,11 +115,12 @@ func IncreaseBalance(state state.BeaconState, idx types.ValidatorIndex, delta ui
 //
 // Spec pseudocode definition:
 //
-//	def increase_balance(state: BeaconState, index: ValidatorIndex, delta: Gwei) -> None:
-//	  """
-//	  Increase the validator balance at index ``index`` by ``delta``.
-//	  """
-//	  state.balances[index] += delta
+//		def increase_balance(state: BeaconState, index: ValidatorIndex, delta: Gwei) -> None:
+//		  """
+//		  Increase the validator balance at index ``index`` by ``delta``.
+//	   增加在索引`index`的validator balance的值，幅度为`delta`
+//		  """
+//		  state.balances[index] += delta
 func IncreaseBalanceWithVal(currBalance, delta uint64) (uint64, error) {
 	return mathutil.Add64(currBalance, delta)
 }

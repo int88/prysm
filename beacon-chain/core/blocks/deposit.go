@@ -97,6 +97,7 @@ func ProcessDeposits(
 		if d == nil || d.Data == nil {
 			return nil, errors.New("got a nil deposit in block")
 		}
+		// 第二个返回值用于判断是否生成了新的validator
 		beaconState, _, err = ProcessDeposit(beaconState, d, batchVerified)
 		if err != nil {
 			return nil, errors.Wrapf(err, "could not process deposit from %#x", bytesutil.Trunc(d.Data.PublicKey))
@@ -190,6 +191,7 @@ func ProcessDeposit(beaconState state.BeaconState, deposit *ethpb.Deposit, verif
 			}
 			if err := verifyDepositDataSigningRoot(deposit.Data, domain); err != nil {
 				// Ignore this error as in the spec pseudo code.
+				// 忽略deposit，因为不能校验deposit data signature
 				log.WithError(err).Debug("Skipping deposit: could not verify deposit data signature")
 				return beaconState, newValidator, nil
 			}
@@ -213,6 +215,7 @@ func ProcessDeposit(beaconState state.BeaconState, deposit *ethpb.Deposit, verif
 			return nil, newValidator, err
 		}
 		newValidator = true
+		// 扩展balance
 		if err := beaconState.AppendBalance(amount); err != nil {
 			return nil, newValidator, err
 		}
@@ -226,11 +229,13 @@ func ProcessDeposit(beaconState state.BeaconState, deposit *ethpb.Deposit, verif
 
 func verifyDeposit(beaconState state.ReadOnlyBeaconState, deposit *ethpb.Deposit) error {
 	// Verify Merkle proof of deposit and deposit trie root.
+	// 校验deposit的Merkle proof以及deposit trie root
 	if deposit == nil || deposit.Data == nil {
 		return errors.New("received nil deposit or nil deposit data")
 	}
 	eth1Data := beaconState.Eth1Data()
 	if eth1Data == nil {
+		// 从beacon state中获取eth1Data
 		return errors.New("received nil eth1data in the beacon state")
 	}
 
@@ -247,6 +252,7 @@ func verifyDeposit(beaconState state.ReadOnlyBeaconState, deposit *ethpb.Deposit
 		params.BeaconConfig().DepositContractTreeDepth,
 	); !ok {
 		return fmt.Errorf(
+			// deposit merkle branch of deposit root不能校验root
 			"deposit merkle branch of deposit root did not verify for root: %#x",
 			receiptRoot,
 		)

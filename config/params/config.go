@@ -66,8 +66,9 @@ type BeaconChainConfig struct {
 	// SlotsPerHistoricalRoot定义了historical root保存的频率
 	SlotsPerHistoricalRoot           types.Slot  `yaml:"SLOTS_PER_HISTORICAL_ROOT" spec:"true"`           // SlotsPerHistoricalRoot defines how often the historical root is saved.
 	MinValidatorWithdrawabilityDelay types.Epoch `yaml:"MIN_VALIDATOR_WITHDRAWABILITY_DELAY" spec:"true"` // MinValidatorWithdrawabilityDelay is the shortest amount of time a validator has to wait to withdraw.
-	ShardCommitteePeriod             types.Epoch `yaml:"SHARD_COMMITTEE_PERIOD" spec:"true"`              // ShardCommitteePeriod is the minimum amount of epochs a validator must participate before exiting.
-	MinEpochsToInactivityPenalty     types.Epoch `yaml:"MIN_EPOCHS_TO_INACTIVITY_PENALTY" spec:"true"`    // MinEpochsToInactivityPenalty defines the minimum amount of epochs since finality to begin penalizing inactivity.
+	// ShardCommitteePeriod是一个validator必须参与的最少的epoch，在退出之前
+	ShardCommitteePeriod         types.Epoch `yaml:"SHARD_COMMITTEE_PERIOD" spec:"true"`           // ShardCommitteePeriod is the minimum amount of epochs a validator must participate before exiting.
+	MinEpochsToInactivityPenalty types.Epoch `yaml:"MIN_EPOCHS_TO_INACTIVITY_PENALTY" spec:"true"` // MinEpochsToInactivityPenalty defines the minimum amount of epochs since finality to begin penalizing inactivity.
 	// Eth1FollowDistance是需要等待的eth1.0 blocks的数目，在考虑新的deposit用于voting之前，它只在chain启动之后应用
 	Eth1FollowDistance uint64 `yaml:"ETH1_FOLLOW_DISTANCE" spec:"true"` // Eth1FollowDistance is the number of eth1.0 blocks to wait before considering a new deposit for voting. This only applies after the chain as been started.
 	// SafeSlotsToUpdateJustified是更新justified checkpoint所需的最小的slots

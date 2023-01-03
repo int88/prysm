@@ -91,6 +91,7 @@ func VerifyAttestationNoVerifySignature(
 	epochInclusionCheck := beaconState.Slot() <= s+params.BeaconConfig().SlotsPerEpoch
 	if !minInclusionCheck {
 		return fmt.Errorf(
+			// 如果attestation slot + inclusion delay大于state slot，则报错
 			"attestation slot %d + inclusion delay %d > state slot %d",
 			s,
 			params.BeaconConfig().MinAttestationInclusionDelay,

@@ -257,7 +257,10 @@ func VerifyBitfieldLength(bf bitfield.Bitfield, committeeSize uint64) error {
 
 // VerifyAttestationBitfieldLengths verifies that an attestations aggregation bitfields is
 // a valid length matching the size of the committee.
+// VerifyAttestationBitfieldLengths校验一个attestation aggregation bitfields是一个合法的长度
+// 匹配committee的大小
 func VerifyAttestationBitfieldLengths(ctx context.Context, state state.ReadOnlyBeaconState, att *ethpb.Attestation) error {
+	// 获取committee
 	committee, err := BeaconCommitteeFromState(ctx, state, att.Data.Slot, att.Data.CommitteeIndex)
 	if err != nil {
 		return errors.Wrap(err, "could not retrieve beacon committees")
@@ -267,6 +270,7 @@ func VerifyAttestationBitfieldLengths(ctx context.Context, state state.ReadOnlyB
 		return errors.New("no committee exist for this attestation")
 	}
 
+	// 校验aggregation bitfield的长度
 	if err := VerifyBitfieldLength(att.AggregationBits, uint64(len(committee))); err != nil {
 		return errors.Wrap(err, "failed to verify aggregation bitfield")
 	}

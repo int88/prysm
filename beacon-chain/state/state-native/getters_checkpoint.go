@@ -70,11 +70,14 @@ func (b *BeaconState) currentJustifiedCheckpointVal() *ethpb.Checkpoint {
 
 // MatchCurrentJustifiedCheckpoint returns true if input justified checkpoint matches
 // the current justified checkpoint in state.
+// MatchCurrentJustifiedCheckpoint返回true，如果输入的justified checkpoint匹配当前在state中的
+// justified checkpoint
 func (b *BeaconState) MatchCurrentJustifiedCheckpoint(c *ethpb.Checkpoint) bool {
 	if b.currentJustifiedCheckpoint == nil {
 		return false
 	}
 
+	// 确保epoch相等，root也相等
 	if c.Epoch != b.currentJustifiedCheckpoint.Epoch {
 		return false
 	}

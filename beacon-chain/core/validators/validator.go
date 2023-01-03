@@ -84,6 +84,7 @@ func InitiateValidatorExit(ctx context.Context, s state.BeaconState, idx types.V
 	err = s.ReadFromEveryValidator(func(idx int, val state.ReadOnlyValidator) error {
 		if val.ExitEpoch() == exitQueueEpoch {
 			var mErr error
+			// 统计在exitQueueEpoch退出的validator的数目
 			exitQueueChurn, mErr = mathutil.Add64(exitQueueChurn, 1)
 			if mErr != nil {
 				return mErr
@@ -100,6 +101,7 @@ func InitiateValidatorExit(ctx context.Context, s state.BeaconState, idx types.V
 	}
 	churn, err := helpers.ValidatorChurnLimit(activeValidatorCount)
 	if err != nil {
+		// 不能获取churn limit
 		return nil, errors.Wrap(err, "could not get churn limit")
 	}
 

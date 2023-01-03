@@ -141,6 +141,7 @@ func (c *CommitteeCache) ActiveIndices(ctx context.Context, seed [32]byte) ([]ty
 }
 
 // ActiveIndicesCount returns the active indices count of a given seed stored in cache.
+// ActiveIndicesCount返回一个给定seed的active indices，在cache中
 func (c *CommitteeCache) ActiveIndicesCount(ctx context.Context, seed [32]byte) (int, error) {
 	if err := c.checkInProgress(ctx, seed); err != nil {
 		return 0, err
@@ -154,6 +155,7 @@ func (c *CommitteeCache) ActiveIndicesCount(ctx context.Context, seed [32]byte) 
 		return 0, nil
 	}
 
+	// 转换成committees对象
 	item, ok := obj.(*Committees)
 	if !ok {
 		return 0, ErrNotCommittee

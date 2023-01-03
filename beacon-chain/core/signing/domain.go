@@ -8,6 +8,7 @@ import (
 )
 
 // Domain returns the domain version for BLS private key to sign and verify.
+// Domain返回BLS private key的domain version用于签名和校验
 //
 // Spec pseudocode definition:
 //

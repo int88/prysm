@@ -455,7 +455,7 @@ func phase0Operations(
 	if err != nil {
 		return nil, errors.Wrap(err, "could not process block attestations")
 	}
-	// 处理block deposits
+	// 处理block deposits，包含在body的deposits中
 	if _, err := b.ProcessDeposits(ctx, st, signedBeaconBlock.Block().Body().Deposits()); err != nil {
 		return nil, errors.Wrap(err, "could not process deposits")
 	}

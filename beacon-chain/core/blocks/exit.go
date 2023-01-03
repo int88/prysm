@@ -60,6 +60,7 @@ func ProcessVoluntaryExits(
 		if exit == nil || exit.Exit == nil {
 			return nil, errors.New("nil voluntary exit in block body")
 		}
+		// 读取validator
 		val, err := beaconState.ValidatorAtIndexReadOnly(exit.Exit.ValidatorIndex)
 		if err != nil {
 			return nil, err
@@ -79,23 +80,29 @@ func ProcessVoluntaryExits(
 //
 // Spec pseudocode definition:
 //
-//	def process_voluntary_exit(state: BeaconState, signed_voluntary_exit: SignedVoluntaryExit) -> None:
-//	 voluntary_exit = signed_voluntary_exit.message
-//	 validator = state.validators[voluntary_exit.validator_index]
-//	 # Verify the validator is active
-//	 assert is_active_validator(validator, get_current_epoch(state))
-//	 # Verify exit has not been initiated
-//	 assert validator.exit_epoch == FAR_FUTURE_EPOCH
-//	 # Exits must specify an epoch when they become valid; they are not valid before then
-//	 assert get_current_epoch(state) >= voluntary_exit.epoch
-//	 # Verify the validator has been active long enough
-//	 assert get_current_epoch(state) >= validator.activation_epoch + SHARD_COMMITTEE_PERIOD
-//	 # Verify signature
-//	 domain = get_domain(state, DOMAIN_VOLUNTARY_EXIT, voluntary_exit.epoch)
-//	 signing_root = compute_signing_root(voluntary_exit, domain)
-//	 assert bls.Verify(validator.pubkey, signing_root, signed_voluntary_exit.signature)
-//	 # Initiate exit
-//	 initiate_validator_exit(state, voluntary_exit.validator_index)
+//							def process_voluntary_exit(state: BeaconState, signed_voluntary_exit: SignedVoluntaryExit) -> None:
+//							 voluntary_exit = signed_voluntary_exit.message
+//							 validator = state.validators[voluntary_exit.validator_index]
+//							 # Verify the validator is active
+//						  # 校验validatro处于active
+//							 assert is_active_validator(validator, get_current_epoch(state))
+//							 # Verify exit has not been initiated
+//					      # 校验exit还没有被初始化
+//							 assert validator.exit_epoch == FAR_FUTURE_EPOCH
+//							 # Exits must specify an epoch when they become valid; they are not valid before then
+//				          # Exits必须指定一个epoch，当它们变为合法时，它们在之前都是不合法的
+//							 assert get_current_epoch(state) >= voluntary_exit.epoch
+//							 # Verify the validator has been active long enough
+//			              # 校验validator已经active了足够长时间
+//							 assert get_current_epoch(state) >= validator.activation_epoch + SHARD_COMMITTEE_PERIOD
+//							 # Verify signature
+//		                  # 校验signature
+//							 domain = get_domain(state, DOMAIN_VOLUNTARY_EXIT, voluntary_exit.epoch)
+//							 signing_root = compute_signing_root(voluntary_exit, domain)
+//							 assert bls.Verify(validator.pubkey, signing_root, signed_voluntary_exit.signature)
+//							 # Initiate exit
+//	                      # 初始化exit
+//							 initiate_validator_exit(state, voluntary_exit.validator_index)
 func VerifyExitAndSignature(
 	validator state.ReadOnlyValidator,
 	currentSlot types.Slot,
@@ -146,18 +153,22 @@ func VerifyExitAndSignature(
 func verifyExitConditions(validator state.ReadOnlyValidator, currentSlot types.Slot, exit *ethpb.VoluntaryExit) error {
 	currentEpoch := slots.ToEpoch(currentSlot)
 	// Verify the validator is active.
+	// 校验validator处于active
 	if !helpers.IsActiveValidatorUsingTrie(validator, currentEpoch) {
 		return errors.New("non-active validator cannot exit")
 	}
 	// Verify the validator has not yet submitted an exit.
+	// 校验validator还没有提交一个exit
 	if validator.ExitEpoch() != params.BeaconConfig().FarFutureEpoch {
 		return fmt.Errorf("validator with index %d %s: %v", exit.ValidatorIndex, ValidatorAlreadyExitedMsg, validator.ExitEpoch())
 	}
 	// Exits must specify an epoch when they become valid; they are not valid before then.
 	if currentEpoch < exit.Epoch {
+		// 期望当前的epoch大于exit.Epoch
 		return fmt.Errorf("expected current epoch >= exit epoch, received %d < %d", currentEpoch, exit.Epoch)
 	}
 	// Verify the validator has been active long enough.
+	// 校验validator已经active了足够长的时间
 	if currentEpoch < validator.ActivationEpoch()+params.BeaconConfig().ShardCommitteePeriod {
 		return fmt.Errorf(
 			"%s: %d of %d epochs. Validator will be eligible for exit at epoch %d",

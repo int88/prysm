@@ -33,6 +33,7 @@ func (b *BeaconState) SetEth1DataVotes(val []*ethpb.Eth1Data) error {
 }
 
 // SetEth1DepositIndex for the beacon state.
+// SetEth1DepositIndex为了beacon state设置eth1 deposit index
 func (b *BeaconState) SetEth1DepositIndex(val uint64) error {
 	b.lock.Lock()
 	defer b.lock.Unlock()
