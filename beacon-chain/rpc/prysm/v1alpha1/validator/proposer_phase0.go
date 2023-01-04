@@ -19,6 +19,7 @@ import (
 )
 
 // blockData required to create a beacon block.
+// 创建一个beacon block需要的blockData
 type blockData struct {
 	ParentRoot        []byte
 	Graffiti          [32]byte

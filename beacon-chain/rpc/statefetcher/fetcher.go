@@ -71,6 +71,7 @@ func (e *StateRootNotFoundError) Error() string {
 }
 
 // Fetcher is responsible for retrieving info related with the beacon chain.
+// Fetcher负责获取和beacon chain相关的信息
 type Fetcher interface {
 	State(ctx context.Context, stateId []byte) (state.BeaconState, error)
 	StateRoot(ctx context.Context, stateId []byte) ([]byte, error)
@@ -78,6 +79,7 @@ type Fetcher interface {
 }
 
 // StateProvider is a real implementation of Fetcher.
+// StateProvider是Fetcher真正的实现
 type StateProvider struct {
 	BeaconDB           db.ReadOnlyDatabase
 	ChainInfoFetcher   blockchain.ChainInfoFetcher
@@ -87,6 +89,7 @@ type StateProvider struct {
 }
 
 // State returns the BeaconState for a given identifier. The identifier can be one of:
+// State返回给定的identifier的BeaconState，identifier可以是如下之一：
 //   - "head" (canonical head in node's view)
 //   - "genesis"
 //   - "finalized"
@@ -194,8 +197,12 @@ func (p *StateProvider) stateByRoot(ctx context.Context, stateRoot []byte) (stat
 // StateBySlot returns the post-state for the requested slot. To generate the state, it uses the
 // most recent canonical state prior to the target slot, and all canonical blocks
 // between the found state's slot and the target slot.
+// StateBySlot返回请求的slot的post-state，为了产生state，它使用最近的canonical state，在target slot之前
+// 并且所有的canonical blocks，在found state的slot以及target slot之间
 // process_blocks is applied for all canonical blocks, and process_slots is called for any skipped
 // slots, or slots following the most recent canonical block up to and including the target slot.
+// process_blocks应用到所有的canonical blocks，并且process_slots被调用到任何skipped slots，或者slots
+// 跟随最近的canonical block以及包括target slot
 func (p *StateProvider) StateBySlot(ctx context.Context, target types.Slot) (state.BeaconState, error) {
 	ctx, span := trace.StartSpan(ctx, "statefetcher.StateBySlot")
 	defer span.End()

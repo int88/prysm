@@ -29,12 +29,14 @@ var (
 )
 
 // ProposerIndicesCache is a struct with 1 queue for looking up proposer indices by root.
+// ProposerIndicesCache是一个结构，有着一个队列用于通过root查找proposer indices
 type ProposerIndicesCache struct {
 	proposerIndicesCache *cache.FIFO
 	lock                 sync.RWMutex
 }
 
 // proposerIndicesKeyFn takes the block root as the key to retrieve proposer indices in a given epoch.
+// proposerIndicesKeyFn输入block root，作为一个key用于获取proposer indices，在一个给定的epoch
 func proposerIndicesKeyFn(obj interface{}) (string, error) {
 	info, ok := obj.(*ProposerIndices)
 	if !ok {

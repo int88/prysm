@@ -65,6 +65,7 @@ func (vs *Server) GetBeaconBlock(ctx context.Context, req *ethpb.BlockRequest) (
 
 // ProposeBeaconBlock is called by a proposer during its assigned slot to create a block in an attempt
 // to get it processed by the beacon node as the canonical head.
+// ProposeBeaconBlock由proposer调用，在它的assigned slot，来创建一个block，试着让它被beacon node处理，作为canonical head
 func (vs *Server) ProposeBeaconBlock(ctx context.Context, req *ethpb.GenericSignedBeaconBlock) (*ethpb.ProposeResponse, error) {
 	ctx, span := trace.StartSpan(ctx, "ProposerServer.ProposeBeaconBlock")
 	defer span.End()
@@ -158,6 +159,7 @@ func (vs *Server) GetFeeRecipientByPubKey(ctx context.Context, request *ethpb.Fe
 func (vs *Server) proposeGenericBeaconBlock(ctx context.Context, blk interfaces.SignedBeaconBlock) (*ethpb.ProposeResponse, error) {
 	ctx, span := trace.StartSpan(ctx, "ProposerServer.proposeGenericBeaconBlock")
 	defer span.End()
+	// 获取block的tree hash
 	root, err := blk.Block().HashTreeRoot()
 	if err != nil {
 		return nil, fmt.Errorf("could not tree hash block: %v", err)
@@ -173,16 +175,19 @@ func (vs *Server) proposeGenericBeaconBlock(ctx context.Context, blk interfaces.
 		log.WithField("blockRoot", fmt.Sprintf("%#x", bytesutil.Trunc(root[:]))).Debugf(
 			"Block proposal received via RPC")
 		vs.BlockNotifier.BlockFeed().Send(&feed.Event{
+			// 发送一个ReceivedBlock事件
 			Type: blockfeed.ReceivedBlock,
 			Data: &blockfeed.ReceivedBlockData{SignedBlock: blk},
 		})
 	}()
 
 	// Broadcast the new block to the network.
+	// 广播新的block到network
 	blkPb, err := blk.Proto()
 	if err != nil {
 		return nil, errors.Wrap(err, "could not get protobuf block")
 	}
+	// 通过P2P发送
 	if err := vs.P2P.Broadcast(ctx, blkPb); err != nil {
 		return nil, fmt.Errorf("could not broadcast block: %v", err)
 	}
@@ -190,6 +195,7 @@ func (vs *Server) proposeGenericBeaconBlock(ctx context.Context, blk interfaces.
 		"blockRoot": hex.EncodeToString(root[:]),
 	}).Debug("Broadcasting block")
 
+	// 给BlockReceiver传递block
 	if err := vs.BlockReceiver.ReceiveBlock(ctx, blk, root); err != nil {
 		return nil, fmt.Errorf("could not process beacon block: %v", err)
 	}

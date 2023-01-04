@@ -45,6 +45,7 @@ func (s *Service) getAttPreState(ctx context.Context, c *ethpb.Checkpoint) (stat
 	if err != nil {
 		return nil, err
 	}
+	// 处理slots，如果可能的话
 	baseState, err = transition.ProcessSlotsIfPossible(ctx, baseState, epochStartSlot)
 	if err != nil {
 		return nil, errors.Wrapf(err, "could not process slots up to epoch %d", c.Epoch)
@@ -54,6 +55,8 @@ func (s *Service) getAttPreState(ctx context.Context, c *ethpb.Checkpoint) (stat
 	// of attestation prestate is by far the most accessed state fetching pattern in
 	// the beacon node. An extra state instance cached isn't an issue in the bigger
 	// picture.
+	// 通过caches共享同一个state，这里很好，对于attestation prestate的获取现在为止是最容易的
+	// state获取模式，在beacon node，一个额外的state instance缓存在更大的picture下不是问题
 	if err := s.checkpointStateCache.AddCheckpointState(c, baseState); err != nil {
 		// 不能保存checkpoint state到缓存中
 		return nil, errors.Wrap(err, "could not save checkpoint state to cache")

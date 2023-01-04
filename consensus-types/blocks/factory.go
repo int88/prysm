@@ -27,6 +27,7 @@ var (
 )
 
 // NewSignedBeaconBlock creates a signed beacon block from a protobuf signed beacon block.
+// NewSignedBeaconBlock创建一个signed beacon block，来自一个protobuf signed beacon block
 func NewSignedBeaconBlock(i interface{}) (interfaces.SignedBeaconBlock, error) {
 	switch b := i.(type) {
 	case nil:

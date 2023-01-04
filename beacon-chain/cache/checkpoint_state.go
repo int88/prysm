@@ -46,6 +46,8 @@ func NewCheckpointStateCache() *CheckpointStateCache {
 
 // StateByCheckpoint fetches state by checkpoint. Returns true with a
 // reference to the CheckpointState info, if exists. Otherwise returns false, nil.
+// StateByCheckpoint通过checkpoint获取state，返回true，以及到CheckpointState info的引用
+// 如果存在的话，否则返回false，nil
 func (c *CheckpointStateCache) StateByCheckpoint(cp *ethpb.Checkpoint) (state.BeaconState, error) {
 	c.lock.RLock()
 	defer c.lock.RUnlock()

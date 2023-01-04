@@ -79,6 +79,7 @@ func (s *Service) OnAttestation(ctx context.Context, a *ethpb.Attestation) error
 	// Verify attestation beacon block is known and not from the future.
 	// 校验attestation beacon block是已知的并且不是来自未来
 	if err := s.verifyBeaconBlock(ctx, a.Data); err != nil {
+		// 不能校验attestation beacon block
 		return errors.Wrap(err, "could not verify attestation beacon block")
 	}
 

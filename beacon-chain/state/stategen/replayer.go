@@ -165,11 +165,15 @@ func (rs *stateReplayer) ReplayToSlot(ctx context.Context, replayTo types.Slot) 
 
 // ReplayerBuilder creates a Replayer that can be used to obtain a state at a specified slot or root
 // (only ForSlot implemented so far).
+// ReplayerBuilder创建一个Replayer，可以用于获取在一个指定的slot或者root的state
 // See documentation on Replayer for more on how to use this to obtain pre/post-block states
 type ReplayerBuilder interface {
 	// ReplayerForSlot creates a builder that will create a state that includes blocks up to and including the requested slot
 	// The resulting Replayer will always yield a state with .Slot=target; if there are skipped blocks
 	// between the highest canonical block in the db and the target, the replayer will fast-forward past the intervening
 	// slots via process_slots.
+	// ReplayerForSlot创建一个builder，会创建一个state，包含blocks直到以及包含请求的slot
+	// resulting Replayer总会产生一个state，其中。Slot为target，如果在最高的canonical block以及target之间有skipped blocks
+	// replayer会fast-forward，通过中间的slots，通过process_slots.
 	ReplayerForSlot(target types.Slot) Replayer
 }

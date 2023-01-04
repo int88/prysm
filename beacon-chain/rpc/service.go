@@ -1,5 +1,7 @@
 // Package rpc defines a gRPC server implementing the Ethereum consensus API as needed
 // by validator clients and consumers of chain data.
+// rpc包定义了一个gRPC server，实现了Ethereum consensus API，因为validator clients以及chain data
+// 的消费者需要
 package rpc
 
 import (
@@ -57,6 +59,7 @@ import (
 const attestationBufferSize = 100
 
 // Service defining an RPC server for a beacon node.
+// Service定义了对于一个beacon node的RPC server
 type Service struct {
 	cfg                  *Config
 	ctx                  context.Context
@@ -119,6 +122,7 @@ type Config struct {
 
 // NewService instantiates a new RPC service instance that will
 // be registered into a running beacon node.
+// NewService初始化一个新的RPC service实例，会注册到一个正在运行的beacon node
 func NewService(ctx context.Context, cfg *Config) *Service {
 	ctx, cancel := context.WithCancel(ctx)
 	s := &Service{
@@ -174,6 +178,7 @@ func NewService(ctx context.Context, cfg *Config) *Service {
 }
 
 // paranoid build time check to ensure ChainInfoFetcher implements required interfaces
+// build time check来确保ChainInfoFetcher实现了所需的接口
 var _ stategen.CanonicalChecker = blockchain.ChainInfoFetcher(nil)
 var _ stategen.CurrentSlotter = blockchain.ChainInfoFetcher(nil)
 
@@ -331,6 +336,7 @@ func (s *Service) Start() {
 		OperationNotifier: s.cfg.OperationNotifier,
 	})
 	if s.cfg.EnableDebugRPCEndpoints {
+		// 使能debug rpc endpoints
 		log.Info("Enabled debug gRPC endpoints")
 		debugServer := &debugv1alpha1.Server{
 			GenesisTimeFetcher: s.cfg.GenesisTimeFetcher,
@@ -364,6 +370,7 @@ func (s *Service) Start() {
 
 	go func() {
 		if s.listener != nil {
+			// 启动grpc server
 			if err := s.grpcServer.Serve(s.listener); err != nil {
 				log.WithError(err).Errorf("Could not serve gRPC")
 			}
@@ -375,6 +382,7 @@ func (s *Service) Start() {
 func (s *Service) Stop() error {
 	s.cancel()
 	if s.listener != nil {
+		// 优雅终止grpc server
 		s.grpcServer.GracefulStop()
 		log.Debug("Initiated graceful stop of gRPC server")
 	}
@@ -401,6 +409,7 @@ func (s *Service) Status() error {
 }
 
 // Stream interceptor for new validator client connections to the beacon node.
+// Stream interceptor，对于新的连接到beacon node的validator client连接
 func (s *Service) validatorStreamConnectionInterceptor(
 	srv interface{},
 	ss grpc.ServerStream,

@@ -161,10 +161,12 @@ func IsValidAttestationIndices(ctx context.Context, indexedAttestation *ethpb.In
 	defer span.End()
 
 	if indexedAttestation == nil || indexedAttestation.Data == nil || indexedAttestation.Data.Target == nil || indexedAttestation.AttestingIndices == nil {
+		// nil或者缺失indexed attestation data
 		return errors.New("nil or missing indexed attestation data")
 	}
 	indices := indexedAttestation.AttestingIndices
 	if len(indices) == 0 {
+		// 期望非空的attesting indices
 		return errors.New("expected non-empty attesting indices")
 	}
 	if uint64(len(indices)) > params.BeaconConfig().MaxValidatorsPerCommittee {
