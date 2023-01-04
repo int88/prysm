@@ -27,17 +27,18 @@ import (
 //
 // Spec pseudocode definition:
 //
-//	def get_indexed_attestation(state: BeaconState, attestation: Attestation) -> IndexedAttestation:
-//	 """
-//	 Return the indexed attestation corresponding to ``attestation``.
-//	 """
-//	 attesting_indices = get_attesting_indices(state, attestation.data, attestation.aggregation_bits)
+//		def get_indexed_attestation(state: BeaconState, attestation: Attestation) -> IndexedAttestation:
+//		 """
+//		 Return the indexed attestation corresponding to ``attestation``.
+//	  返回对应于``attestation``的indexed attestation
+//		 """
+//		 attesting_indices = get_attesting_indices(state, attestation.data, attestation.aggregation_bits)
 //
-//	 return IndexedAttestation(
-//	     attesting_indices=sorted(attesting_indices),
-//	     data=attestation.data,
-//	     signature=attestation.signature,
-//	 )
+//		 return IndexedAttestation(
+//		     attesting_indices=sorted(attesting_indices),
+//		     data=attestation.data,
+//		     signature=attestation.signature,
+//		 )
 func ConvertToIndexed(ctx context.Context, attestation *ethpb.Attestation, committee []types.ValidatorIndex) (*ethpb.IndexedAttestation, error) {
 	ctx, span := trace.StartSpan(ctx, "attestationutil.ConvertToIndexed")
 	defer span.End()
@@ -67,14 +68,15 @@ func ConvertToIndexed(ctx context.Context, attestation *ethpb.Attestation, commi
 //
 // Spec pseudocode definition:
 //
-//	def get_attesting_indices(state: BeaconState,
-//	                       data: AttestationData,
-//	                       bits: Bitlist[MAX_VALIDATORS_PER_COMMITTEE]) -> Set[ValidatorIndex]:
-//	 """
-//	 Return the set of attesting indices corresponding to ``data`` and ``bits``.
-//	 """
-//	 committee = get_beacon_committee(state, data.slot, data.index)
-//	 return set(index for i, index in enumerate(committee) if bits[i])
+//		def get_attesting_indices(state: BeaconState,
+//		                       data: AttestationData,
+//		                       bits: Bitlist[MAX_VALIDATORS_PER_COMMITTEE]) -> Set[ValidatorIndex]:
+//		 """
+//		 Return the set of attesting indices corresponding to ``data`` and ``bits``.
+//	  返回和``data``以及``bits`对应的一系列attesting indices
+//		 """
+//		 committee = get_beacon_committee(state, data.slot, data.index)
+//		 return set(index for i, index in enumerate(committee) if bits[i])
 func AttestingIndices(bf bitfield.Bitfield, committee []types.ValidatorIndex) ([]uint64, error) {
 	if bf.Len() != uint64(len(committee)) {
 		// bitfield的长度和committee length必须相等

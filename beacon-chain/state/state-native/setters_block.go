@@ -54,6 +54,7 @@ func (b *BeaconState) UpdateBlockRootAtIndex(idx uint64, blockRoot [32]byte) err
 	r := b.blockRoots
 	if ref := b.sharedFieldReferences[nativetypes.BlockRoots]; ref.Refs() > 1 {
 		// Copy elements in underlying array by reference.
+		// 拷贝elements，在底层的array，通过引用
 		roots := *b.blockRoots
 		rootsCopy := roots
 		r = &rootsCopy

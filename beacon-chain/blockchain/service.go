@@ -109,6 +109,7 @@ func NewService(ctx context.Context, opts ...Option) (*Service, error) {
 	}
 	var err error
 	if srv.justifiedBalances == nil {
+		// 构建一个新的justified balances
 		srv.justifiedBalances, err = newStateBalanceCache(srv.cfg.StateGen)
 		if err != nil {
 			return nil, err

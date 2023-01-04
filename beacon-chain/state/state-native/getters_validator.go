@@ -157,6 +157,7 @@ func (b *BeaconState) NumValidators() int {
 }
 
 // ReadFromEveryValidator reads values from every validator and applies it to the provided function.
+// ReadFromEveryValidator从每个validators读取values并且应用到提供的函数上
 //
 // WARNING: This method is potentially unsafe, as it exposes the actual validator registry.
 func (b *BeaconState) ReadFromEveryValidator(f func(idx int, val state.ReadOnlyValidator) error) error {

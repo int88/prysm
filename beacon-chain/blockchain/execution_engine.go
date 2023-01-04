@@ -216,6 +216,7 @@ func (s *Service) notifyNewPayload(ctx context.Context, postStateVersion int,
 	}
 	payload, err := body.Execution()
 	if err != nil {
+		// 获取execution payload
 		return false, errors.Wrap(invalidBlock{error: err}, "could not get execution payload")
 	}
 	lastValidHash, err := s.cfg.ExecutionEngineCaller.NewPayload(ctx, payload)

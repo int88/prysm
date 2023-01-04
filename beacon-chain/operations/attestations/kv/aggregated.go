@@ -92,6 +92,7 @@ func (c *AttCaches) aggregateUnaggregatedAttestations(ctx context.Context, unagg
 }
 
 // SaveAggregatedAttestation saves an aggregated attestation in cache.
+// SaveAggregatedAttestation保存一个aggregated attestation到缓存中
 func (c *AttCaches) SaveAggregatedAttestation(att *ethpb.Attestation) error {
 	if err := helpers.ValidateNilAttestation(att); err != nil {
 		return err

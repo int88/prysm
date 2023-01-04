@@ -196,24 +196,29 @@ func (s *Service) onBlock(ctx context.Context, signed interfaces.SignedBeaconBlo
 			// and we want to avoid affecting the critical code path.
 			ctx := context.TODO()
 			for _, att := range signed.Block().Body().Attestations() {
+				// 获取committee
 				committee, err := helpers.BeaconCommitteeFromState(ctx, preState, att.Data.Slot, att.Data.CommitteeIndex)
 				if err != nil {
 					log.WithError(err).Error("Could not get attestation committee")
 					tracing.AnnotateError(span, err)
 					return
 				}
+				// 转换为indexed attestation
 				indexedAtt, err := attestation.ConvertToIndexed(ctx, att, committee)
 				if err != nil {
+					// 不能转换为indexed attestation
 					log.WithError(err).Error("Could not convert to indexed attestation")
 					tracing.AnnotateError(span, err)
 					return
 				}
+				// 发送给slasher attestations feed
 				s.cfg.SlasherAttestationsFeed.Send(indexedAtt)
 			}
 		}()
 	}
 
 	justified := s.ForkChoicer().JustifiedCheckpoint()
+	// 获取justified balances
 	balances, err := s.justifiedBalances.get(ctx, justified.Root)
 	if err != nil {
 		// 读取balance
@@ -537,6 +542,7 @@ func (s *Service) handleEpochBoundary(ctx context.Context, postState state.Beaco
 	defer span.End()
 
 	if postState.Slot()+1 == s.nextEpochBoundarySlot {
+		// 如果下一个slot就是下一个epoch了
 		copied := postState.Copy()
 		// 对slot进行处理
 		copied, err := transition.ProcessSlots(ctx, copied, copied.Slot()+1)
@@ -548,6 +554,7 @@ func (s *Service) handleEpochBoundary(ctx context.Context, postState state.Beaco
 		if err := helpers.UpdateCommitteeCache(ctx, copied, coreTime.CurrentEpoch(copied)); err != nil {
 			return err
 		}
+		// 更新proposer indices
 		if err := helpers.UpdateProposerIndicesInCache(ctx, copied); err != nil {
 			return err
 		}

@@ -279,6 +279,8 @@ func VerifyAttestationBitfieldLengths(ctx context.Context, state state.ReadOnlyB
 
 // ShuffledIndices uses input beacon state and returns the shuffled indices of the input epoch,
 // the shuffled indices then can be used to break up into committees.
+// ShuffledIndices使用输入的beacon state以及返回输入的epoch的shuffled indices，shuffled indices之后可以
+// 被分割为committees
 func ShuffledIndices(s state.ReadOnlyBeaconState, epoch types.Epoch) ([]types.ValidatorIndex, error) {
 	seed, err := Seed(s, epoch, params.BeaconConfig().DomainBeaconAttester)
 	if err != nil {
@@ -288,6 +290,7 @@ func ShuffledIndices(s state.ReadOnlyBeaconState, epoch types.Epoch) ([]types.Va
 	indices := make([]types.ValidatorIndex, 0, s.NumValidators())
 	if err := s.ReadFromEveryValidator(func(idx int, val state.ReadOnlyValidator) error {
 		if IsActiveValidatorUsingTrie(val, epoch) {
+			// 获取所有validators的索引
 			indices = append(indices, types.ValidatorIndex(idx))
 		}
 		return nil
@@ -296,6 +299,7 @@ func ShuffledIndices(s state.ReadOnlyBeaconState, epoch types.Epoch) ([]types.Va
 	}
 
 	// UnshuffleList is used as an optimized implementation for raw speed.
+	// UnshuffleList作为一个优化的实现使用
 	return UnshuffleList(indices, seed)
 }
 
@@ -314,6 +318,7 @@ func UpdateCommitteeCache(ctx context.Context, state state.ReadOnlyBeaconState, 
 			return nil
 		}
 
+		// 对索引进行shuffled
 		shuffledIndices, err := ShuffledIndices(state, e)
 		if err != nil {
 			return err

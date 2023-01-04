@@ -36,10 +36,13 @@ func newStateBalanceCache(sg *stategen.State) (*stateBalanceCache, error) {
 // update is called by get() when the requested root doesn't match
 // the previously read value. This cache assumes we only want to cache one
 // set of balances for a single root (the current justified root).
+// update由get()调用，当请求的root不匹配之前的read value，这假设我们只想要缓存一个set of balances
+// 对于单个root（当前的justified root）
 //
 // WARNING: this is not thread-safe on its own, relies on get() for locking
 func (c *stateBalanceCache) update(ctx context.Context, justifiedRoot [32]byte) ([]uint64, error) {
 	stateBalanceCacheMiss.Inc()
+	// 获取justified state
 	justifiedState, err := c.stateGen.StateByRoot(ctx, justifiedRoot)
 	if err != nil {
 		return nil, err
@@ -52,12 +55,15 @@ func (c *stateBalanceCache) update(ctx context.Context, justifiedRoot [32]byte) 
 	justifiedBalances := make([]uint64, justifiedState.NumValidators())
 	var balanceAccumulator = func(idx int, val state.ReadOnlyValidator) error {
 		if helpers.IsActiveValidatorUsingTrie(val, epoch) {
+			// 对于active validator获取justified balance
 			justifiedBalances[idx] = val.EffectiveBalance()
 		} else {
+			// 如果validator不是active，则设置为0
 			justifiedBalances[idx] = 0
 		}
 		return nil
 	}
+	// 从每个validator中读取
 	if err := justifiedState.ReadFromEveryValidator(balanceAccumulator); err != nil {
 		return nil, err
 	}
@@ -70,12 +76,15 @@ func (c *stateBalanceCache) update(ctx context.Context, justifiedRoot [32]byte) 
 // getBalances takes an explicit justifiedRoot so it can invalidate the singleton cache key
 // when the justified root changes, and takes a context so that the long-running stategen
 // read path can connect to the upstream cancellation/timeout chain.
+// getBalances获取一个显式的justifiedRoot，这样它可以让单个的cache key无效，当justified root改变时
+// 并且输入一个context，这样长时间运行的stategen read path可以连接到upstream cancellation/timeout chain
 func (c *stateBalanceCache) get(ctx context.Context, justifiedRoot [32]byte) ([]uint64, error) {
 	c.Lock()
 	defer c.Unlock()
 
 	if justifiedRoot != [32]byte{} && justifiedRoot == c.root {
 		stateBalanceCacheHit.Inc()
+		// 返回balances
 		return c.balances, nil
 	}
 

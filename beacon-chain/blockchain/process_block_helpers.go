@@ -288,9 +288,11 @@ func (s *Service) fillInForkChoiceMissingBlocks(ctx context.Context, blk interfa
 			return err
 		}
 		if b.Block().Slot() <= fSlot {
+			// 对于小于finalized slot的block，直接退出
 			break
 		}
 		root = b.Block().ParentRoot()
+		// 扩展block以及checkpoint
 		args := &forkchoicetypes.BlockAndCheckpoints{Block: b.Block(),
 			JustifiedCheckpoint: jCheckpoint,
 			FinalizedCheckpoint: fCheckpoint}

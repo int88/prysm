@@ -65,6 +65,7 @@ func (s *Service) saveHead(ctx context.Context, newHeadRoot [32]byte, headBlock 
 	defer span.End()
 
 	// Do nothing if head hasn't changed.
+	// 什么都不做，如果head没有改变
 	var oldHeadRoot [32]byte
 	s.headLock.RLock()
 	if s.head == nil {
@@ -107,11 +108,13 @@ func (s *Service) saveHead(ctx context.Context, newHeadRoot [32]byte, headBlock 
 	if headBlock.Block().ParentRoot() != oldHeadRoot {
 		commonRoot, forkSlot, err := s.ForkChoicer().CommonAncestor(ctx, oldHeadRoot, newHeadRoot)
 		if err != nil {
+			// 不能找到common ancestor root
 			log.WithError(err).Error("Could not find common ancestor root")
 			commonRoot = params.BeaconConfig().ZeroHash
 		}
 		dis := headSlot + newHeadSlot - 2*forkSlot
 		dep := math.Max(uint64(headSlot-forkSlot), uint64(newHeadSlot-forkSlot))
+		// 发生了chain reorg
 		log.WithFields(logrus.Fields{
 			"newSlot":            fmt.Sprintf("%d", newHeadSlot),
 			"newRoot":            fmt.Sprintf("%#x", newHeadRoot),
@@ -143,6 +146,7 @@ func (s *Service) saveHead(ctx context.Context, newHeadRoot [32]byte, headBlock 
 			},
 		})
 
+		// 保存orphan attestations
 		if err := s.saveOrphanedAtts(ctx, oldHeadRoot, newHeadRoot); err != nil {
 			return err
 		}
@@ -384,6 +388,7 @@ func (s *Service) saveOrphanedAtts(ctx context.Context, orphanedRoot [32]byte, n
 		}
 		// If the block is an epoch older, break out of the loop since we can't include atts anyway.
 		// This prevents stuck within this for loop longer than necessary.
+		// 如果block老于一个epoch了，跳出循环，因为我们不能再包含atts，这防止超过必要的循环
 		if orphanedBlk.Block().Slot()+params.BeaconConfig().SlotsPerEpoch <= s.CurrentSlot() {
 			break
 		}
@@ -394,6 +399,7 @@ func (s *Service) saveOrphanedAtts(ctx context.Context, orphanedRoot [32]byte, n
 				continue
 			}
 			if helpers.IsAggregated(a) {
+				// 保存aggregated attestation
 				if err := s.cfg.AttPool.SaveAggregatedAttestation(a); err != nil {
 					return err
 				}

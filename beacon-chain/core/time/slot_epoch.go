@@ -44,6 +44,7 @@ func PrevEpoch(state state.ReadOnlyBeaconState) types.Epoch {
 
 // NextEpoch returns the next epoch number calculated from
 // the slot number stored in beacon state.
+// NextEpoch返回下一个epoch number，从存储在beacon state中slot number计算而来
 func NextEpoch(state state.ReadOnlyBeaconState) types.Epoch {
 	return slots.ToEpoch(state.Slot()) + 1
 }

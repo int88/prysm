@@ -45,6 +45,7 @@ func proposerIndicesKeyFn(obj interface{}) (string, error) {
 }
 
 // NewProposerIndicesCache creates a new proposer indices cache for storing/accessing proposer index assignments of an epoch.
+// NewProposerIndicesCache创建一个新的proposer indices cache用于存储/访问proposer index，对于一个epoch
 func NewProposerIndicesCache() *ProposerIndicesCache {
 	return &ProposerIndicesCache{
 		proposerIndicesCache: cache.NewFIFO(proposerIndicesKeyFn),
