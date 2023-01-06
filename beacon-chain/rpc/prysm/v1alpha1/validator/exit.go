@@ -13,10 +13,12 @@ import (
 )
 
 // ProposeExit proposes an exit for a validator.
+// ProposeExit对于一个validator提交一个exit
 func (vs *Server) ProposeExit(ctx context.Context, req *ethpb.SignedVoluntaryExit) (*ethpb.ProposeExitResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "nil request")
 	}
+	// 获取head state
 	s, err := vs.HeadFetcher.HeadState(ctx)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "Could not get head state: %v", err)
@@ -25,26 +27,32 @@ func (vs *Server) ProposeExit(ctx context.Context, req *ethpb.SignedVoluntaryExi
 		return nil, status.Error(codes.InvalidArgument, "voluntary exit does not exist")
 	}
 	if req.Signature == nil || len(req.Signature) != fieldparams.BLSSignatureLength {
+		// 提供的签名非法
 		return nil, status.Error(codes.InvalidArgument, "invalid signature provided")
 	}
 
 	// Confirm the validator is eligible to exit with the parameters provided.
+	// 确认validator有资格退出，对于提供的参数
 	val, err := s.ValidatorAtIndexReadOnly(req.Exit.ValidatorIndex)
 	if err != nil {
+		// validator的index超出了validator set的长度
 		return nil, status.Error(codes.InvalidArgument, "validator index exceeds validator set length")
 	}
 
+	// 校验Exit以及Signature
 	if err := blocks.VerifyExitAndSignature(val, s.Slot(), s.Fork(), req, s.GenesisValidatorsRoot()); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
 	vs.OperationNotifier.OperationFeed().Send(&feed.Event{
+		// 发送一个收到Exit事件的通知
 		Type: opfeed.ExitReceived,
 		Data: &opfeed.ExitReceivedData{
 			Exit: req,
 		},
 	})
 
+	// 插入Exit Pool中
 	vs.ExitPool.InsertVoluntaryExit(ctx, s, req)
 
 	r, err := req.Exit.HashTreeRoot()
@@ -54,5 +62,5 @@ func (vs *Server) ProposeExit(ctx context.Context, req *ethpb.SignedVoluntaryExi
 
 	return &ethpb.ProposeExitResponse{
 		ExitRoot: r[:],
-	}, vs.P2P.Broadcast(ctx, req)
+	}, vs.P2P.Broadcast(ctx, req) // 广播Exit请求
 }

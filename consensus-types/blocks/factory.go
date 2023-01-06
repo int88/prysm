@@ -62,6 +62,7 @@ func NewSignedBeaconBlock(i interface{}) (interfaces.SignedBeaconBlock, error) {
 }
 
 // NewBeaconBlock creates a beacon block from a protobuf beacon block.
+// NewBeaconBlock从一个protobuf beacon block创建一个beacon block
 func NewBeaconBlock(i interface{}) (interfaces.BeaconBlock, error) {
 	switch b := i.(type) {
 	case nil:
@@ -120,6 +121,8 @@ func NewBeaconBlockBody(i interface{}) (interfaces.BeaconBlockBody, error) {
 // BuildSignedBeaconBlock assembles a block.SignedBeaconBlock interface compatible struct from a
 // given beacon block and the appropriate signature. This method may be used to easily create a
 // signed beacon block.
+// BuildSignedBeaconBlock组合一个和block.SignedBeaconBlock接口兼容的结构，来自一个给定的beacon block
+// 以及合适的signature，这个方法可能很容易的用来创建一个signed beacon block
 func BuildSignedBeaconBlock(blk interfaces.BeaconBlock, signature []byte) (interfaces.SignedBeaconBlock, error) {
 	pb, err := blk.Proto()
 	if err != nil {

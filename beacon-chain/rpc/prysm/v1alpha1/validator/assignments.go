@@ -26,6 +26,7 @@ import (
 
 // GetDuties returns the duties assigned to a list of validators specified
 // in the request object.
+// GetDuties返回赋予给request对象中指定的一系列validator的duties
 func (vs *Server) GetDuties(ctx context.Context, req *ethpb.DutiesRequest) (*ethpb.DutiesResponse, error) {
 	if vs.SyncChecker.Syncing() {
 		return nil, status.Error(codes.Unavailable, "Syncing to latest head, not ready to respond")
@@ -36,6 +37,8 @@ func (vs *Server) GetDuties(ctx context.Context, req *ethpb.DutiesRequest) (*eth
 // StreamDuties returns the duties assigned to a list of validators specified
 // in the request object via a server-side stream. The stream sends out new assignments in case
 // a chain re-org occurred.
+// StreamDuties返回在request对象中指定的一系列validator赋予的duties，通过一个server端的stream
+// 这个stream发送新的assignments，万一发生了chain re-org
 func (vs *Server) StreamDuties(req *ethpb.DutiesRequest, stream ethpb.BeaconNodeValidator_StreamDutiesServer) error {
 	if vs.SyncChecker.Syncing() {
 		return status.Error(codes.Unavailable, "Syncing to latest head, not ready to respond")
@@ -107,9 +110,11 @@ func (vs *Server) StreamDuties(req *ethpb.DutiesRequest, stream ethpb.BeaconNode
 
 // Compute the validator duties from the head state's corresponding epoch
 // for validators public key / indices requested.
+// 计算validator duties，从head state对应的epoch，对于validator public key / 请求的indices
 func (vs *Server) duties(ctx context.Context, req *ethpb.DutiesRequest) (*ethpb.DutiesResponse, error) {
 	currentEpoch := slots.ToEpoch(vs.TimeFetcher.CurrentSlot())
 	if req.Epoch > currentEpoch+1 {
+		// 请求的epoch不能大于下一个epoch
 		return nil, status.Errorf(codes.Unavailable, "Request epoch %d can not be greater than next epoch %d", req.Epoch, currentEpoch+1)
 	}
 
@@ -119,6 +124,7 @@ func (vs *Server) duties(ctx context.Context, req *ethpb.DutiesRequest) (*ethpb.
 	}
 
 	// Advance state with empty transitions up to the requested epoch start slot.
+	// 移动state，用空的transitions，直到请求的epoch start slot
 	epochStartSlot, err := slots.EpochStart(req.Epoch)
 	if err != nil {
 		return nil, err
@@ -128,16 +134,19 @@ func (vs *Server) duties(ctx context.Context, req *ethpb.DutiesRequest) (*ethpb.
 		if err != nil {
 			return nil, status.Errorf(codes.Internal, "Could not retrieve head root: %v", err)
 		}
+		// 处理slots
 		s, err = transition.ProcessSlotsUsingNextSlotCache(ctx, s, headRoot, epochStartSlot)
 		if err != nil {
 			return nil, status.Errorf(codes.Internal, "Could not process slots up to %d: %v", epochStartSlot, err)
 		}
 	}
+	// 计算committee assignments
 	committeeAssignments, proposerIndexToSlots, err := helpers.CommitteeAssignments(ctx, s, req.Epoch)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "Could not compute committee assignments: %v", err)
 	}
 	// Query the next epoch assignments for committee subnet subscriptions.
+	// 请求下一个epoch assignments，对于committee subnet订阅
 	nextCommitteeAssignments, nextProposerIndexToSlots, err := helpers.CommitteeAssignments(ctx, s, req.Epoch+1)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "Could not compute next committee assignments: %v", err)
@@ -157,6 +166,7 @@ func (vs *Server) duties(ctx context.Context, req *ethpb.DutiesRequest) (*ethpb.
 		}
 		idx, ok := s.ValidatorIndexByPubkey(bytesutil.ToBytes48(pubKey))
 		if ok {
+			// 获取assignment status
 			s := assignmentStatus(s, idx)
 
 			assignment.ValidatorIndex = idx
@@ -164,6 +174,7 @@ func (vs *Server) duties(ctx context.Context, req *ethpb.DutiesRequest) (*ethpb.
 			assignment.ProposerSlots = proposerIndexToSlots[idx]
 
 			// The next epoch has no lookup for proposer indexes.
+			// 下一个epoch不查找proposer indexes
 			nextAssignment.ValidatorIndex = idx
 			nextAssignment.Status = s
 
@@ -174,6 +185,7 @@ func (vs *Server) duties(ctx context.Context, req *ethpb.DutiesRequest) (*ethpb.
 				assignment.CommitteeIndex = ca.CommitteeIndex
 			}
 			// Save the next epoch assignments.
+			// 保存下一个epoch assignments
 			ca, ok = nextCommitteeAssignments[idx]
 			if ok {
 				nextAssignment.Committee = ca.Committee
@@ -181,23 +193,28 @@ func (vs *Server) duties(ctx context.Context, req *ethpb.DutiesRequest) (*ethpb.
 				nextAssignment.CommitteeIndex = ca.CommitteeIndex
 			}
 			// Cache proposer assignment for the current epoch.
+			// 缓存当前epoch的proposer assignment
 			for _, slot := range proposerIndexToSlots[idx] {
 				// Head root is empty because it can't be known until slot - 1. Same with payload id.
 				vs.ProposerSlotIndexCache.SetProposerAndPayloadIDs(slot, idx, [8]byte{} /* payloadID */, [32]byte{} /* head root */)
 			}
 			// Cache proposer assignment for the next epoch.
+			// 缓存下一个epoch的proposer assignment
 			for _, slot := range nextProposerIndexToSlots[idx] {
 				vs.ProposerSlotIndexCache.SetProposerAndPayloadIDs(slot, idx, [8]byte{} /* payloadID */, [32]byte{} /* head root */)
 			}
 			// Prune payload ID cache for any slots before request slot.
+			// 移除payload ID cache，对于任何slots，在请求slot之前
 			vs.ProposerSlotIndexCache.PrunePayloadIDs(epochStartSlot)
 		} else {
 			// If the validator isn't in the beacon state, try finding their deposit to determine their status.
+			// 如果validator不在beacon state，试着找到它们的deposit，来决定它们的状态
 			vStatus, _ := vs.validatorStatus(ctx, s, pubKey)
 			assignment.Status = vStatus.Status
 		}
 
 		// Are the validators in current or next epoch sync committee.
+		// validators是否在当前或者下一个epoch sync committee
 		if ok && coreTime.HigherEqualThanAltairVersionAndEpoch(s, req.Epoch) {
 			assignment.IsSyncCommittee, err = helpers.IsCurrentPeriodSyncCommittee(s, idx)
 			if err != nil {
@@ -231,6 +248,7 @@ func (vs *Server) duties(ctx context.Context, req *ethpb.DutiesRequest) (*ethpb.
 		validatorAssignments = append(validatorAssignments, assignment)
 		nextValidatorAssignments = append(nextValidatorAssignments, nextAssignment)
 		// Assign relevant validator to subnet.
+		// 赋予相关的validator到subnet
 		vs.AssignValidatorToSubnet(pubKey, assignment.Status)
 		vs.AssignValidatorToSubnet(pubKey, nextAssignment.Status)
 	}

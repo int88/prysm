@@ -75,6 +75,7 @@ func (lk *Lock) Yield() {
 }
 
 // NewMultilock creates a new multilock for the specified keys
+// NewMultilock创建一个新的multilock，对于特定的keys
 func NewMultilock(locks ...string) *Lock {
 	if len(locks) == 0 {
 		return nil

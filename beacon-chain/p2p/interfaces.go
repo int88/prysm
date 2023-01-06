@@ -31,6 +31,7 @@ type P2P interface {
 }
 
 // Broadcaster broadcasts messages to peers over the p2p pubsub protocol.
+// Broadcaster广播messages到peers，通过p2p的pubsub protocol
 type Broadcaster interface {
 	Broadcast(context.Context, proto.Message) error
 	BroadcastAttestation(ctx context.Context, subnet uint64, att *ethpb.Attestation) error

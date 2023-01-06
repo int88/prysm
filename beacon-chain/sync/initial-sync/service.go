@@ -127,6 +127,7 @@ func (s *Service) Status() error {
 }
 
 // Syncing returns true if initial sync is still running.
+// Syncing返回true，如果initial sync还在运行
 func (s *Service) Syncing() bool {
 	return s.synced.IsNotSet()
 }

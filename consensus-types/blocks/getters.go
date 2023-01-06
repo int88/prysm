@@ -76,6 +76,7 @@ func (b *SignedBeaconBlock) Copy() (interfaces.SignedBeaconBlock, error) {
 }
 
 // PbGenericBlock returns a generic signed beacon block.
+// PbGenericBlock返回一个通用的signed beacon block
 func (b *SignedBeaconBlock) PbGenericBlock() (*eth.GenericSignedBeaconBlock, error) {
 	pb, err := b.Proto()
 	if err != nil {

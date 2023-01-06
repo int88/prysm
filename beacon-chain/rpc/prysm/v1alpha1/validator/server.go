@@ -38,9 +38,12 @@ import (
 )
 
 // Server defines a server implementation of the gRPC Validator service,
+// Server定义了一个gRPC validator service的实现
 // providing RPC endpoints for obtaining validator assignments per epoch, the slots
 // and committees in which particular validators need to perform their responsibilities,
 // and more.
+// 提供RPC endpoints用于获取每个epoch的validator的assignments，slots以及committees
+// 特定的validators需要执行它们的任务以及其他
 type Server struct {
 	Ctx                    context.Context
 	AttestationCache       *cache.AttestationCache

@@ -1,6 +1,7 @@
 package client
 
 // Validator client proposer functions.
+// Validator client的proposer功能
 import (
 	"context"
 	"fmt"
@@ -37,8 +38,12 @@ const signExitErr = "could not sign voluntary exit proposal"
 // chain node to construct the new block. The new block is then processed with
 // the state root computation, and finally signed by the validator before being
 // sent back to the beacon node for broadcasting.
+// ProposeBlock提交一个新的beacon block，在一个给定的slot，这个方法收集之前的beacon block，以及pending
+// deposits，以及ETH1 data，从beacon chain node来构建新的block，新的block之后在通过state root computation
+// 进行处理，最后通过validator进行签名，在发送给beacon node进行广播之前
 func (v *validator) ProposeBlock(ctx context.Context, slot types.Slot, pubKey [fieldparams.BLSPubkeyLength]byte) {
 	if slot == 0 {
+		// 赋值到了genesis slot，跳过proposal
 		log.Debug("Assigned to genesis slot, skipping proposal")
 		return
 	}
@@ -54,6 +59,7 @@ func (v *validator) ProposeBlock(ctx context.Context, slot types.Slot, pubKey [f
 	log := log.WithField("pubKey", fmt.Sprintf("%#x", bytesutil.Trunc(pubKey[:])))
 
 	// Sign randao reveal, it's used to request block from beacon node
+	// 签名randao reveal，它用于从beacon block请求block
 	epoch := types.Epoch(slot / params.BeaconConfig().SlotsPerEpoch)
 	randaoReveal, err := v.signRandaoReveal(ctx, pubKey, epoch, slot)
 	if err != nil {
@@ -73,6 +79,7 @@ func (v *validator) ProposeBlock(ctx context.Context, slot types.Slot, pubKey [f
 	}
 
 	// Request block from beacon node
+	// 从beacon node请求block
 	b, err := v.validatorClient.GetBeaconBlock(ctx, &ethpb.BlockRequest{
 		Slot:         slot,
 		RandaoReveal: randaoReveal,
@@ -87,6 +94,7 @@ func (v *validator) ProposeBlock(ctx context.Context, slot types.Slot, pubKey [f
 	}
 
 	// Sign returned block from beacon node
+	// 对从beacon node返回的block进行签名
 	wb, err := blocks.NewBeaconBlock(b.Block)
 	if err != nil {
 		log.WithError(err).Error("Failed to wrap block")
@@ -111,6 +119,7 @@ func (v *validator) ProposeBlock(ctx context.Context, slot types.Slot, pubKey [f
 		return
 	}
 
+	// 进行block slashing protection的检测
 	if err := v.slashableProposalCheck(ctx, pubKey, blk, signingRoot); err != nil {
 		log.WithFields(
 			blockLogFields(pubKey, wb, nil),
@@ -122,6 +131,7 @@ func (v *validator) ProposeBlock(ctx context.Context, slot types.Slot, pubKey [f
 	}
 
 	// Propose and broadcast block via beacon node
+	// 通过beacon block提交以及广播block
 	proposal, err := blk.PbGenericBlock()
 	if err != nil {
 		log.WithError(err).Error("Failed to create proposal request")
@@ -130,6 +140,7 @@ func (v *validator) ProposeBlock(ctx context.Context, slot types.Slot, pubKey [f
 		}
 		return
 	}
+	// 调用validator client进行广播
 	blkResp, err := v.validatorClient.ProposeBeaconBlock(ctx, proposal)
 	if err != nil {
 		log.WithError(err).Error("Failed to propose block")
@@ -146,8 +157,10 @@ func (v *validator) ProposeBlock(ctx context.Context, slot types.Slot, pubKey [f
 	)
 
 	if blk.Version() >= version.Bellatrix {
+		// 如果版本大于等于Bellatrix，记录一些额外的字段
 		p, err := blk.Block().Body().Execution()
 		if err != nil {
+			// 获取exectuion payload
 			log.WithError(err).Error("Failed to get execution payload")
 			return
 		}
@@ -337,8 +350,10 @@ func signVoluntaryExit(
 }
 
 // Gets the graffiti from cli or file for the validator public key.
+// 从cli或者文件获取graffiti，用于validator的public key
 func (v *validator) getGraffiti(ctx context.Context, pubKey [fieldparams.BLSPubkeyLength]byte) ([]byte, error) {
 	// When specified, default graffiti from the command line takes the first priority.
+	// 当指定了的时候，来自命令行的graffiti是第一优先级
 	if len(v.graffiti) != 0 {
 		return v.graffiti, nil
 	}
@@ -348,6 +363,7 @@ func (v *validator) getGraffiti(ctx context.Context, pubKey [fieldparams.BLSPubk
 	}
 
 	// When specified, individual validator specified graffiti takes the second priority.
+	// 当指定了的时候，单个validator指定的graffiti为第二优先级
 	idx, err := v.validatorClient.ValidatorIndex(ctx, &ethpb.ValidatorIndexRequest{PublicKey: pubKey[:]})
 	if err != nil {
 		return []byte{}, err

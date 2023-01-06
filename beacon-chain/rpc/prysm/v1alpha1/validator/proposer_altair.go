@@ -18,6 +18,7 @@ import (
 func (vs *Server) BuildAltairBeaconBlock(ctx context.Context, req *ethpb.BlockRequest) (*ethpb.BeaconBlockAltair, error) {
 	ctx, span := trace.StartSpan(ctx, "ProposerServer.BuildAltairBeaconBlock")
 	defer span.End()
+	// 首先构建phase0 block
 	blkData, err := vs.buildPhase0BlockData(ctx, req)
 	if err != nil {
 		return nil, fmt.Errorf("could not build block data: %v", err)
@@ -28,6 +29,8 @@ func (vs *Server) BuildAltairBeaconBlock(ctx context.Context, req *ethpb.BlockRe
 
 	// No need for safe sub as req.Slot cannot be 0 if requesting Altair blocks. If 0, we will be throwing
 	// an error in the first validity check of this endpoint.
+	// 不需要safe sub，因为req.Slot不可能为0，如果请求的是Altair blocks，如果为0，我们会抛出一个error
+	// 在这个endpoint的开始的validity check
 	syncAggregate, err := vs.getSyncAggregate(ctx, req.Slot-1, bytesutil.ToBytes32(blkData.ParentRoot))
 	if err != nil {
 		return nil, err
@@ -77,11 +80,14 @@ func (vs *Server) getAltairBeaconBlock(ctx context.Context, req *ethpb.BlockRequ
 
 // getSyncAggregate retrieves the sync contributions from the pool to construct the sync aggregate object.
 // The contributions are filtered based on matching of the input root and slot then profitability.
+// getSyncAggregate从pool中获取sync contributions，来构建sync aggregate对象，基于input root的匹配以及slot
+// 来过滤contributions，之后是
 func (vs *Server) getSyncAggregate(ctx context.Context, slot types.Slot, root [32]byte) (*ethpb.SyncAggregate, error) {
 	ctx, span := trace.StartSpan(ctx, "ProposerServer.getSyncAggregate")
 	defer span.End()
 
 	// Contributions have to match the input root
+	// Contributions需要匹配input root
 	contributions, err := vs.SyncCommitteePool.SyncCommitteeContributions(slot)
 	if err != nil {
 		return nil, err
@@ -103,6 +109,7 @@ func (vs *Server) getSyncAggregate(ctx context.Context, slot types.Slot, root [3
 		}
 
 		// Retrieve the most profitable contribution
+		// 获取最profitable的contribution
 		deduped, err := proposerSyncContributions(aggregates).dedup()
 		if err != nil {
 			return nil, err
@@ -120,6 +127,7 @@ func (vs *Server) getSyncAggregate(ctx context.Context, slot types.Slot, root [3
 	}
 
 	// Aggregate all the contribution bits and signatures.
+	// 聚合所有的contribution bits以及signatures
 	var syncBits []byte
 	for _, b := range bitsHolder {
 		syncBits = append(syncBits, b...)

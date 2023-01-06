@@ -41,6 +41,7 @@ var (
 var ErrAlreadyInProgress = errors.New("already in progress")
 
 // AttestationCache is used to store the cached results of an AttestationData request.
+// AttestationCache用于缓存一个AttestationData请求的结果
 type AttestationCache struct {
 	cache      *cache.FIFO
 	lock       sync.RWMutex
@@ -48,6 +49,7 @@ type AttestationCache struct {
 }
 
 // NewAttestationCache initializes the map and underlying cache.
+// NewAttestationCache初始化map以及底层的cache
 func NewAttestationCache() *AttestationCache {
 	return &AttestationCache{
 		cache:      cache.NewFIFO(wrapperToKey),
@@ -105,6 +107,8 @@ func (c *AttestationCache) Get(ctx context.Context, req *ethpb.AttestationDataRe
 
 // MarkInProgress a request so that any other similar requests will block on
 // Get until MarkNotInProgress is called.
+// MarkInProgress将一个请求标记为InProgress，这样任何类似的请求会block，在Get请求中，
+// 直到MarkNotInProgress被调用
 func (c *AttestationCache) MarkInProgress(req *ethpb.AttestationDataRequest) error {
 	c.lock.Lock()
 	defer c.lock.Unlock()

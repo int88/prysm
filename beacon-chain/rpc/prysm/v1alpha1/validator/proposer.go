@@ -37,6 +37,8 @@ const eth1dataTimeout = 2 * time.Second
 // GetBeaconBlock is called by a proposer during its assigned slot to request a block to sign
 // by passing in the slot and the signed randao reveal of the slot. Returns phase0 beacon blocks
 // before the Altair fork epoch and Altair blocks post-fork epoch.
+// GetBeaconBlock被一个proposer调用，在它的assigned slot来请求一个block来sign，通过传入slot以及signed randao
+// reveal，返回phase0 beacon block，在Altair fork epoch之前，或者Altair blocks，在posf-fork epoch
 func (vs *Server) GetBeaconBlock(ctx context.Context, req *ethpb.BlockRequest) (*ethpb.GenericBeaconBlock, error) {
 	ctx, span := trace.StartSpan(ctx, "ProposerServer.GetBeaconBlock")
 	defer span.End()
@@ -48,6 +50,7 @@ func (vs *Server) GetBeaconBlock(ctx context.Context, req *ethpb.BlockRequest) (
 		}
 		return &ethpb.GenericBeaconBlock{Block: &ethpb.GenericBeaconBlock_Phase0{Phase0: blk}}, nil
 	} else if slots.ToEpoch(req.Slot) < params.BeaconConfig().BellatrixForkEpoch {
+		// 否则返回altair block
 		blk, err := vs.getAltairBeaconBlock(ctx, req)
 		if err != nil {
 			return nil, status.Errorf(codes.Internal, "Could not fetch Altair beacon block: %v", err)
@@ -56,6 +59,7 @@ func (vs *Server) GetBeaconBlock(ctx context.Context, req *ethpb.BlockRequest) (
 	}
 
 	// An optimistic validator MUST NOT produce a block (i.e., sign across the DOMAIN_BEACON_PROPOSER domain).
+	// 一个optimistic validator必须不能生成一个block
 	if err := vs.optimisticStatus(ctx); err != nil {
 		return nil, err
 	}
@@ -71,6 +75,7 @@ func (vs *Server) ProposeBeaconBlock(ctx context.Context, req *ethpb.GenericSign
 	defer span.End()
 	blk, err := blocks.NewSignedBeaconBlock(req.Block)
 	if err != nil {
+		// 不能对block进行解码
 		return nil, status.Errorf(codes.InvalidArgument, "Could not decode block: %v", err)
 	}
 	return vs.proposeGenericBeaconBlock(ctx, blk)
@@ -207,11 +212,14 @@ func (vs *Server) proposeGenericBeaconBlock(ctx context.Context, blk interfaces.
 
 // computeStateRoot computes the state root after a block has been processed through a state transition and
 // returns it to the validator client.
+// computeStateRoot计算state root，在一个block已经经历state transition之后，并且返回给validator client
 func (vs *Server) computeStateRoot(ctx context.Context, block interfaces.SignedBeaconBlock) ([]byte, error) {
+	// 获取parent state root
 	beaconState, err := vs.StateGen.StateByRoot(ctx, block.Block().ParentRoot())
 	if err != nil {
 		return nil, errors.Wrap(err, "could not retrieve beacon state")
 	}
+	// 计算state root
 	root, err := transition.CalculateStateRoot(
 		ctx,
 		beaconState,

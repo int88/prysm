@@ -39,6 +39,7 @@ var builderGetPayloadMissCount = promauto.NewCounter(prometheus.CounterOpts{
 const blockBuilderTimeout = 1 * time.Second
 
 func (vs *Server) getBellatrixBeaconBlock(ctx context.Context, req *ethpb.BlockRequest) (*ethpb.GenericBeaconBlock, error) {
+	// 先构建altair beacon block
 	altairBlk, err := vs.BuildAltairBeaconBlock(ctx, req)
 	if err != nil {
 		return nil, err
@@ -63,6 +64,7 @@ func (vs *Server) getBellatrixBeaconBlock(ctx context.Context, req *ethpb.BlockR
 			}).Error("Could not determine validator has registered. Defaulting to local execution client")
 		}
 	}
+	// 获取execution payload
 	payload, err := vs.getExecutionPayload(ctx, req.Slot, altairBlk.ProposerIndex, bytesutil.ToBytes32(altairBlk.ParentRoot))
 	if err != nil {
 		return nil, err
@@ -87,6 +89,7 @@ func (vs *Server) getBellatrixBeaconBlock(ctx context.Context, req *ethpb.BlockR
 		},
 	}
 	// Compute state root with the newly constructed block.
+	// 计算新构建的block的state root
 	wsb, err := consensusblocks.NewSignedBeaconBlock(
 		&ethpb.SignedBeaconBlockBellatrix{Block: blk, Signature: make([]byte, 96)},
 	)

@@ -114,6 +114,7 @@ func ComputeSubnetForAttestation(activeValCount uint64, att *ethpb.Attestation) 
 
 // ComputeSubnetFromCommitteeAndSlot is a flattened version of ComputeSubnetForAttestation where we only pass in
 // the relevant fields from the attestation as function arguments.
+// ComputeSubnetFromCommitteeAndSlot是ComputeSubnetForAttestation的扁平版本，我们只传递attestation的相关字段，作为函数参数
 //
 // Spec pseudocode definition:
 // def compute_subnet_for_attestation(committees_per_slot: uint64, slot: Slot, committee_index: CommitteeIndex) -> uint64:
@@ -137,6 +138,8 @@ func ComputeSubnetFromCommitteeAndSlot(activeValCount uint64, comIdx types.Commi
 // ValidateAttestationTime Validates that the incoming attestation is in the desired time range.
 // An attestation is valid only if received within the last ATTESTATION_PROPAGATION_SLOT_RANGE
 // slots.
+// ValidateAttestationTime校验incoming attestation在服务预期的时间范围，一个attestation是合法的，只有在
+// ATTESTATION_PROPAGATION_SLOT_RANGE个slots的范围内被收到
 //
 // Example:
 //
@@ -149,6 +152,7 @@ func ComputeSubnetFromCommitteeAndSlot(activeValCount uint64, comIdx types.Commi
 //	valid_attestation_slot = 101
 //
 // In the attestation must be within the range of 95 to 102 in the example above.
+// 上面的例子中，attestation必须在范围95到102之间
 func ValidateAttestationTime(attSlot types.Slot, genesisTime time.Time, clockDisparity time.Duration) error {
 	if err := slots.ValidateClock(attSlot, uint64(genesisTime.Unix())); err != nil {
 		return err
@@ -160,6 +164,7 @@ func ValidateAttestationTime(attSlot types.Slot, genesisTime time.Time, clockDis
 	currentSlot := slots.Since(genesisTime)
 
 	// When receiving an attestation, it can be from the future.
+	// 当收到一个attestation的时候，它可以来自未来
 	// so the upper bounds is set to now + clockDisparity(SECONDS_PER_SLOT * 2).
 	// But when sending an attestation, it should not be in future slot.
 	// so the upper bounds is set to now + clockDisparity(MAXIMUM_GOSSIP_CLOCK_DISPARITY).
@@ -167,6 +172,7 @@ func ValidateAttestationTime(attSlot types.Slot, genesisTime time.Time, clockDis
 
 	// An attestation cannot be older than the current slot - attestation propagation slot range
 	// with a minor tolerance for peer clock disparity.
+	// 一个attestation不能老于当前的slot
 	lowerBoundsSlot := types.Slot(0)
 	if currentSlot > params.BeaconNetworkConfig().AttestationPropagationSlotRange {
 		lowerBoundsSlot = currentSlot - params.BeaconNetworkConfig().AttestationPropagationSlotRange

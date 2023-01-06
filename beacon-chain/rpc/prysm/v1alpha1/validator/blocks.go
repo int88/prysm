@@ -14,6 +14,7 @@ import (
 )
 
 // StreamBlocksAltair to clients every single time a block is received by the beacon node.
+// StreamBlocksAltair到client，每次一个block从beacon node被收到
 func (vs *Server) StreamBlocksAltair(req *ethpb.StreamBlocksRequest, stream ethpb.BeaconNodeValidator_StreamBlocksAltairServer) error {
 	blocksChannel := make(chan *feed.Event, 1)
 	var blockSub event.Subscription

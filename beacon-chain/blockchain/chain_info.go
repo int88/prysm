@@ -32,6 +32,8 @@ type ChainInfoFetcher interface {
 
 // HeadUpdater defines a common interface for methods in blockchain service
 // which allow to update the head info
+// HeadUpdater定义了一个公共的接口，对于blockchain service中的方法
+// 允许更新head info
 type HeadUpdater interface {
 	UpdateHead(context.Context) error
 }
