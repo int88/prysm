@@ -77,6 +77,7 @@ const (
 )
 
 // Status is the structure holding the peer status information.
+// Status是一个结构，维护peer status信息
 type Status struct {
 	ctx       context.Context
 	scorers   *scorers.Service
@@ -407,6 +408,7 @@ func (p *Status) Connecting() []peer.ID {
 }
 
 // Connected returns the peers that are connected.
+// Connected返回当前处于连接状态的peers
 func (p *Status) Connected() []peer.ID {
 	p.store.RLock()
 	defer p.store.RUnlock()
@@ -697,6 +699,7 @@ func (p *Status) BestFinalized(maxPeers int, ourFinalizedEpoch types.Epoch) (typ
 
 // BestNonFinalized returns the highest known epoch, higher than ours,
 // and is shared by at least minPeers.
+// BestNonFinalized返回最高已知的epoch，比我们自己的高，并且被至少minPeers共享
 func (p *Status) BestNonFinalized(minPeers int, ourHeadEpoch types.Epoch) (types.Epoch, []peer.ID) {
 	connected := p.Connected()
 	epochVotes := make(map[types.Epoch]uint64)
@@ -706,6 +709,7 @@ func (p *Status) BestNonFinalized(minPeers int, ourHeadEpoch types.Epoch) (types
 
 	ourHeadSlot := params.BeaconConfig().SlotsPerEpoch.Mul(uint64(ourHeadEpoch))
 	for _, pid := range connected {
+		// 获取chain state
 		peerChainState, err := p.ChainState(pid)
 		if err == nil && peerChainState != nil && peerChainState.HeadSlot > ourHeadSlot {
 			epoch := slots.ToEpoch(peerChainState.HeadSlot)
@@ -717,6 +721,7 @@ func (p *Status) BestNonFinalized(minPeers int, ourHeadEpoch types.Epoch) (types
 	}
 
 	// Select the target epoch, which has enough peers' votes (>= minPeers).
+	// 选择target epoch，它有足够多的peers' votes（大于等于minPeers）
 	var targetEpoch types.Epoch
 	for epoch, votes := range epochVotes {
 		if votes >= uint64(minPeers) && targetEpoch < epoch {
@@ -725,11 +730,13 @@ func (p *Status) BestNonFinalized(minPeers int, ourHeadEpoch types.Epoch) (types
 	}
 
 	// Sort PIDs by head slot, in decreasing order.
+	// 对PIDs按照head slot进行排序，降序
 	sort.Slice(potentialPIDs, func(i, j int) bool {
 		return pidHead[potentialPIDs[i]] > pidHead[potentialPIDs[j]]
 	})
 
 	// Trim potential peers to those on or after target epoch.
+	// 裁剪潜在的peers，那些处于或者target epoch之后的peers
 	for i, pid := range potentialPIDs {
 		if pidEpoch[pid] < targetEpoch {
 			potentialPIDs = potentialPIDs[:i]

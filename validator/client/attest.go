@@ -32,6 +32,9 @@ import (
 // It fetches the latest beacon block head along with the latest canonical beacon state
 // information in order to sign the block and include information about the validator's
 // participation in voting on the block.
+// SubmitAttestation完成在给定slot的validator client的attester职责
+// 它抓取最新的beacon block head以及最新的canonical beacon state信息，为了对block进行签名并包含信息
+// 关于validator的对于voting的参与，在block之上
 func (v *validator) SubmitAttestation(ctx context.Context, slot types.Slot, pubKey [fieldparams.BLSPubkeyLength]byte) {
 	ctx, span := trace.StartSpan(ctx, "validator.SubmitAttestation")
 	defer span.End()
@@ -51,12 +54,14 @@ func (v *validator) SubmitAttestation(ctx context.Context, slot types.Slot, pubK
 		tracing.AnnotateError(span, err)
 		return
 	}
+	// 构建对应的multi lock
 	lock := async.NewMultilock(b.String())
 	lock.Lock()
 	defer lock.Unlock()
 
 	fmtKey := fmt.Sprintf("%#x", pubKey[:])
 	log := log.WithField("pubKey", fmt.Sprintf("%#x", bytesutil.Trunc(pubKey[:]))).WithField("slot", slot)
+	// 获取对应public key的duty
 	duty, err := v.duty(pubKey)
 	if err != nil {
 		log.WithError(err).Error("Could not fetch validator assignment")
@@ -75,6 +80,7 @@ func (v *validator) SubmitAttestation(ctx context.Context, slot types.Slot, pubK
 		Slot:           slot,
 		CommitteeIndex: duty.CommitteeIndex,
 	}
+	// 获取attestation data
 	data, err := v.validatorClient.GetAttestationData(ctx, req)
 	if err != nil {
 		log.WithError(err).Error("Could not request attestation to sign at slot")
@@ -100,6 +106,7 @@ func (v *validator) SubmitAttestation(ctx context.Context, slot types.Slot, pubK
 		return
 	}
 
+	// 对attestation进行签名
 	sig, _, err := v.signAtt(ctx, pubKey, data, slot)
 	if err != nil {
 		log.WithError(err).Error("Could not sign attestation")
@@ -136,6 +143,7 @@ func (v *validator) SubmitAttestation(ctx context.Context, slot types.Slot, pubK
 	}
 
 	// Set the signature of the attestation and send it out to the beacon node.
+	// 设置attestation的signature并且发送到beacon node
 	indexedAtt.Signature = sig
 	if err := v.slashableAttestationCheck(ctx, indexedAtt, pubKey, signingRoot); err != nil {
 		log.WithError(err).Error("Failed attestation slashing protection check")
@@ -147,6 +155,7 @@ func (v *validator) SubmitAttestation(ctx context.Context, slot types.Slot, pubK
 	}
 	attResp, err := v.validatorClient.ProposeAttestation(ctx, attestation)
 	if err != nil {
+		// 不能提交attestation到beacon node
 		log.WithError(err).Error("Could not submit attestation to beacon node")
 		if v.emitAccountMetrics {
 			ValidatorAttestFailVec.WithLabelValues(fmtKey).Inc()
@@ -156,6 +165,7 @@ func (v *validator) SubmitAttestation(ctx context.Context, slot types.Slot, pubK
 	}
 
 	if err := v.saveAttesterIndexToData(data, duty.ValidatorIndex); err != nil {
+		// 不能保存validator index用于logging
 		log.WithError(err).Error("Could not save validator index for logging")
 		if v.emitAccountMetrics {
 			ValidatorAttestFailVec.WithLabelValues(fmtKey).Inc()

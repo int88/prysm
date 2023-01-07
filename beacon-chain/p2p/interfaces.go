@@ -93,6 +93,7 @@ type Sender interface {
 }
 
 // PeersProvider abstracts obtaining our current list of known peers status.
+// PeersProvider抽象了，关于获取已知peers状态的当前列表
 type PeersProvider interface {
 	Peers() *peers.Status
 }

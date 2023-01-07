@@ -28,11 +28,13 @@ func (vs *Server) packAttestations(ctx context.Context, latestState state.Beacon
 	atts := vs.AttPool.AggregatedAttestations()
 	atts, err := vs.validateAndDeleteAttsInPool(ctx, latestState, atts)
 	if err != nil {
+		// 校验并且删除atts中的pool
 		return nil, errors.Wrap(err, "could not filter attestations")
 	}
 
 	uAtts, err := vs.AttPool.UnaggregatedAttestations()
 	if err != nil {
+		// 不能从pool中获取unaggregated attestations
 		return nil, errors.Wrap(err, "could not get unaggregated attestations")
 	}
 	uAtts, err = vs.validateAndDeleteAttsInPool(ctx, latestState, uAtts)
@@ -43,6 +45,7 @@ func (vs *Server) packAttestations(ctx context.Context, latestState state.Beacon
 
 	// Remove duplicates from both aggregated/unaggregated attestations. This
 	// prevents inefficient aggregates being created.
+	// 同时从aggregated/unaggregated attestations中移除重复，这能防止产生inefficient aggregates
 	atts, err = proposerAtts(atts).dedup()
 	if err != nil {
 		return nil, err
@@ -187,6 +190,7 @@ func (a proposerAtts) sortByProfitabilityUsingMaxCover() (proposerAtts, error) {
 }
 
 // limitToMaxAttestations limits attestations to maximum attestations per block.
+// limitToMaxAttestations限制attestations到每个block最大的attestations数目
 func (a proposerAtts) limitToMaxAttestations() proposerAtts {
 	if uint64(len(a)) > params.BeaconConfig().MaxAttestations {
 		return a[:params.BeaconConfig().MaxAttestations]
@@ -243,6 +247,7 @@ func (a proposerAtts) dedup() (proposerAtts, error) {
 }
 
 // This filters the input attestations to return a list of valid attestations to be packaged inside a beacon block.
+// 过滤输入的attestations，返回一系列合法的attestations，来打包到一个beacon block中
 func (vs *Server) validateAndDeleteAttsInPool(ctx context.Context, st state.BeaconState, atts []*ethpb.Attestation) ([]*ethpb.Attestation, error) {
 	ctx, span := trace.StartSpan(ctx, "ProposerServer.validateAndDeleteAttsInPool")
 	defer span.End()
@@ -256,6 +261,8 @@ func (vs *Server) validateAndDeleteAttsInPool(ctx context.Context, st state.Beac
 
 // The input attestations are processed and seen by the node, this deletes them from pool
 // so proposers don't include them in a block for the future.
+// 输入的attestations被处理并且被node看到，这将他们从pool中删除，这样proposers不会在以后将它们
+// 包含在一个block中
 func (vs *Server) deleteAttsInPool(ctx context.Context, atts []*ethpb.Attestation) error {
 	ctx, span := trace.StartSpan(ctx, "ProposerServer.deleteAttsInPool")
 	defer span.End()

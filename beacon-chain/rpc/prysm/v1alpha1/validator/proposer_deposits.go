@@ -24,6 +24,7 @@ func (vs *Server) packDepositsAndAttestations(ctx context.Context, head state.Be
 
 	eg.Go(func() error {
 		// Pack ETH1 deposits which have not been included in the beacon chain.
+		// 打包ETH1 deposits，那些没有包含在beacon chain内的
 		localDeposits, err := vs.deposits(egctx, head, eth1Data)
 		if err != nil {
 			return status.Errorf(codes.Internal, "Could not get ETH1 deposits: %v", err)
@@ -40,6 +41,7 @@ func (vs *Server) packDepositsAndAttestations(ctx context.Context, head state.Be
 
 	eg.Go(func() error {
 		// Pack aggregated attestations which have not been included in the beacon chain.
+		// 打包那些没有包含在beacon chain中的aggregated attestations
 		localAtts, err := vs.packAttestations(egctx, head)
 		if err != nil {
 			return status.Errorf(codes.Internal, "Could not get attestations to pack into block: %v", err)
@@ -62,6 +64,9 @@ func (vs *Server) packDepositsAndAttestations(ctx context.Context, head state.Be
 // this eth1data has enough support to be considered for deposits inclusion. If current vote has
 // enough support, then use that vote for basis of determining deposits, otherwise use current state
 // eth1data.
+// deposits返回一系列pending deposits，准备好包含在下一个beacon block中，决定deposits取决于当前的eth1data vote
+// 对于block，并且是否这个eth1data有足够的支持，对于被考虑为deposits inclusion，如果当前的vote有足够的支持
+// 那么使用这个vote作为basis用于决定deposits，否则使用当前的state eth1data
 func (vs *Server) deposits(
 	ctx context.Context,
 	beaconState state.BeaconState,
@@ -75,22 +80,27 @@ func (vs *Server) deposits(
 	}
 
 	if !vs.Eth1InfoFetcher.ExecutionClientConnected() {
+		// 没有连接到eth1 node，跳过pending deposit的插入
 		log.Warn("not connected to eth1 node, skip pending deposit insertion")
 		return []*ethpb.Deposit{}, nil
 	}
 	// Need to fetch if the deposits up to the state's latest eth1 data matches
 	// the number of all deposits in this RPC call. If not, then we return nil.
+	// 需要获取，如果直到state的最新的eth1 data匹配在这个RPC调用中的所有deposits，如果不是
+	// 则返回nil
 	canonicalEth1Data, canonicalEth1DataHeight, err := vs.canonicalEth1Data(ctx, beaconState, currentVote)
 	if err != nil {
 		return nil, err
 	}
 
+	// 获取genesis eth1 block
 	_, genesisEth1Block := vs.Eth1InfoFetcher.GenesisExecutionChainInfo()
 	if genesisEth1Block.Cmp(canonicalEth1DataHeight) == 0 {
 		return []*ethpb.Deposit{}, nil
 	}
 
 	// If there are no pending deposits, exit early.
+	// 如果没有pending deposits，尽早退出
 	allPendingContainers := vs.PendingDepositsFetcher.PendingContainers(ctx, canonicalEth1DataHeight)
 	if len(allPendingContainers) == 0 {
 		log.Debug("no pending deposits for inclusion in block")
@@ -104,12 +114,14 @@ func (vs *Server) deposits(
 
 	// Deposits need to be received in order of merkle index root, so this has to make sure
 	// deposits are sorted from lowest to highest.
+	// Deposits需要被接收，按照merkle index root的顺序，因此需要确保deposits按照从最低到最高排序
 	var pendingDeps []*ethpb.DepositContainer
 	for _, dep := range allPendingContainers {
 		if uint64(dep.Index) >= beaconState.Eth1DepositIndex() && uint64(dep.Index) < canonicalEth1Data.DepositCount {
 			pendingDeps = append(pendingDeps, dep)
 		}
 		// Don't try to pack more than the max allowed in a block
+		// 不要打包超过最多允许的数目，在一个block中
 		if uint64(len(pendingDeps)) == params.BeaconConfig().MaxDeposits {
 			break
 		}

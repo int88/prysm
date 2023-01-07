@@ -28,13 +28,19 @@ type blockReceiverFn func(ctx context.Context, block interfaces.SignedBeaconBloc
 type batchBlockReceiverFn func(ctx context.Context, blks []interfaces.SignedBeaconBlock, roots [][32]byte) error
 
 // Round Robin sync looks at the latest peer statuses and syncs up to the highest known epoch.
+// Round Robin sync查看最新的peer statuses并且同步到最高已知的epoch
 //
 // Step 1 - Sync to finalized epoch.
 // Sync with peers having the majority on best finalized epoch greater than node's head state.
+// 第一步 - 同步到finalized epoch
+// 和有着对最好的finalzied epoch达成共识的peers，它超过了node的head state
 //
 // Step 2 - Sync to head from finalized epoch.
 // Using enough peers (at least, MinimumSyncPeers*2, for example) obtain best non-finalized epoch,
 // known to majority of the peers, and keep fetching blocks, up until that epoch is reached.
+// 第二步 - 从finalized epoch同步到head
+// 使用足够的peers（至少，MinimumSyncPeers*2，例如）获取最好的non-finalized epoch
+// 对于大多数peers已知，并且持续抓取blocks，知道到达那个epoch
 func (s *Service) roundRobinSync(genesis time.Time) error {
 	ctx, cancel := context.WithCancel(s.ctx)
 	defer cancel()
@@ -44,11 +50,13 @@ func (s *Service) roundRobinSync(genesis time.Time) error {
 	s.counter = ratecounter.NewRateCounter(counterSeconds * time.Second)
 
 	// Step 1 - Sync to end of finalized epoch.
+	// 同步到end of finalized epoch
 	if err := s.syncToFinalizedEpoch(ctx, genesis); err != nil {
 		return err
 	}
 
 	// Already at head, no need for 2nd phase.
+	// 已经到head了，不需要第二步
 	if s.cfg.Chain.HeadSlot() == slots.Since(genesis) {
 		return nil
 	}

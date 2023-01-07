@@ -20,13 +20,22 @@ import (
 
 // eth1DataMajorityVote determines the appropriate eth1data for a block proposal using
 // an algorithm called Voting with the Majority. The algorithm works as follows:
+// eth1DataMajorityVote决定合适的eth1data，对于block proposal，使用叫做Voting with the Majority
+// 的算法，算法的工作流程如下：
+//   - 决定start slot的时间戳，对于eht1的voting period
 //   - Determine the timestamp for the start slot for the eth1 voting period.
 //   - Determine the earliest and latest timestamps that a valid block can have.
+//   - 决定一个合法的block可以有的最早和最晚的时间戳
 //   - Determine the first block not before the earliest timestamp. This block is the lower bound.
 //   - Determine the last block not after the latest timestamp. This block is the upper bound.
+//   - 决定不早于earliest timestamp的第一个block，这个block是lower bound
+//   - 决定不晚于latest timestamp的最后一个block，这个block是upper bound
 //   - If the last block is too early, use current eth1data from the beacon state.
+//   - 如果最后一个block太早了，使用来自beacon state的当前的eth1data
 //   - Filter out votes on unknown blocks and blocks which are outside of the range determined by the lower and upper bounds.
+//   - 过滤对于未知的blocks以及由lower bound和upper bounds范围之外的blocks的votes
 //   - If no blocks are left after filtering votes, use eth1data from the latest valid block.
+//   - 如果在过滤了votes之后，没有剩下blocks，使用最后一个合法的block的eth1data
 //   - Otherwise:
 //   - Determine the vote with the highest count. Prefer the vote with the highest eth1 block height in the event of a tie.
 //   - This vote's block is the eth1 block to use for the block proposal.
@@ -41,6 +50,7 @@ func (vs *Server) eth1DataMajorityVote(ctx context.Context, beaconState state.Be
 		return vs.mockETH1DataVote(ctx, slot)
 	}
 	if !vs.Eth1InfoFetcher.ExecutionClientConnected() {
+		// 如果没有和execution client相连
 		return vs.randomETH1DataVote(ctx)
 	}
 	eth1DataNotification = false
@@ -84,6 +94,7 @@ func (vs *Server) slotStartTime(slot types.Slot) uint64 {
 }
 
 // canonicalEth1Data determines the canonical eth1data and eth1 block height to use for determining deposits.
+// canonicalEth1Data决定使用的canonical eth1data以及eth1 block height，用于决定deposits
 func (vs *Server) canonicalEth1Data(
 	ctx context.Context,
 	beaconState state.BeaconState,
@@ -92,6 +103,7 @@ func (vs *Server) canonicalEth1Data(
 	var eth1BlockHash [32]byte
 
 	// Add in current vote, to get accurate vote tally
+	// 添加当前的vote，来获取正确的vote
 	if err := beaconState.AppendEth1DataVotes(currentVote); err != nil {
 		return nil, nil, errors.Wrap(err, "could not append eth1 data votes to state")
 	}
@@ -112,6 +124,7 @@ func (vs *Server) canonicalEth1Data(
 	}
 	_, canonicalEth1DataHeight, err := vs.Eth1BlockFetcher.BlockExists(ctx, eth1BlockHash)
 	if err != nil {
+		// 获取eth1 data的高度
 		return nil, nil, errors.Wrap(err, "could not fetch eth1data height")
 	}
 	return canonicalEth1Data, canonicalEth1DataHeight, nil

@@ -1,6 +1,8 @@
 // Package initialsync includes all initial block download and processing
 // logic for the beacon node, using a round robin strategy and a finite-state-machine
 // to handle edge-cases in a beacon node's sync status.
+// initialsync包包含所有的initial block download以及处理逻辑，对于beacon node，使用一个round robin
+// 策略以及一个有限状态机来处理在一个beacon node的sync status的边缘情况
 package initialsync
 
 import (
@@ -144,9 +146,11 @@ func (s *Service) Synced() bool {
 
 // Resync allows a node to start syncing again if it has fallen
 // behind the current network head.
+// Resync允许一个node开始再次同步，如果它已经落后于当前的network head
 func (s *Service) Resync() error {
 	headState, err := s.cfg.Chain.HeadState(s.ctx)
 	if err != nil || headState == nil || headState.IsNil() {
+		// 不能获取head state
 		return errors.Errorf("could not retrieve head state: %v", err)
 	}
 
@@ -155,10 +159,12 @@ func (s *Service) Resync() error {
 	defer func() { s.synced.Set() }()                       // Reset it at the end of the method.
 	genesis := time.Unix(int64(headState.GenesisTime()), 0) // lint:ignore uintcast -- Genesis time will not exceed int64 in your lifetime.
 
+	// 等待最少数目的peers
 	s.waitForMinimumPeers()
 	if err = s.roundRobinSync(genesis); err != nil {
 		log = log.WithError(err)
 	}
+	// resync完成
 	log.WithField("slot", s.cfg.Chain.HeadSlot()).Info("Resync attempt complete")
 	return nil
 }
@@ -169,6 +175,7 @@ func (s *Service) waitForMinimumPeers() {
 		required = flags.Get().MinimumSyncPeers
 	}
 	for {
+		// 获取chain的finalized checkpoint
 		cp := s.cfg.Chain.FinalizedCheckpt()
 		_, peers := s.cfg.P2P.Peers().BestNonFinalized(flags.Get().MinimumSyncPeers, cp.Epoch)
 		if len(peers) >= required {

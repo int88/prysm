@@ -190,10 +190,12 @@ func TestProposer_PendingDeposits_Eth1DataVoteOK(t *testing.T) {
 	require.NoError(t, err)
 	require.NoError(t, beaconState.SetEth1DepositIndex(2))
 	require.NoError(t, beaconState.SetEth1Data(&ethpb.Eth1Data{
+		// 设置eth1 data
 		DepositRoot:  make([]byte, 32),
 		BlockHash:    blockHash,
 		DepositCount: 2,
 	}))
+	// 设置eth1 data votes
 	require.NoError(t, beaconState.SetEth1DataVotes(votes))
 
 	blk := util.NewBeaconBlock()
@@ -209,6 +211,7 @@ func TestProposer_PendingDeposits_Eth1DataVoteOK(t *testing.T) {
 	}
 
 	// It should also return the recent deposits after their follow window.
+	// 应该返回最近的deposits，在follow window只有
 	p.LatestBlockNumber = big.NewInt(0).Add(p.LatestBlockNumber, big.NewInt(10000))
 	_, eth1Height, err := bs.canonicalEth1Data(ctx, beaconState, &ethpb.Eth1Data{})
 	require.NoError(t, err)
@@ -261,6 +264,7 @@ func TestProposer_PendingDeposits_OutsideEth1FollowWindow(t *testing.T) {
 	var mockCreds [32]byte
 
 	// Using the merkleTreeIndex as the block number for this test...
+	// 使用merkleTreeIndex作为block number，在这个test中
 	readyDeposits := []*ethpb.DepositContainer{
 		{
 			Index:           0,
@@ -310,6 +314,7 @@ func TestProposer_PendingDeposits_OutsideEth1FollowWindow(t *testing.T) {
 	depositCache, err := depositcache.New()
 	require.NoError(t, err)
 
+	// 设置deposti trie
 	depositTrie, err := trie.NewTrie(params.BeaconConfig().DepositContractTreeDepth)
 	require.NoError(t, err, "Could not setup deposit trie")
 	for _, dp := range append(readyDeposits, recentDeposits...) {
@@ -324,6 +329,7 @@ func TestProposer_PendingDeposits_OutsideEth1FollowWindow(t *testing.T) {
 	for _, dp := range recentDeposits {
 		root, err := depositTrie.HashTreeRoot()
 		require.NoError(t, err)
+		// 插入pending deposit
 		depositCache.InsertPendingDeposit(ctx, dp.Deposit, dp.Eth1BlockHeight, dp.Index, root)
 	}
 

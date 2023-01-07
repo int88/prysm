@@ -1,5 +1,6 @@
 // Package testing provides useful mocks for an eth1 powchain
 // service as needed by unit tests for the beacon node.
+// testing包提供了有用的mocks，对于一个eth1 powchain，可以在单元测试中被beacon node使用
 package testing
 
 import (

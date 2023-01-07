@@ -1,5 +1,6 @@
 // Package testing includes useful mocks for writing unit
 // tests which depend on logic from the blockchain package.
+// testing包包含了对于写单元测试有用的mocks，依赖于blockchain包中的逻辑
 package testing
 
 import (

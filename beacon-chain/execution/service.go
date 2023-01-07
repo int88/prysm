@@ -78,6 +78,7 @@ type ChainStartFetcher interface {
 }
 
 // ChainInfoFetcher retrieves information about eth1 metadata at the Ethereum consensus genesis time.
+// ChainInfoFetcher获取eth1元数据，在Ethereum consensus genesis time
 type ChainInfoFetcher interface {
 	GenesisExecutionChainInfo() (uint64, *big.Int)
 	ExecutionClientConnected() bool
