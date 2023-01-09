@@ -15,6 +15,8 @@ import (
 
 // GenesisBeaconState gets called when MinGenesisActiveValidatorCount count of
 // full deposits were made to the deposit contract and the ChainStart log gets emitted.
+// GenesisBeaconState被调用，当MinGenesisActiveValidatorCount数目的full deposits被创建并且ChainStart
+// 日志被发射
 //
 // Spec pseudocode definition:
 //

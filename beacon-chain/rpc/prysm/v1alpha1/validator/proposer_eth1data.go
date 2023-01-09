@@ -38,7 +38,9 @@ import (
 //   - 如果在过滤了votes之后，没有剩下blocks，使用最后一个合法的block的eth1data
 //   - Otherwise:
 //   - Determine the vote with the highest count. Prefer the vote with the highest eth1 block height in the event of a tie.
+//   - 否则决定有着最大数目的vote，优选有着最高的eth1 block height的vote
 //   - This vote's block is the eth1 block to use for the block proposal.
+//   - 这个vote的block是用于block proposal的eth1 block
 func (vs *Server) eth1DataMajorityVote(ctx context.Context, beaconState state.BeaconState) (*ethpb.Eth1Data, error) {
 	ctx, cancel := context.WithTimeout(ctx, eth1dataTimeout)
 	defer cancel()
@@ -61,10 +63,12 @@ func (vs *Server) eth1DataMajorityVote(ctx context.Context, beaconState state.Be
 
 	lastBlockByLatestValidTime, err := vs.Eth1BlockFetcher.BlockByTimestamp(ctx, latestValidTime)
 	if err != nil {
+		// 根据latest valid time找到last block
 		log.WithError(err).Error("Could not get last block by latest valid time")
 		return vs.randomETH1DataVote(ctx)
 	}
 	if lastBlockByLatestValidTime.Time < earliestValidTime {
+		// 如果小于earliest valid time，直接返回HeadFetcher的HeadETH1Data
 		return vs.HeadFetcher.HeadETH1Data(), nil
 	}
 
@@ -73,6 +77,7 @@ func (vs *Server) eth1DataMajorityVote(ctx context.Context, beaconState state.Be
 		return vs.ChainStartFetcher.ChainStartEth1Data(), nil
 	}
 
+	// 如果大于header中的deposit count
 	if lastBlockDepositCount >= vs.HeadFetcher.HeadETH1Data().DepositCount {
 		h, err := vs.Eth1BlockFetcher.BlockHashByHeight(ctx, lastBlockByLatestValidTime.Number)
 		if err != nil {

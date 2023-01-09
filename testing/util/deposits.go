@@ -30,6 +30,8 @@ var t *trie.SparseMerkleTrie
 // account is key n and the withdrawal account is key n+1.  As such,
 // if all secret keys for n validators are required then numDeposits
 // should be n+1.
+// DeterministicDepositsAndKeys返回指定数目的deposits和secret keys
+// 如果所有的secret keys是针对n个validators，那么numDeposits需要n+1
 func DeterministicDepositsAndKeys(numDeposits uint64) ([]*ethpb.Deposit, []bls.SecretKey, error) {
 	resetCache()
 	lock.Lock()
@@ -204,8 +206,10 @@ func signedDeposit(
 
 // DeterministicDepositTrie returns a merkle trie of the requested size from the
 // deterministic deposits.
+// DeterministicDepositTrie返回请求数目大小的merkle trie，从deterministic deposits
 func DeterministicDepositTrie(size int) (*trie.SparseMerkleTrie, [][32]byte, error) {
 	if t == nil {
+		// trie cache为空，在更早的阶段产生deposits
 		return nil, [][32]byte{}, errors.New("trie cache is empty, generate deposits at an earlier point")
 	}
 
@@ -237,6 +241,7 @@ func DepositTrieSubset(sparseTrie *trie.SparseMerkleTrie, size int) (*trie.Spars
 }
 
 // DeterministicEth1Data takes an array of deposits and returns the eth1Data made from the deposit trie.
+// DeterministicEth1Data根据一系列的deposits并且返回eth1Data，来自deposit trie
 func DeterministicEth1Data(size int) (*ethpb.Eth1Data, error) {
 	depositTrie, _, err := DeterministicDepositTrie(size)
 	if err != nil {

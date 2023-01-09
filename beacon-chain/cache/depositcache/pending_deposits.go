@@ -22,6 +22,7 @@ var (
 
 // PendingDepositsFetcher specifically outlines a struct that can retrieve deposits
 // which have not yet been included in the chain.
+// PendingDepositsFetcher特别勾勒出一个结构体，可以获取那些还没有包含进行chain的deposits
 type PendingDepositsFetcher interface {
 	PendingContainers(ctx context.Context, untilBlk *big.Int) []*ethpb.DepositContainer
 }
@@ -41,6 +42,7 @@ func (dc *DepositCache) InsertPendingDeposit(ctx context.Context, d *ethpb.Depos
 	}
 	dc.depositsLock.Lock()
 	defer dc.depositsLock.Unlock()
+	// 扩展pending deposits
 	dc.pendingDeposits = append(dc.pendingDeposits,
 		&ethpb.DepositContainer{Deposit: d, Eth1BlockHeight: blockNum, Index: index, DepositRoot: depositRoot[:]})
 	pendingDepositsCount.Inc()
@@ -50,6 +52,8 @@ func (dc *DepositCache) InsertPendingDeposit(ctx context.Context, d *ethpb.Depos
 // PendingDeposits returns a list of deposits until the given block number
 // (inclusive). If no block is specified then this method returns all pending
 // deposits.
+// PendingDeposits返回一系列的deposits，直到给定的block number（包含）
+// 如果没有指定block，则这个方法返回所有的pending deposits
 func (dc *DepositCache) PendingDeposits(ctx context.Context, untilBlk *big.Int) []*ethpb.Deposit {
 	ctx, span := trace.StartSpan(ctx, "DepositsCache.PendingDeposits")
 	defer span.End()
@@ -66,6 +70,7 @@ func (dc *DepositCache) PendingDeposits(ctx context.Context, untilBlk *big.Int) 
 
 // PendingContainers returns a list of deposit containers until the given block number
 // (inclusive).
+// PendingContainers返回一系列的deposit containers，直到给定的block number（包括）
 func (dc *DepositCache) PendingContainers(ctx context.Context, untilBlk *big.Int) []*ethpb.DepositContainer {
 	ctx, span := trace.StartSpan(ctx, "DepositsCache.PendingDeposits")
 	defer span.End()
@@ -79,6 +84,7 @@ func (dc *DepositCache) PendingContainers(ctx context.Context, untilBlk *big.Int
 		}
 	}
 	// Sort the deposits by Merkle index.
+	// 按照Merkle index对deposits进行排序
 	sort.SliceStable(depositCntrs, func(i, j int) bool {
 		return depositCntrs[i].Index < depositCntrs[j].Index
 	})

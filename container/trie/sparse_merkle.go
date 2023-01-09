@@ -1,4 +1,5 @@
 // Package trie defines utilities for sparse merkle tries for Ethereum consensus.
+// trie包定义了spase merkle tries的工具，对于Ethereum consensus
 package trie
 
 import (
@@ -15,6 +16,7 @@ import (
 
 // SparseMerkleTrie implements a sparse, general purpose Merkle trie to be used
 // across Ethereum consensus functionality.
+// SparseMerkleTrie定义了一个稀疏的，通用的Merkle trie，来用于Ethereum的共识功能
 type SparseMerkleTrie struct {
 	depth         uint
 	branches      [][][]byte
@@ -22,6 +24,7 @@ type SparseMerkleTrie struct {
 }
 
 // NewTrie returns a new merkle trie filled with zerohashes to use.
+// NewTrie返回一个新的merkle trie，充满了zerohashes供使用
 func NewTrie(depth uint64) (*SparseMerkleTrie, error) {
 	var zeroBytes [32]byte
 	items := [][]byte{zeroBytes[:]}
@@ -65,6 +68,7 @@ func (m *SparseMerkleTrie) validate() error {
 }
 
 // GenerateTrieFromItems constructs a Merkle trie from a sequence of byte slices.
+// GenerateTrieFromItems从一系列的byte slices构建一个Merkle trie
 func GenerateTrieFromItems(items [][]byte, depth uint64) (*SparseMerkleTrie, error) {
 	if len(items) == 0 {
 		return nil, errors.New("no items provided to generate Merkle trie")
@@ -116,6 +120,7 @@ func (m *SparseMerkleTrie) HashTreeRoot() ([32]byte, error) {
 }
 
 // Insert an item into the trie.
+// 将一个item插入到trie中
 func (m *SparseMerkleTrie) Insert(item []byte, index int) error {
 	if index < 0 {
 		return fmt.Errorf("negative index provided: %d", index)

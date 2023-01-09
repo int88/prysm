@@ -31,6 +31,7 @@ var (
 )
 
 // DepositFetcher defines a struct which can retrieve deposit information from a store.
+// DepositFetcher定义了一个结构，可以从一个store中获取deposit信息
 type DepositFetcher interface {
 	AllDeposits(ctx context.Context, untilBlk *big.Int) []*ethpb.Deposit
 	DepositByPubkey(ctx context.Context, pubKey []byte) (*ethpb.Deposit, *big.Int)
@@ -79,6 +80,7 @@ func New() (*DepositCache, error) {
 
 // InsertDeposit into the database. If deposit or block number are nil
 // then this method does nothing.
+// InsertDeposit插入deposit到db中，如果deposit或者block number为nil，则这个方法什么都不做
 func (dc *DepositCache) InsertDeposit(ctx context.Context, d *ethpb.Deposit, blockNum uint64, index int64, depositRoot [32]byte) error {
 	ctx, span := trace.StartSpan(ctx, "DepositsCache.InsertDeposit")
 	defer span.End()
@@ -98,6 +100,7 @@ func (dc *DepositCache) InsertDeposit(ctx context.Context, d *ethpb.Deposit, blo
 		return errors.Errorf("wanted deposit with index %d to be inserted but received %d", len(dc.deposits), index)
 	}
 	// Keep the slice sorted on insertion in order to avoid costly sorting on retrieval.
+	// 保持slice有序，在插入的时候，为了避免在获取的时候排序的损耗
 	heightIdx := sort.Search(len(dc.deposits), func(i int) bool { return dc.deposits[i].Index >= index })
 	depCtr := &ethpb.DepositContainer{Deposit: d, Eth1BlockHeight: blockNum, DepositRoot: depositRoot[:], Index: index}
 	newDeposits := append(
@@ -106,6 +109,7 @@ func (dc *DepositCache) InsertDeposit(ctx context.Context, d *ethpb.Deposit, blo
 	dc.deposits = append(dc.deposits[:heightIdx], newDeposits...)
 	// Append the deposit to our map, in the event no deposits
 	// exist for the pubkey , it is simply added to the map.
+	// 扩展deposit到我们的map，万一对于pubkey没有deposits存在，这就只是简单地加到map中
 	pubkey := bytesutil.ToBytes48(d.Data.PublicKey)
 	dc.depositsByKey[pubkey] = append(dc.depositsByKey[pubkey], depCtr)
 	historicalDepositsCount.Inc()
@@ -229,6 +233,8 @@ func (dc *DepositCache) allDeposits(untilBlk *big.Int) []*ethpb.Deposit {
 
 // DepositsNumberAndRootAtHeight returns number of deposits made up to blockheight and the
 // root that corresponds to the latest deposit at that blockheight.
+// DepositsNumberAndRootAtHeight返回到达blockHeight的deposits的数目以及root，对应最新的deposit
+// 在blockheight
 func (dc *DepositCache) DepositsNumberAndRootAtHeight(ctx context.Context, blockHeight *big.Int) (uint64, [32]byte) {
 	ctx, span := trace.StartSpan(ctx, "DepositsCache.DepositsNumberAndRootAtHeight")
 	defer span.End()

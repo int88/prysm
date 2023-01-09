@@ -121,6 +121,8 @@ func (s *Service) Status() error {
 
 // RegisterValidator registers a validator with the builder relay network.
 // It also saves the registration object to the DB.
+// RegisterValidator注册一个validator，通过builder relay network
+// 它同时保存registartion对象到DB中
 func (s *Service) RegisterValidator(ctx context.Context, reg []*ethpb.SignedValidatorRegistrationV1) error {
 	ctx, span := trace.StartSpan(ctx, "builder.RegisterValidator")
 	defer span.End()
@@ -149,6 +151,7 @@ func (s *Service) RegisterValidator(ctx context.Context, reg []*ethpb.SignedVali
 		return errors.Wrap(err, "could not register validator(s)")
 	}
 
+	// 通过validator ID保存registrations
 	return s.cfg.beaconDB.SaveRegistrationsByValidatorIDs(ctx, idxs, msgs)
 }
 

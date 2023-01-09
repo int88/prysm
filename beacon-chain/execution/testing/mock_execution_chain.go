@@ -44,6 +44,7 @@ type Chain struct {
 var GenesisTime = time.Date(2000, 1, 1, 0, 0, 0, 0, time.UTC).Unix()
 
 // New creates a new mock chain with empty block info.
+// New创建一个新的mock chain，有着空的empty block
 func New() *Chain {
 	return &Chain{
 		HashesByHeight:    make(map[int][]byte),
@@ -253,6 +254,7 @@ func (r *RPCClient) BatchCall(b []rpc.BatchElem) error {
 }
 
 // InsertBlock adds provided block info into the chain.
+// InsertBlock添加提供的block info信息到chain中
 func (m *Chain) InsertBlock(height int, time uint64, hash []byte) *Chain {
 	m.HashesByHeight[height] = hash
 	m.TimesByHeight[height] = time

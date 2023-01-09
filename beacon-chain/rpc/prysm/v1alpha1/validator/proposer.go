@@ -82,6 +82,7 @@ func (vs *Server) ProposeBeaconBlock(ctx context.Context, req *ethpb.GenericSign
 }
 
 // PrepareBeaconProposer caches and updates the fee recipient for the given proposer.
+// PrepareBeaconProposer缓存并且更新fee recipient，对于给定的proposer
 func (vs *Server) PrepareBeaconProposer(
 	ctx context.Context, request *ethpb.PrepareBeaconProposerRequest,
 ) (*emptypb.Empty, error) {
@@ -234,8 +235,10 @@ func (vs *Server) computeStateRoot(ctx context.Context, block interfaces.SignedB
 }
 
 // SubmitValidatorRegistrations submits validator registrations.
+// SubmitValidatorRegistrations提交validator registrations
 func (vs *Server) SubmitValidatorRegistrations(ctx context.Context, reg *ethpb.SignedValidatorRegistrationsV1) (*emptypb.Empty, error) {
 	if vs.BlockBuilder == nil || !vs.BlockBuilder.Configured() {
+		// 不能注册block builder
 		return &emptypb.Empty{}, status.Errorf(codes.InvalidArgument, "Could not register block builder: %v", builder.ErrNoBuilder)
 	}
 

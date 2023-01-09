@@ -16,11 +16,12 @@ type BeaconChainConfig struct {
 	GenesisSlot  types.Slot  `yaml:"GENESIS_SLOT"`  // GenesisSlot represents the first canonical slot number of the beacon chain.
 	GenesisEpoch types.Epoch `yaml:"GENESIS_EPOCH"` // GenesisEpoch represents the first canonical epoch number of the beacon chain.
 	// FarFutureEpoch代表一个在未来很远的epoch，作为默认的penalization epoch，对于validators
-	FarFutureEpoch           types.Epoch `yaml:"FAR_FUTURE_EPOCH"`            // FarFutureEpoch represents a epoch extremely far away in the future used as the default penalization epoch for validators.
-	FarFutureSlot            types.Slot  `yaml:"FAR_FUTURE_SLOT"`             // FarFutureSlot represents a slot extremely far away in the future.
-	BaseRewardsPerEpoch      uint64      `yaml:"BASE_REWARDS_PER_EPOCH"`      // BaseRewardsPerEpoch is used to calculate the per epoch rewards.
-	DepositContractTreeDepth uint64      `yaml:"DEPOSIT_CONTRACT_TREE_DEPTH"` // DepositContractTreeDepth depth of the Merkle trie of deposits in the validator deposit contract on the PoW chain.
-	JustificationBitsLength  uint64      `yaml:"JUSTIFICATION_BITS_LENGTH"`   // JustificationBitsLength defines number of epochs to track when implementing k-finality in Casper FFG.
+	FarFutureEpoch      types.Epoch `yaml:"FAR_FUTURE_EPOCH"`       // FarFutureEpoch represents a epoch extremely far away in the future used as the default penalization epoch for validators.
+	FarFutureSlot       types.Slot  `yaml:"FAR_FUTURE_SLOT"`        // FarFutureSlot represents a slot extremely far away in the future.
+	BaseRewardsPerEpoch uint64      `yaml:"BASE_REWARDS_PER_EPOCH"` // BaseRewardsPerEpoch is used to calculate the per epoch rewards.
+	// DepositContractTreeDepths是deposits的Merkle trie的深度，在validator的deposit contract，在PoW chain中
+	DepositContractTreeDepth uint64 `yaml:"DEPOSIT_CONTRACT_TREE_DEPTH"` // DepositContractTreeDepth depth of the Merkle trie of deposits in the validator deposit contract on the PoW chain.
+	JustificationBitsLength  uint64 `yaml:"JUSTIFICATION_BITS_LENGTH"`   // JustificationBitsLength defines number of epochs to track when implementing k-finality in Casper FFG.
 
 	// Misc constants.
 	PresetBase          string `yaml:"PRESET_BASE" spec:"true"`           // PresetBase represents the underlying spec preset this config is based on.
@@ -29,10 +30,11 @@ type BeaconChainConfig struct {
 	// MaxValidatorsPerCommittee定义了一个committee大小的上限
 	MaxValidatorsPerCommittee uint64 `yaml:"MAX_VALIDATORS_PER_COMMITTEE" spec:"true"` // MaxValidatorsPerCommittee defines the upper bound of the size of a committee.
 	// MaxCommitteesPerSlot定义了单个slot最大的committee的数目
-	MaxCommitteesPerSlot           uint64 `yaml:"MAX_COMMITTEES_PER_SLOT" spec:"true"`            // MaxCommitteesPerSlot defines the max amount of committee in a single slot.
-	MinPerEpochChurnLimit          uint64 `yaml:"MIN_PER_EPOCH_CHURN_LIMIT" spec:"true"`          // MinPerEpochChurnLimit is the minimum amount of churn allotted for validator rotations.
-	ChurnLimitQuotient             uint64 `yaml:"CHURN_LIMIT_QUOTIENT" spec:"true"`               // ChurnLimitQuotient is used to determine the limit of how many validators can rotate per epoch.
-	ShuffleRoundCount              uint64 `yaml:"SHUFFLE_ROUND_COUNT" spec:"true"`                // ShuffleRoundCount is used for retrieving the permuted index.
+	MaxCommitteesPerSlot  uint64 `yaml:"MAX_COMMITTEES_PER_SLOT" spec:"true"`   // MaxCommitteesPerSlot defines the max amount of committee in a single slot.
+	MinPerEpochChurnLimit uint64 `yaml:"MIN_PER_EPOCH_CHURN_LIMIT" spec:"true"` // MinPerEpochChurnLimit is the minimum amount of churn allotted for validator rotations.
+	ChurnLimitQuotient    uint64 `yaml:"CHURN_LIMIT_QUOTIENT" spec:"true"`      // ChurnLimitQuotient is used to determine the limit of how many validators can rotate per epoch.
+	ShuffleRoundCount     uint64 `yaml:"SHUFFLE_ROUND_COUNT" spec:"true"`       // ShuffleRoundCount is used for retrieving the permuted index.
+	// MinGenesisActiveValidatorCount决定了多少validator deposits需要启动beacon chain
 	MinGenesisActiveValidatorCount uint64 `yaml:"MIN_GENESIS_ACTIVE_VALIDATOR_COUNT" spec:"true"` // MinGenesisActiveValidatorCount defines how many validator deposits needed to kick off beacon chain.
 	MinGenesisTime                 uint64 `yaml:"MIN_GENESIS_TIME" spec:"true"`                   // MinGenesisTime is the time that needed to pass before kicking off beacon chain.
 	TargetAggregatorsPerCommittee  uint64 `yaml:"TARGET_AGGREGATORS_PER_COMMITTEE" spec:"true"`   // TargetAggregatorsPerCommittee defines the number of aggregators inside one committee.

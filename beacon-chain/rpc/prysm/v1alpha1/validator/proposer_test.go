@@ -367,6 +367,7 @@ func TestProposer_PendingDeposits_FollowsCorrectEth1Block(t *testing.T) {
 	height := big.NewInt(int64(params.BeaconConfig().Eth1FollowDistance))
 	newHeight := big.NewInt(height.Int64() + 11000)
 	p := &mockExecution.Chain{
+		// 设置LatestBlockNumber
 		LatestBlockNumber: height,
 		HashesByHeight: map[int][]byte{
 			int(height.Int64()):    []byte("0x0"),
@@ -377,12 +378,14 @@ func TestProposer_PendingDeposits_FollowsCorrectEth1Block(t *testing.T) {
 	var votes []*ethpb.Eth1Data
 
 	vote := &ethpb.Eth1Data{
+		// 设置eth1 data
 		BlockHash:    bytesutil.PadTo([]byte("0x1"), 32),
 		DepositRoot:  make([]byte, 32),
 		DepositCount: 7,
 	}
 	period := uint64(params.BeaconConfig().SlotsPerEpoch.Mul(uint64(params.BeaconConfig().EpochsPerEth1VotingPeriod)))
 	for i := 0; i <= int(period/2); i++ {
+		// 遍历二分之一的period
 		votes = append(votes, vote)
 	}
 
@@ -393,7 +396,8 @@ func TestProposer_PendingDeposits_FollowsCorrectEth1Block(t *testing.T) {
 			DepositCount: 5,
 		},
 		Eth1DepositIndex: 1,
-		Eth1DataVotes:    votes,
+		// 插入eth1 data votes
+		Eth1DataVotes: votes,
 	})
 	require.NoError(t, err)
 	blk := util.NewBeaconBlock()
@@ -406,6 +410,7 @@ func TestProposer_PendingDeposits_FollowsCorrectEth1Block(t *testing.T) {
 	var mockCreds [32]byte
 
 	// Using the merkleTreeIndex as the block number for this test...
+	// 使用merkleTreeIndex作为block number，在这个测试中
 	readyDeposits := []*ethpb.DepositContainer{
 		{
 			Index:           0,
@@ -457,18 +462,23 @@ func TestProposer_PendingDeposits_FollowsCorrectEth1Block(t *testing.T) {
 
 	depositTrie, err := trie.NewTrie(params.BeaconConfig().DepositContractTreeDepth)
 	require.NoError(t, err, "Could not setup deposit trie")
+	// ready deposits和recent deposits
 	for _, dp := range append(readyDeposits, recentDeposits...) {
 		depositHash, err := dp.Deposit.Data.HashTreeRoot()
+		// 不能确定deposit的哈希值
 		require.NoError(t, err, "Unable to determine hashed value of deposit")
 
+		// 将deposit hash插入depositTrie
 		assert.NoError(t, depositTrie.Insert(depositHash[:], int(dp.Index)))
 		root, err := depositTrie.HashTreeRoot()
 		require.NoError(t, err)
+		// 在depositCache中插入deposit
 		assert.NoError(t, depositCache.InsertDeposit(ctx, dp.Deposit, dp.Eth1BlockHeight, dp.Index, root))
 	}
 	for _, dp := range recentDeposits {
 		root, err := depositTrie.HashTreeRoot()
 		require.NoError(t, err)
+		// 插入pending deposit
 		depositCache.InsertPendingDeposit(ctx, dp.Deposit, dp.Eth1BlockHeight, dp.Index, root)
 	}
 
@@ -484,12 +494,15 @@ func TestProposer_PendingDeposits_FollowsCorrectEth1Block(t *testing.T) {
 
 	deposits, err := bs.deposits(ctx, beaconState, &ethpb.Eth1Data{})
 	require.NoError(t, err)
+	// 返回期望之外的一系列deposits
 	assert.Equal(t, 0, len(deposits), "Received unexpected list of deposits")
 
 	// It should also return the recent deposits after their follow window.
+	/// 应该返回最近的deposits，在它们的follow window之后
 	p.LatestBlockNumber = big.NewInt(0).Add(p.LatestBlockNumber, big.NewInt(10000))
 	// we should get our pending deposits once this vote pushes the vote tally to include
 	// the updated eth1 data.
+	// 我们应该获取我们的pending deposits，一旦这个vote推送vote tally,包括更新的eth1 data
 	deposits, err = bs.deposits(ctx, beaconState, vote)
 	require.NoError(t, err)
 	assert.Equal(t, len(recentDeposits), len(deposits), "Received unexpected number of pending deposits")
@@ -544,6 +557,7 @@ func TestProposer_PendingDeposits_CantReturnBelowStateEth1DepositIndex(t *testin
 
 	var recentDeposits []*ethpb.DepositContainer
 	for i := int64(2); i < 16; i++ {
+		// 扩展Deposit Container
 		recentDeposits = append(recentDeposits, &ethpb.DepositContainer{
 			Index: i,
 			Deposit: &ethpb.Deposit{
@@ -586,6 +600,7 @@ func TestProposer_PendingDeposits_CantReturnBelowStateEth1DepositIndex(t *testin
 	}
 
 	// It should also return the recent deposits after their follow window.
+	// 它应该同时返回最近的deposits，在follow window之后
 	p.LatestBlockNumber = big.NewInt(0).Add(p.LatestBlockNumber, big.NewInt(10000))
 	deposits, err := bs.deposits(ctx, beaconState, &ethpb.Eth1Data{})
 	require.NoError(t, err)
@@ -643,6 +658,7 @@ func TestProposer_PendingDeposits_CantReturnMoreThanMax(t *testing.T) {
 	}
 
 	var recentDeposits []*ethpb.DepositContainer
+	// 插入20个deposits
 	for i := int64(2); i < 22; i++ {
 		recentDeposits = append(recentDeposits, &ethpb.DepositContainer{
 			Index: i,
@@ -689,6 +705,7 @@ func TestProposer_PendingDeposits_CantReturnMoreThanMax(t *testing.T) {
 	p.LatestBlockNumber = big.NewInt(0).Add(p.LatestBlockNumber, big.NewInt(10000))
 	deposits, err := bs.deposits(ctx, beaconState, &ethpb.Eth1Data{})
 	require.NoError(t, err)
+	// 只能返回max个deposits
 	assert.Equal(t, params.BeaconConfig().MaxDeposits, uint64(len(deposits)), "Received unexpected number of pending deposits")
 }
 
@@ -787,10 +804,12 @@ func TestProposer_PendingDeposits_CantReturnMoreThanDepositCount(t *testing.T) {
 	p.LatestBlockNumber = big.NewInt(0).Add(p.LatestBlockNumber, big.NewInt(10000))
 	deposits, err := bs.deposits(ctx, beaconState, &ethpb.Eth1Data{})
 	require.NoError(t, err)
+	// 返回三个deposits?
 	assert.Equal(t, 3, len(deposits), "Received unexpected number of pending deposits")
 }
 
 func TestProposer_DepositTrie_UtilizesCachedFinalizedDeposits(t *testing.T) {
+	// 使用缓存的finalized deposits
 	ctx := context.Background()
 
 	height := big.NewInt(int64(params.BeaconConfig().Eth1FollowDistance))
@@ -1036,6 +1055,7 @@ func TestProposer_DepositTrie_RebuildTrie(t *testing.T) {
 }
 
 func TestProposer_ValidateDepositTrie(t *testing.T) {
+	// 校验deposit trie
 	tt := []struct {
 		name            string
 		eth1dataCreator func() *ethpb.Eth1Data
@@ -1045,6 +1065,7 @@ func TestProposer_ValidateDepositTrie(t *testing.T) {
 		{
 			name: "invalid trie items",
 			eth1dataCreator: func() *ethpb.Eth1Data {
+				// eth1 data中有10个deposits
 				return &ethpb.Eth1Data{DepositRoot: []byte{}, DepositCount: 10, BlockHash: []byte{}}
 			},
 			trieCreator: func() *trie.SparseMerkleTrie {
@@ -1056,6 +1077,7 @@ func TestProposer_ValidateDepositTrie(t *testing.T) {
 		},
 		{
 			name: "invalid deposit root",
+			// 非法的deposit root
 			eth1dataCreator: func() *ethpb.Eth1Data {
 				newTrie, err := trie.NewTrie(params.BeaconConfig().DepositContractTreeDepth)
 				assert.NoError(t, err)
@@ -1084,6 +1106,7 @@ func TestProposer_ValidateDepositTrie(t *testing.T) {
 				assert.NoError(t, newTrie.Insert([]byte{'c'}, 2))
 				rt, err := newTrie.HashTreeRoot()
 				require.NoError(t, err)
+				// 将new Trie的root进行赋值
 				return &ethpb.Eth1Data{DepositRoot: rt[:], DepositCount: 3, BlockHash: []byte{}}
 			},
 			trieCreator: func() *trie.SparseMerkleTrie {
@@ -1165,6 +1188,7 @@ func TestProposer_Eth1Data_MajorityVote(t *testing.T) {
 		hash := majorityVoteEth1Data.BlockHash
 
 		expectedHash := []byte("first")
+		// 得到的hash是first
 		assert.DeepEqual(t, expectedHash, hash)
 	})
 
@@ -1241,6 +1265,7 @@ func TestProposer_Eth1Data_MajorityVote(t *testing.T) {
 	})
 
 	t.Run("highest count before range - choose highest count within range", func(t *testing.T) {
+		// 选择range范围内数目最高的
 		t.Skip()
 		p := mockExecution.New().
 			InsertBlock(49, earliestValidTime-1, []byte("before_range")).
@@ -1315,6 +1340,7 @@ func TestProposer_Eth1Data_MajorityVote(t *testing.T) {
 	})
 
 	t.Run("highest count on unknown block - choose known block with highest count", func(t *testing.T) {
+		// 选择count最高的已知的block
 		t.Skip()
 		p := mockExecution.New().
 			InsertBlock(50, earliestValidTime, []byte("earliest")).
@@ -1382,6 +1408,7 @@ func TestProposer_Eth1Data_MajorityVote(t *testing.T) {
 	})
 
 	t.Run("no votes in range - choose most recent block", func(t *testing.T) {
+		// 在range范围内没有vote - 选择最近的block
 		p := mockExecution.New().
 			InsertBlock(49, earliestValidTime-1, []byte("before_range")).
 			InsertBlock(51, earliestValidTime+1, []byte("first")).
@@ -1418,6 +1445,7 @@ func TestProposer_Eth1Data_MajorityVote(t *testing.T) {
 	})
 
 	t.Run("no votes - choose more recent block", func(t *testing.T) {
+		// 没有votes - 选择最近的block
 		p := mockExecution.New().
 			InsertBlock(50, earliestValidTime, []byte("earliest")).
 			InsertBlock(100, latestValidTime, []byte("latest"))
@@ -1448,6 +1476,7 @@ func TestProposer_Eth1Data_MajorityVote(t *testing.T) {
 	})
 
 	t.Run("no votes and more recent block has less deposits - choose current eth1data", func(t *testing.T) {
+		// 没有votes并且更近的block有着更少的deposits，选择当前的eth1data
 		p := mockExecution.New().
 			InsertBlock(50, earliestValidTime, []byte("earliest")).
 			InsertBlock(100, latestValidTime, []byte("latest"))
@@ -1458,6 +1487,7 @@ func TestProposer_Eth1Data_MajorityVote(t *testing.T) {
 		require.NoError(t, err)
 
 		// Set the deposit count in current eth1data to exceed the latest most recent block's deposit count.
+		// 在当前的eth1data中设置deposit count，超过最近的block的deposit count
 		currentEth1Data := &ethpb.Eth1Data{DepositCount: 2, BlockHash: []byte("current")}
 		ps := &Server{
 			ChainStartFetcher: p,
@@ -1479,6 +1509,7 @@ func TestProposer_Eth1Data_MajorityVote(t *testing.T) {
 	})
 
 	t.Run("same count - choose more recent block", func(t *testing.T) {
+		// 同样的count - 选择更近的block
 		t.Skip()
 		p := mockExecution.New().
 			InsertBlock(50, earliestValidTime, []byte("earliest")).
@@ -1515,6 +1546,7 @@ func TestProposer_Eth1Data_MajorityVote(t *testing.T) {
 	})
 
 	t.Run("highest count on block with less deposits - choose another block", func(t *testing.T) {
+		// 最高count的block有着更少的deposits，选择另一个block
 		t.Skip()
 		p := mockExecution.New().
 			InsertBlock(50, earliestValidTime, []byte("earliest")).
@@ -1527,6 +1559,7 @@ func TestProposer_Eth1Data_MajorityVote(t *testing.T) {
 			Eth1DataVotes: []*ethpb.Eth1Data{
 				{BlockHash: []byte("no_new_deposits"), DepositCount: 0},
 				{BlockHash: []byte("no_new_deposits"), DepositCount: 0},
+				// 选择count更高的那一个
 				{BlockHash: []byte("second"), DepositCount: 1},
 			},
 		})
@@ -1552,6 +1585,7 @@ func TestProposer_Eth1Data_MajorityVote(t *testing.T) {
 	})
 
 	t.Run("only one block at earliest valid time - choose this block", func(t *testing.T) {
+		// 只有一个block在earliest valid time，选择这个block
 		t.Skip()
 		p := mockExecution.New().InsertBlock(50, earliestValidTime, []byte("earliest"))
 
@@ -1583,6 +1617,7 @@ func TestProposer_Eth1Data_MajorityVote(t *testing.T) {
 	})
 
 	t.Run("vote on last block before range - choose next block", func(t *testing.T) {
+		// 对于range之前的最后一个block进行vote - 选择下一个block
 		p := mockExecution.New().
 			InsertBlock(49, earliestValidTime-1, []byte("before_range")).
 			// It is important to have height `50` with time `earliestValidTime+1` and not `earliestValidTime`
@@ -1618,6 +1653,7 @@ func TestProposer_Eth1Data_MajorityVote(t *testing.T) {
 	})
 
 	t.Run("no deposits - choose chain start eth1data", func(t *testing.T) {
+		// 没有deposits - 选择chain start eth1data
 		p := mockExecution.New().
 			InsertBlock(50, earliestValidTime, []byte("earliest")).
 			InsertBlock(100, latestValidTime, []byte("latest"))
@@ -2367,12 +2403,14 @@ func TestProposer_PrepareBeaconProposerOverlapping(t *testing.T) {
 	// New validator
 	f := bytesutil.PadTo([]byte{0xFF, 0x01, 0xFF, 0x01, 0xFF, 0x01, 0xFF, 0x01, 0xFF, 0xFF, 0x01, 0xFF, 0x01, 0xFF, 0x01, 0xFF, 0x01, 0xFF}, fieldparams.FeeRecipientLength)
 	req := &ethpb.PrepareBeaconProposerRequest{
+		// 构建Recipients
 		Recipients: []*ethpb.PrepareBeaconProposerRequest_FeeRecipientContainer{
 			{FeeRecipient: f, ValidatorIndex: 1},
 		},
 	}
 	_, err := proposerServer.PrepareBeaconProposer(ctx, req)
 	require.NoError(t, err)
+	// 更新validator indices的fee recipient address失败
 	require.LogsContain(t, hook, "Updated fee recipient addresses for validator indices")
 
 	// Same validator
@@ -2382,6 +2420,7 @@ func TestProposer_PrepareBeaconProposerOverlapping(t *testing.T) {
 	require.LogsDoNotContain(t, hook, "Updated fee recipient addresses for validator indices")
 
 	// Same validator with different fee recipient
+	// 同一个validator，有着不同的fee recipient
 	hook.Reset()
 	f = bytesutil.PadTo([]byte{0x01, 0x01, 0xFF, 0x01, 0xFF, 0x01, 0xFF, 0x01, 0xFF, 0xFF, 0x01, 0xFF, 0x01, 0xFF, 0x01, 0xFF, 0x01, 0xFF}, fieldparams.FeeRecipientLength)
 	req = &ethpb.PrepareBeaconProposerRequest{
@@ -2394,6 +2433,7 @@ func TestProposer_PrepareBeaconProposerOverlapping(t *testing.T) {
 	require.LogsContain(t, hook, "Updated fee recipient addresses for validator indices")
 
 	// More than one validator
+	// 超过一个validator
 	hook.Reset()
 	f = bytesutil.PadTo([]byte{0x01, 0x01, 0xFF, 0x01, 0xFF, 0x01, 0xFF, 0x01, 0xFF, 0xFF, 0x01, 0xFF, 0x01, 0xFF, 0x01, 0xFF, 0x01, 0xFF}, fieldparams.FeeRecipientLength)
 	req = &ethpb.PrepareBeaconProposerRequest{
@@ -2456,6 +2496,7 @@ func TestProposer_SubmitValidatorRegistrations(t *testing.T) {
 func majorityVoteBoundaryTime(slot types.Slot) (uint64, uint64) {
 	s := params.BeaconConfig().SlotsPerEpoch.Mul(uint64(params.BeaconConfig().EpochsPerEth1VotingPeriod))
 	slotStartTime := uint64(mockExecution.GenesisTime) + uint64((slot - (slot % (s))).Mul(params.BeaconConfig().SecondsPerSlot))
+	// 最早的valid time和最晚的valid time
 	earliestValidTime := slotStartTime - 2*params.BeaconConfig().SecondsPerETH1Block*params.BeaconConfig().Eth1FollowDistance
 	latestValidTime := slotStartTime - params.BeaconConfig().SecondsPerETH1Block*params.BeaconConfig().Eth1FollowDistance
 
