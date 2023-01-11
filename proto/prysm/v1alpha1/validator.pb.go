@@ -1116,7 +1116,9 @@ type DutiesResponse struct {
 
 	// Deprecated: Do not use.
 	Duties             []*DutiesResponse_Duty `protobuf:"bytes,1,rep,name=duties,proto3" json:"duties,omitempty"`
+	// 当前Epoch的duties
 	CurrentEpochDuties []*DutiesResponse_Duty `protobuf:"bytes,2,rep,name=current_epoch_duties,json=currentEpochDuties,proto3" json:"current_epoch_duties,omitempty"`
+	// 下一个Epoch的duties
 	NextEpochDuties    []*DutiesResponse_Duty `protobuf:"bytes,3,rep,name=next_epoch_duties,json=nextEpochDuties,proto3" json:"next_epoch_duties,omitempty"`
 }
 

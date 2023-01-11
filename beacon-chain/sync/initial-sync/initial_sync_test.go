@@ -157,6 +157,7 @@ func TestMakeSequence(t *testing.T) {
 
 // Connect peers with local host. This method sets up peer statuses and the appropriate handlers
 // for each test peer.
+// 和local host连接peers，这个方法设置peer status以及合适的handlers，对于每个test peer
 func connectPeers(t *testing.T, host *p2pt.TestP2P, data []*peerData, peerStatus *peers.Status) {
 	for _, d := range data {
 		connectPeer(t, host, d, peerStatus)

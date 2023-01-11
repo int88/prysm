@@ -49,13 +49,14 @@ func ValidateNilSyncContribution(s *ethpb.SignedContributionAndProof) error {
 // Spec code:
 // def get_next_sync_committee(state: BeaconState) -> SyncCommittee:
 //
-//	"""
-//	Return the next sync committee, with possible pubkey duplicates.
-//	"""
-//	indices = get_next_sync_committee_indices(state)
-//	pubkeys = [state.validators[index].pubkey for index in indices]
-//	aggregate_pubkey = bls.AggregatePKs(pubkeys)
-//	return SyncCommittee(pubkeys=pubkeys, aggregate_pubkey=aggregate_pubkey)
+//		"""
+//		Return the next sync committee, with possible pubkey duplicates.
+//	 返回下一个sync committee，可能有pubkey的重复
+//		"""
+//		indices = get_next_sync_committee_indices(state)
+//		pubkeys = [state.validators[index].pubkey for index in indices]
+//		aggregate_pubkey = bls.AggregatePKs(pubkeys)
+//		return SyncCommittee(pubkeys=pubkeys, aggregate_pubkey=aggregate_pubkey)
 func NextSyncCommittee(ctx context.Context, s state.BeaconState) (*ethpb.SyncCommittee, error) {
 	indices, err := NextSyncCommitteeIndices(ctx, s)
 	if err != nil {
@@ -71,12 +72,14 @@ func NextSyncCommittee(ctx context.Context, s state.BeaconState) (*ethpb.SyncCom
 		return nil, err
 	}
 	return &ethpb.SyncCommittee{
+		// 聚合public keys
 		Pubkeys:         pubkeys,
 		AggregatePubkey: aggregated.Marshal(),
 	}, nil
 }
 
 // NextSyncCommitteeIndices returns the next sync committee indices for a given state.
+// NextSyncCommitteeIndices返回下一个sync committee的索引，对于一个给定的state
 //
 // Spec code:
 // def get_next_sync_committee_indices(state: BeaconState) -> Sequence[ValidatorIndex]:

@@ -44,6 +44,7 @@ func TestGetDuties_OK(t *testing.T) {
 	require.NoError(t, err)
 	eth1Data, err := util.DeterministicEth1Data(len(deposits))
 	require.NoError(t, err)
+	// 构建genesis beacon state
 	bs, err := transition.GenesisBeaconState(context.Background(), deposits, 0, eth1Data)
 	require.NoError(t, err, "Could not setup genesis bs")
 	genesisRoot, err := genesis.Block.HashTreeRoot()
@@ -67,17 +68,21 @@ func TestGetDuties_OK(t *testing.T) {
 	}
 
 	// Test the first validator in registry.
+	// 测试registry中的第一个validator
 	req := &ethpb.DutiesRequest{
 		PublicKeys: [][]byte{deposits[0].Data.PublicKey},
 	}
 	res, err := vs.GetDuties(context.Background(), req)
+	// 调用epoch committee assignment失败
 	require.NoError(t, err, "Could not call epoch committee assignment")
 	if res.CurrentEpochDuties[0].AttesterSlot > bs.Slot()+params.BeaconConfig().SlotsPerEpoch {
 		t.Errorf("Assigned slot %d can't be higher than %d",
+			// 赋予的slot不能高于SlotsPerEpoch
 			res.CurrentEpochDuties[0].AttesterSlot, bs.Slot()+params.BeaconConfig().SlotsPerEpoch)
 	}
 
 	// Test the last validator in registry.
+	// 测试registry中的最后一个validator
 	lastValidatorIndex := depChainStart - 1
 	req = &ethpb.DutiesRequest{
 		PublicKeys: [][]byte{deposits[lastValidatorIndex].Data.PublicKey},
@@ -90,6 +95,7 @@ func TestGetDuties_OK(t *testing.T) {
 	}
 
 	// We request for duties for all validators.
+	// 为所有的validtors请求duties
 	req = &ethpb.DutiesRequest{
 		PublicKeys: pubKeys,
 		Epoch:      0,
@@ -133,6 +139,7 @@ func TestGetAltairDuties_SyncCommitteeOK(t *testing.T) {
 		indices[i] = uint64(i)
 	}
 	require.NoError(t, bs.SetSlot(params.BeaconConfig().SlotsPerEpoch*types.Slot(params.BeaconConfig().EpochsPerSyncCommitteePeriod)-1))
+	// 更新sync committee cache
 	require.NoError(t, helpers.UpdateSyncCommitteeCache(bs))
 
 	pubkeysAs48ByteType := make([][fieldparams.BLSPubkeyLength]byte, len(pubKeys))
@@ -192,6 +199,7 @@ func TestGetAltairDuties_SyncCommitteeOK(t *testing.T) {
 	}
 
 	// Current epoch and next epoch duties should not be equal at the sync period epoch boundary.
+	// 当前epoch和下一个epoch的duties不能相等，在sync period的epoch boundary
 	req = &ethpb.DutiesRequest{
 		PublicKeys: pubKeys,
 		Epoch:      params.BeaconConfig().EpochsPerSyncCommitteePeriod - 1,
@@ -294,10 +302,12 @@ func TestGetBellatrixDuties_SyncCommitteeOK(t *testing.T) {
 	for i := 0; i < len(res.CurrentEpochDuties); i++ {
 		assert.Equal(t, true, res.CurrentEpochDuties[i].IsSyncCommittee)
 		// Current epoch and next epoch duties should be equal before the sync period epoch boundary.
+		// 当前epoch和下一个epoch的duties应该相等，在sync period epoch boundary
 		assert.Equal(t, res.CurrentEpochDuties[i].IsSyncCommittee, res.NextEpochDuties[i].IsSyncCommittee)
 	}
 
 	// Current epoch and next epoch duties should not be equal at the sync period epoch boundary.
+	// 当前epoch和下一个epoch的duties应该相等，在sync period epoch boundary
 	req = &ethpb.DutiesRequest{
 		PublicKeys: pubKeys,
 		Epoch:      params.BeaconConfig().EpochsPerSyncCommitteePeriod - 1,
@@ -593,6 +603,7 @@ func TestStreamDuties_OK_ChainReorg(t *testing.T) {
 	}(t)
 	// Fire a reorg event. This needs to trigger
 	// a recomputation and resending of duties over the stream.
+	// 触发一个reorg事件，这需要触发一个recomputation并且在stream之上重新发送duties
 	for sent := 0; sent == 0; {
 		sent = vs.StateNotifier.StateFeed().Send(&feed.Event{
 			Type: statefeed.Reorg,

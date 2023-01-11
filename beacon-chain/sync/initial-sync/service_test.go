@@ -42,6 +42,7 @@ func TestService_InitStartStop(t *testing.T) {
 		{
 			name: "head is not ready",
 			assert: func() {
+				// 等待state初始化完成
 				assert.LogsContain(t, hook, "Waiting for state to be initialized")
 			},
 		},
@@ -49,6 +50,7 @@ func TestService_InitStartStop(t *testing.T) {
 			name: "future genesis",
 			chainService: func() *mock.ChainService {
 				// Set to future time (genesis time hasn't arrived yet).
+				// 设置为future time（genesis time还没有到）
 				st, err := util.NewBeaconState()
 				require.NoError(t, err)
 
@@ -63,6 +65,7 @@ func TestService_InitStartStop(t *testing.T) {
 			},
 			methodRuns: func(fd *event.Feed) {
 				// Send valid event.
+				// 发送合法的事件
 				fd.Send(&feed.Event{
 					Type: statefeed.Initialized,
 					Data: &statefeed.InitializedData{
@@ -80,6 +83,7 @@ func TestService_InitStartStop(t *testing.T) {
 			name: "zeroth epoch",
 			chainService: func() *mock.ChainService {
 				// Set to nearby slot.
+				// 设置为neary slot
 				st, err := util.NewBeaconState()
 				require.NoError(t, err)
 				return &mock.ChainService{
@@ -111,6 +115,7 @@ func TestService_InitStartStop(t *testing.T) {
 			name: "already synced",
 			chainService: func() *mock.ChainService {
 				// Set to some future slot, and then make sure that current head matches it.
+				// 设置为future slot，并且确保当前的header匹配
 				st, err := util.NewBeaconState()
 				require.NoError(t, err)
 				futureSlot := types.Slot(27354)
@@ -157,6 +162,7 @@ func TestService_InitStartStop(t *testing.T) {
 			defer cancel()
 			mc := &mock.ChainService{Genesis: time.Now(), ValidatorsRoot: [32]byte{}}
 			// Allow overriding with customized chain service.
+			// 允许用自定义的chain service覆盖
 			if tt.chainService != nil {
 				mc = tt.chainService()
 			}
