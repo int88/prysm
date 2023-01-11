@@ -50,6 +50,7 @@ func (s *Service) UpdateAndSaveHeadWithBalances(ctx context.Context) error {
 }
 
 // This defines the current chain service's view of head.
+// 这个结构定义了当前的chain service的view of head
 type head struct {
 	slot  types.Slot                   // current head slot.
 	root  [32]byte                     // current head root.
@@ -167,6 +168,8 @@ func (s *Service) saveHead(ctx context.Context, newHeadRoot [32]byte, headBlock 
 
 	// Forward an event capturing a new chain head over a common event feed
 	// done in a goroutine to avoid blocking the critical runtime main routine.
+	// 转发一个事件，捕获到一个新的chain head，通过一个公共的event feed，在一个goroutine完成
+	// 避免阻塞重要的runtime main routine
 	go func() {
 		if err := s.notifyNewHeadEvent(ctx, newHeadSlot, headState, newStateRoot[:], newHeadRoot[:]); err != nil {
 			// 不能通知event feed，关于新的chain head

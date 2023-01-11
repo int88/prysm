@@ -12,6 +12,7 @@ import (
 
 // SignedBeaconBlock is an interface describing the method set of
 // a signed beacon block.
+// SignedBeaconBlock是一个接口描述一个signed beacon block的一系列方法
 type SignedBeaconBlock interface {
 	Block() BeaconBlock
 	Signature() [field_params.BLSSignatureLength]byte

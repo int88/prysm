@@ -40,6 +40,7 @@ func (b *SignedBeaconBlock) IsNil() bool {
 }
 
 // Copy performs a deep copy of the signed beacon block object.
+// Copy对signed beacon block对象做一个深拷贝
 func (b *SignedBeaconBlock) Copy() (interfaces.SignedBeaconBlock, error) {
 	if b == nil {
 		return nil, nil

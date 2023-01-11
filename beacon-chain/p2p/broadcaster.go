@@ -54,6 +54,7 @@ func (s *Service) Broadcast(ctx context.Context, msg proto.Message) error {
 
 // BroadcastAttestation broadcasts an attestation to the p2p network, the message is assumed to be
 // broadcasted to the current fork.
+// BroadcastAttestation广播一个attestation到p2p network，message假设广播到当前的fork
 func (s *Service) BroadcastAttestation(ctx context.Context, subnet uint64, att *ethpb.Attestation) error {
 	ctx, span := trace.StartSpan(ctx, "p2p.BroadcastAttestation")
 	defer span.End()
@@ -65,6 +66,7 @@ func (s *Service) BroadcastAttestation(ctx context.Context, subnet uint64, att *
 	}
 
 	// Non-blocking broadcast, with attempts to discover a subnet peer if none available.
+	// 非阻塞的广播，试着找到一个subnet peer，如果没有可用的话
 	go s.broadcastAttestation(ctx, subnet, att, forkDigest)
 
 	return nil
@@ -98,6 +100,7 @@ func (s *Service) broadcastAttestation(ctx context.Context, subnet uint64, att *
 	defer cancel()
 
 	// Ensure we have peers with this subnet.
+	// 确保我们有peers在这个subnet
 	s.subnetLocker(subnet).RLock()
 	hasPeer := s.hasPeerWithSubnet(attestationToTopic(subnet, forkDigest))
 	s.subnetLocker(subnet).RUnlock()
@@ -129,6 +132,7 @@ func (s *Service) broadcastAttestation(ctx context.Context, subnet uint64, att *
 	}
 	// In the event our attestation is outdated and beyond the
 	// acceptable threshold, we exit early and do not broadcast it.
+	// 如果我们的attestation已经过时了并且超过了可以接受的阈值，我们尽早退出并且不再广播它
 	currSlot := slots.CurrentSlot(uint64(s.genesisTime.Unix()))
 	if att.Data.Slot+params.BeaconConfig().SlotsPerEpoch < currSlot {
 		log.Warnf("Attestation is too old to broadcast, discarding it. Current Slot: %d , Attestation Slot: %d", currSlot, att.Data.Slot)

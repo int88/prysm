@@ -134,9 +134,12 @@ func (s *Service) filterPeerForSyncSubnet(index uint64) func(node *enode.Node) b
 // lower threshold to broadcast object compared to searching
 // for a subnet. So that even in the event of poor peer
 // connectivity, we can still broadcast an attestation.
+// 降低阈值，对于广播对象，和搜索一个subnet相比，因此即使在poor peer connectivity中
+// 我们依然可以广播一个attestation
 func (s *Service) hasPeerWithSubnet(topic string) bool {
 	// In the event peer threshold is lower, we will choose the lower
 	// threshold.
+	// 如果peer threshold很低，我们选择更低的threshold
 	minPeers := mathutil.Min(1, uint64(flags.Get().MinimumPeersPerSubnet))
 	return len(s.pubsub.ListPeers(topic+s.Encoding().ProtocolSuffix())) >= int(minPeers) // lint:ignore uintcast -- Min peers can be safely cast to int.
 }

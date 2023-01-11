@@ -10,6 +10,7 @@ import (
 )
 
 // SaveStateSummary saves a state summary object to the DB.
+// SaveStateSummary保存一个state summary对象到DB中
 func (s *Store) SaveStateSummary(ctx context.Context, summary *ethpb.StateSummary) error {
 	ctx, span := trace.StartSpan(ctx, "BeaconDB.SaveStateSummary")
 	defer span.End()

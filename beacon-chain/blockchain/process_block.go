@@ -692,6 +692,7 @@ func (s *Service) savePostStateInfo(ctx context.Context, r [32]byte, b interface
 // 将attestations从mem pool中移除，它只会移除attestations，如果输入的root `r`是canonical
 // 意味着block `b`是canonical chain的一部分
 func (s *Service) pruneCanonicalAttsFromPool(ctx context.Context, r [32]byte, b interfaces.SignedBeaconBlock) error {
+	// 判断找个root是不是canonical
 	canonical, err := s.IsCanonical(ctx, r)
 	if err != nil {
 		return err

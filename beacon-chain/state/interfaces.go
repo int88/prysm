@@ -139,6 +139,7 @@ type ReadOnlyCheckpoint interface {
 }
 
 // ReadOnlyBlockRoots defines a struct which only has read access to block roots methods.
+// ReadOnlyBlockRoots定义了一个结构，对于block roots的方法只有读权限
 type ReadOnlyBlockRoots interface {
 	BlockRoots() [][]byte
 	BlockRootAtIndex(idx uint64) ([]byte, error)

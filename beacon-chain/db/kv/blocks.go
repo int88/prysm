@@ -328,6 +328,7 @@ func (s *Store) SaveBlocks(ctx context.Context, blks []interfaces.SignedBeaconBl
 }
 
 // SaveHeadBlockRoot to the db.
+// SaveHeadBlockRoot保存Head block root到db中
 func (s *Store) SaveHeadBlockRoot(ctx context.Context, blockRoot [32]byte) error {
 	ctx, span := trace.StartSpan(ctx, "BeaconDB.SaveHeadBlockRoot")
 	defer span.End()
@@ -335,6 +336,7 @@ func (s *Store) SaveHeadBlockRoot(ctx context.Context, blockRoot [32]byte) error
 		hasStateSummary := s.hasStateSummaryBytes(tx, blockRoot)
 		hasStateInDB := tx.Bucket(stateBucket).Get(blockRoot[:]) != nil
 		if !(hasStateInDB || hasStateSummary) {
+			// 对于head block root没有找到state或者state summary
 			return errors.New("no state or state summary found with head block root")
 		}
 

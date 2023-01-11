@@ -337,6 +337,7 @@ func (s *Service) insertFinalizedDeposits(ctx context.Context, fRoot [32]byte) e
 }
 
 // The deletes input attestations from the attestation pool, so proposers don't include them in a block for the future.
+// 从attestation pool中删除attestations，这样proposer不会在未来的一个block中包含它们
 func (s *Service) deletePoolAtts(atts []*ethpb.Attestation) error {
 	for _, att := range atts {
 		if helpers.IsAggregated(att) {
