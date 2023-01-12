@@ -14,15 +14,19 @@ import (
 
 // AggregateUnaggregatedAttestations aggregates the unaggregated attestations and saves the
 // newly aggregated attestations in the pool.
+// AggregateUnaggregatedAttestations聚合unaggregated attestations并且保存新的aggregated attestations到Pool
 // It tracks the unaggregated attestations that weren't able to aggregate to prevent
 // the deletion of unaggregated attestations in the pool.
+// 它追踪不能被聚合的未聚合的attestations，防止从pool中删除unaggregated attestations
 func (c *AttCaches) AggregateUnaggregatedAttestations(ctx context.Context) error {
 	ctx, span := trace.StartSpan(ctx, "operations.attestations.kv.AggregateUnaggregatedAttestations")
 	defer span.End()
+	// 获取所有的unaggregated attestations
 	unaggregatedAtts, err := c.UnaggregatedAttestations()
 	if err != nil {
 		return err
 	}
+	// 聚合所有的unaggregated attestations
 	return c.aggregateUnaggregatedAttestations(ctx, unaggregatedAtts)
 }
 
@@ -51,6 +55,7 @@ func (c *AttCaches) aggregateUnaggregatedAttestations(ctx context.Context, unagg
 
 	// Aggregate unaggregated attestations from the pool and save them in the pool.
 	// Track the unaggregated attestations that aren't able to aggregate.
+	// 追踪不能被聚合的unaggregated attestations
 	leftOverUnaggregatedAtt := make(map[[32]byte]bool)
 	for _, atts := range attsByDataRoot {
 		aggregatedAtts := make([]*ethpb.Attestation, 0, len(atts))
@@ -66,15 +71,18 @@ func (c *AttCaches) aggregateUnaggregatedAttestations(ctx context.Context, unagg
 				if err != nil {
 					return err
 				}
+				// 剩下的不能聚合的atts
 				leftOverUnaggregatedAtt[h] = true
 			}
 		}
+		// 保存aggregated atts
 		if err := c.SaveAggregatedAttestations(aggregatedAtts); err != nil {
 			return err
 		}
 	}
 
 	// Remove the unaggregated attestations from the pool that were successfully aggregated.
+	// 移除那些成功被聚合的unaggregated attestations
 	for _, att := range unaggregatedAtts {
 		h, err := hashFn(att)
 		if err != nil {
@@ -144,6 +152,7 @@ func (c *AttCaches) SaveAggregatedAttestations(atts []*ethpb.Attestation) error 
 	for _, att := range atts {
 		if err := c.SaveAggregatedAttestation(att); err != nil {
 			log.WithError(err).Debug("Could not save aggregated attestation")
+			// 保存不成就直接删除？
 			if err := c.DeleteAggregatedAttestation(att); err != nil {
 				log.WithError(err).Debug("Could not delete aggregated attestation")
 			}
@@ -168,6 +177,8 @@ func (c *AttCaches) AggregatedAttestations() []*ethpb.Attestation {
 
 // AggregatedAttestationsBySlotIndex returns the aggregated attestations in cache,
 // filtered by committee index and slot.
+// AggregatedAttestationsBySlotIndex返回缓存中的aggregated attestations，通过committee index以及
+// slot进行过滤
 func (c *AttCaches) AggregatedAttestationsBySlotIndex(ctx context.Context, slot types.Slot, committeeIndex types.CommitteeIndex) []*ethpb.Attestation {
 	ctx, span := trace.StartSpan(ctx, "operations.attestations.kv.AggregatedAttestationsBySlotIndex")
 	defer span.End()
@@ -227,6 +238,7 @@ func (c *AttCaches) DeleteAggregatedAttestation(att *ethpb.Attestation) error {
 }
 
 // HasAggregatedAttestation checks if the input attestations has already existed in cache.
+// HasAggregatedAttestation检查输入的attestations是否已经存在于cache中
 func (c *AttCaches) HasAggregatedAttestation(att *ethpb.Attestation) (bool, error) {
 	if err := helpers.ValidateNilAttestation(att); err != nil {
 		return false, err

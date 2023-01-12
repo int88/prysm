@@ -31,6 +31,7 @@ type AttCaches struct {
 	unAggregatedAtt   map[[32]byte]*ethpb.Attestation
 	forkchoiceAttLock sync.RWMutex
 	// forkchoice attestations
+	// forkchoice的attestations
 	forkchoiceAtt map[[32]byte]*ethpb.Attestation
 	blockAttLock  sync.RWMutex
 	blockAtt      map[[32]byte][]*ethpb.Attestation
@@ -39,6 +40,7 @@ type AttCaches struct {
 
 // NewAttCaches initializes a new attestation pool consists of multiple KV store in cache for
 // various kind of attestations.
+// NewAttCaches初始化一个新的attestation pool，缓存中包含多个KV store，用于各种的attestations
 func NewAttCaches() *AttCaches {
 	secsInEpoch := time.Duration(params.BeaconConfig().SlotsPerEpoch.Mul(params.BeaconConfig().SecondsPerSlot))
 	c := cache.New(secsInEpoch*time.Second, 2*secsInEpoch*time.Second)

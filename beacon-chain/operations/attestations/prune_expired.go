@@ -25,10 +25,12 @@ func (s *Service) pruneAttsPool() {
 }
 
 // This prunes expired attestations from the pool.
+// 从pool中移除过期的attestations
 func (s *Service) pruneExpiredAtts() {
 	aggregatedAtts := s.cfg.Pool.AggregatedAttestations()
 	for _, att := range aggregatedAtts {
 		if s.expired(att.Data.Slot) {
+			// 删除聚合的attestation
 			if err := s.cfg.Pool.DeleteAggregatedAttestation(att); err != nil {
 				log.WithError(err).Error("Could not delete expired aggregated attestation")
 			}
@@ -36,6 +38,7 @@ func (s *Service) pruneExpiredAtts() {
 		}
 	}
 
+	// 删除seen unaggregated attestations
 	if _, err := s.cfg.Pool.DeleteSeenUnaggregatedAttestations(); err != nil {
 		log.WithError(err).Error("Cannot delete seen attestations")
 	}
@@ -56,6 +59,7 @@ func (s *Service) pruneExpiredAtts() {
 	blockAtts := s.cfg.Pool.BlockAttestations()
 	for _, att := range blockAtts {
 		if s.expired(att.Data.Slot) {
+			// 删除block attestations
 			if err := s.cfg.Pool.DeleteBlockAttestation(att); err != nil {
 				log.WithError(err).Error("Could not delete expired block attestation")
 			}

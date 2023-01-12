@@ -52,6 +52,7 @@ func (c *AttCaches) SaveUnaggregatedAttestations(atts []*ethpb.Attestation) erro
 }
 
 // UnaggregatedAttestations returns all the unaggregated attestations in cache.
+// UnaggregatedAttestations返回所有unaggregated attestations
 func (c *AttCaches) UnaggregatedAttestations() ([]*ethpb.Attestation, error) {
 	c.unAggregateAttLock.Lock()
 	defer c.unAggregateAttLock.Unlock()
@@ -71,6 +72,8 @@ func (c *AttCaches) UnaggregatedAttestations() ([]*ethpb.Attestation, error) {
 
 // UnaggregatedAttestationsBySlotIndex returns the unaggregated attestations in cache,
 // filtered by committee index and slot.
+// UnaggregatedAttestationsBySlotIndex返回缓存中未被聚合的attestations，通过committee index以及slot
+// 进行过滤
 func (c *AttCaches) UnaggregatedAttestationsBySlotIndex(ctx context.Context, slot types.Slot, committeeIndex types.CommitteeIndex) []*ethpb.Attestation {
 	ctx, span := trace.StartSpan(ctx, "operations.attestations.kv.UnaggregatedAttestationsBySlotIndex")
 	defer span.End()
@@ -82,6 +85,7 @@ func (c *AttCaches) UnaggregatedAttestationsBySlotIndex(ctx context.Context, slo
 
 	unAggregatedAtts := c.unAggregatedAtt
 	for _, a := range unAggregatedAtts {
+		// 利用slot以及committee index进行过滤
 		if slot == a.Data.Slot && committeeIndex == a.Data.CommitteeIndex {
 			atts = append(atts, a)
 		}
@@ -91,6 +95,7 @@ func (c *AttCaches) UnaggregatedAttestationsBySlotIndex(ctx context.Context, slo
 }
 
 // DeleteUnaggregatedAttestation deletes the unaggregated attestations in cache.
+// DeleteUnaggregatedAttestation删除缓存中的unaggregated attestations
 func (c *AttCaches) DeleteUnaggregatedAttestation(att *ethpb.Attestation) error {
 	if att == nil {
 		return nil
@@ -99,6 +104,7 @@ func (c *AttCaches) DeleteUnaggregatedAttestation(att *ethpb.Attestation) error 
 		return errors.New("attestation is aggregated")
 	}
 
+	// 已经被处理过了，直接插入
 	if err := c.insertSeenBit(att); err != nil {
 		return err
 	}
@@ -117,6 +123,8 @@ func (c *AttCaches) DeleteUnaggregatedAttestation(att *ethpb.Attestation) error 
 
 // DeleteSeenUnaggregatedAttestations deletes the unaggregated attestations in cache
 // that have been already processed once. Returns number of attestations deleted.
+// DeleteSeenUnaggregatedAttestations删除缓存中已经被处理一遍的unaggregated attestations
+// 返回被删除的attestations的数目
 func (c *AttCaches) DeleteSeenUnaggregatedAttestations() (int, error) {
 	c.unAggregateAttLock.Lock()
 	defer c.unAggregateAttLock.Unlock()

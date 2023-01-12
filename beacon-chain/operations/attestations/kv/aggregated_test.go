@@ -32,7 +32,9 @@ func TestKV_Aggregated_AggregateUnaggregatedAttestations(t *testing.T) {
 	att7 := util.HydrateAttestation(&ethpb.Attestation{Data: &ethpb.AttestationData{Slot: 2}, AggregationBits: bitfield.Bitlist{0b1100}, Signature: sig1.Marshal()})
 	att8 := util.HydrateAttestation(&ethpb.Attestation{Data: &ethpb.AttestationData{Slot: 2}, AggregationBits: bitfield.Bitlist{0b1001}, Signature: sig2.Marshal()})
 	atts := []*ethpb.Attestation{att1, att2, att3, att4, att5, att6, att7, att8}
+	// 保存unaggregated attestations
 	require.NoError(t, cache.SaveUnaggregatedAttestations(atts))
+	// 聚合unaggregated attestations
 	require.NoError(t, cache.AggregateUnaggregatedAttestations(context.Background()))
 
 	require.Equal(t, 1, len(cache.AggregatedAttestationsBySlotIndex(context.Background(), 1, 0)), "Did not aggregate correctly")
@@ -526,6 +528,7 @@ func TestKV_Aggregated_HasAggregatedAttestation(t *testing.T) {
 				assert.Equal(t, tt.want, result)
 
 				// Same test for block attestations
+				// 一些对于block attestations的测试用例
 				cache = NewAttCaches()
 				assert.NoError(t, cache.SaveBlockAttestations(tt.existing))
 

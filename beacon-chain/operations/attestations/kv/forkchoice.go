@@ -6,6 +6,7 @@ import (
 )
 
 // SaveForkchoiceAttestation saves an forkchoice attestation in cache.
+// SaveForkchoiceAttestation保存一个forkchoice attestation到缓存中
 func (c *AttCaches) SaveForkchoiceAttestation(att *ethpb.Attestation) error {
 	if att == nil {
 		return nil
@@ -36,12 +37,14 @@ func (c *AttCaches) SaveForkchoiceAttestations(atts []*ethpb.Attestation) error 
 }
 
 // ForkchoiceAttestations returns the forkchoice attestations in cache.
+// ForkchoiceAttestations返回缓存中的forkchoice attestations
 func (c *AttCaches) ForkchoiceAttestations() []*ethpb.Attestation {
 	c.forkchoiceAttLock.RLock()
 	defer c.forkchoiceAttLock.RUnlock()
 
 	atts := make([]*ethpb.Attestation, 0, len(c.forkchoiceAtt))
 	for _, att := range c.forkchoiceAtt {
+		// 拷贝attestation
 		atts = append(atts, ethpb.CopyAttestation(att) /* Copied */)
 	}
 

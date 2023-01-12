@@ -322,6 +322,7 @@ func TestService_UpdateHead_NoAtts(t *testing.T) {
 	require.NoError(t, err, service.UpdateHead(ctx))
 
 	require.Equal(t, 0, len(service.cfg.AttPool.ForkchoiceAttestations())) // Validate att pool is empty
-	require.Equal(t, r, service.head.root)                                 // Validate head is the new one
+	// 校验是一个新的head
+	require.Equal(t, r, service.head.root) // Validate head is the new one
 
 }

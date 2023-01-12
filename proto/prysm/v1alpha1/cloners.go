@@ -45,6 +45,7 @@ func CopyPendingAttestation(att *PendingAttestation) *PendingAttestation {
 }
 
 // CopyAttestation copies the provided attestation object.
+// CopyAttestation拷贝提供的attestation对象
 func CopyAttestation(att *Attestation) *Attestation {
 	if att == nil {
 		return nil

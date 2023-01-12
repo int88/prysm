@@ -21,6 +21,7 @@ func (c *AttCaches) insertSeenBit(att *ethpb.Attestation) error {
 		}
 		alreadyExists := false
 		for _, bit := range seenBits {
+			// seenBits中是否包含att.AggregationBits
 			if c, err := bit.Contains(att.AggregationBits); err != nil {
 				return err
 			} else if c {
@@ -29,12 +30,14 @@ func (c *AttCaches) insertSeenBit(att *ethpb.Attestation) error {
 			}
 		}
 		if !alreadyExists {
+			// 扩展seenBits
 			seenBits = append(seenBits, att.AggregationBits)
 		}
 		c.seenAtt.Set(string(r[:]), seenBits, cache.DefaultExpiration /* one epoch */)
 		return nil
 	}
 
+	// 插入新的seen bit
 	c.seenAtt.Set(string(r[:]), []bitfield.Bitlist{att.AggregationBits}, cache.DefaultExpiration /* one epoch */)
 	return nil
 }
@@ -55,6 +58,7 @@ func (c *AttCaches) hasSeenBit(att *ethpb.Attestation) (bool, error) {
 			if c, err := bit.Contains(att.AggregationBits); err != nil {
 				return false, err
 			} else if c {
+				// 已经包含则返回true
 				return true, nil
 			}
 		}

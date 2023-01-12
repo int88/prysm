@@ -20,9 +20,11 @@ func TestKV_BlockAttestation_CanSaveRetrieve(t *testing.T) {
 	atts := []*ethpb.Attestation{att1, att2, att3}
 
 	for _, att := range atts {
+		// 保存block attestation
 		require.NoError(t, cache.SaveBlockAttestation(att))
 	}
 	// Diff bit length should not panic.
+	// 不同的diff length不应该panic
 	att4 := util.HydrateAttestation(&ethpb.Attestation{Data: &ethpb.AttestationData{Slot: 3}, AggregationBits: bitfield.Bitlist{0b11011}})
 	if err := cache.SaveBlockAttestation(att4); err != bitfield.ErrBitlistDifferentLength {
 		t.Errorf("Unexpected error: wanted %v, got %v", bitfield.ErrBitlistDifferentLength, err)
@@ -49,6 +51,7 @@ func TestKV_BlockAttestation_CanDelete(t *testing.T) {
 		require.NoError(t, cache.SaveBlockAttestation(att))
 	}
 
+	// 删除block attestation
 	require.NoError(t, cache.DeleteBlockAttestation(att1))
 	require.NoError(t, cache.DeleteBlockAttestation(att3))
 

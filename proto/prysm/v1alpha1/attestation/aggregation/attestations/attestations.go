@@ -26,6 +26,8 @@ var ErrInvalidAttestationCount = errors.New("invalid number of attestations")
 // Aggregate aggregates attestations. The minimal number of attestations is returned.
 // Aggregation occurs in-place i.e. contents of input array will be modified. Should you need to
 // preserve input attestations, clone them before aggregating:
+// Aggregate聚合attestations，最少数目的attestations被返回，Aggregation本地完成，输入的array的内容被修改
+// 应该保留输入的attestations，在聚合之前clone它们
 //
 //	clonedAtts := make([]*ethpb.Attestation, len(atts))
 //	for i, a := range atts {

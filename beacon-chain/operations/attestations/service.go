@@ -35,6 +35,7 @@ type Config struct {
 
 // NewService instantiates a new attestation pool service instance that will
 // be registered into a running beacon node.
+// NewService实例化一个新的attestation pool服务实例，它会注册到一个正在运行的beacon node
 func NewService(ctx context.Context, cfg *Config) (*Service, error) {
 	cache := lruwrpr.New(forkChoiceProcessedRootsSize)
 
@@ -53,6 +54,7 @@ func NewService(ctx context.Context, cfg *Config) (*Service, error) {
 }
 
 // Start an attestation pool service's main event loop.
+// 启动一个attestation pool服务的主循环
 func (s *Service) Start() {
 	go s.prepareForkChoiceAtts()
 	go s.pruneAttsPool()
@@ -60,12 +62,14 @@ func (s *Service) Start() {
 
 // Stop the beacon block attestation pool service's main event loop
 // and associated goroutines.
+// 停止beacon block attestation pool服务的主事件循环以及相关的goroutines
 func (s *Service) Stop() error {
 	defer s.cancel()
 	return nil
 }
 
 // Status returns the current service err if there's any.
+// Status返回当前的service err如果有的话
 func (s *Service) Status() error {
 	if s.err != nil {
 		return s.err
@@ -74,6 +78,7 @@ func (s *Service) Status() error {
 }
 
 // SetGenesisTime sets genesis time for operation service to use.
+// 设置genesis time，让service使用
 func (s *Service) SetGenesisTime(t uint64) {
 	s.genesisTime = t
 }

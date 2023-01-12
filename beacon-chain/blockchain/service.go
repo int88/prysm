@@ -136,6 +136,7 @@ func (s *Service) Start() {
 			log.Fatal(err)
 		}
 	}
+	// 启动一个处理attestations的routine
 	s.spawnProcessAttestationsRoutine(s.cfg.StateNotifier.StateFeed())
 	s.fillMissingPayloadIDRoutine(s.ctx, s.cfg.StateNotifier.StateFeed())
 }
