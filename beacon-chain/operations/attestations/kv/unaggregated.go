@@ -64,6 +64,7 @@ func (c *AttCaches) UnaggregatedAttestations() ([]*ethpb.Attestation, error) {
 			return nil, err
 		}
 		if !seen {
+			// 只处理没见过的unaggregated attestations
 			atts = append(atts, ethpb.CopyAttestation(att) /* Copied */)
 		}
 	}

@@ -197,6 +197,7 @@ func (c *AttCaches) AggregatedAttestationsBySlotIndex(ctx context.Context, slot 
 }
 
 // DeleteAggregatedAttestation deletes the aggregated attestations in cache.
+// DeleteAggregatedAttestation删除缓存中的aggregated attestations
 func (c *AttCaches) DeleteAggregatedAttestation(att *ethpb.Attestation) error {
 	if err := helpers.ValidateNilAttestation(att); err != nil {
 		return err

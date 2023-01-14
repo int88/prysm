@@ -9,6 +9,7 @@ import (
 )
 
 // pruneAttsPool prunes attestations pool on every slot interval.
+// pruneAttsPool移除attestations pool，在每个slot interval
 func (s *Service) pruneAttsPool() {
 	ticker := time.NewTicker(s.cfg.pruneInterval)
 	defer ticker.Stop()
@@ -32,6 +33,7 @@ func (s *Service) pruneExpiredAtts() {
 		if s.expired(att.Data.Slot) {
 			// 删除聚合的attestation
 			if err := s.cfg.Pool.DeleteAggregatedAttestation(att); err != nil {
+				// 删除过期的aggregated attestation失败
 				log.WithError(err).Error("Could not delete expired aggregated attestation")
 			}
 			expiredAggregatedAtts.Inc()
@@ -50,6 +52,7 @@ func (s *Service) pruneExpiredAtts() {
 	for _, att := range unAggregatedAtts {
 		if s.expired(att.Data.Slot) {
 			if err := s.cfg.Pool.DeleteUnaggregatedAttestation(att); err != nil {
+				// 不能删除已经过期的unaggregated attestation
 				log.WithError(err).Error("Could not delete expired unaggregated attestation")
 			}
 			expiredUnaggregatedAtts.Inc()
@@ -69,9 +72,12 @@ func (s *Service) pruneExpiredAtts() {
 }
 
 // Return true if the input slot has been expired.
+// 返回true，如果输入的slot已经过时了
 // Expired is defined as one epoch behind than current time.
+// 过时被定义为当前时间的一个epoch之前
 func (s *Service) expired(slot types.Slot) bool {
 	expirationSlot := slot + params.BeaconConfig().SlotsPerEpoch
+	// 转换为过期时间
 	expirationTime := s.genesisTime + uint64(expirationSlot.Mul(params.BeaconConfig().SecondsPerSlot))
 	currentTime := uint64(prysmTime.Now().Unix())
 	return currentTime >= expirationTime

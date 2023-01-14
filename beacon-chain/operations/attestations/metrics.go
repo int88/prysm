@@ -33,6 +33,7 @@ var (
 )
 
 func (s *Service) updateMetrics() {
+	// 设置aggregated atts count和unaggregated atts count
 	aggregatedAttsCount.Set(float64(s.cfg.Pool.AggregatedAttestationCount()))
 	unaggregatedAttsCount.Set(float64(s.cfg.Pool.UnaggregatedAttestationCount()))
 }
