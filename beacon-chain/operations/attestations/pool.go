@@ -40,6 +40,7 @@ type Pool interface {
 	// 对于已经包含在block中的attestations
 	SaveBlockAttestation(att *ethpb.Attestation) error
 	SaveBlockAttestations(atts []*ethpb.Attestation) error
+	// 获取block attestations
 	BlockAttestations() []*ethpb.Attestation
 	DeleteBlockAttestation(att *ethpb.Attestation) error
 	// For attestations to be passed to fork choice.
@@ -52,6 +53,7 @@ type Pool interface {
 }
 
 // NewPool initializes a new attestation pool.
+// NewPool初始化一个新的attestation pool
 func NewPool() *kv.AttCaches {
 	return kv.NewAttCaches()
 }

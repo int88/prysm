@@ -19,6 +19,7 @@ func (c *AttCaches) SaveForkchoiceAttestation(att *ethpb.Attestation) error {
 	att = ethpb.CopyAttestation(att)
 	c.forkchoiceAttLock.Lock()
 	defer c.forkchoiceAttLock.Unlock()
+	// 保存到forkchoice attestations
 	c.forkchoiceAtt[r] = att
 
 	return nil

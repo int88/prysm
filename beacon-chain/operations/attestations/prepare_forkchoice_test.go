@@ -259,6 +259,7 @@ func TestService_seen(t *testing.T) {
 	ad2 := util.HydrateAttestationData(&ethpb.AttestationData{Slot: 2})
 
 	// Attestation are checked in order of this list.
+	// Attestation按照列表的顺序被校验
 	tests := []struct {
 		att  *ethpb.Attestation
 		want bool

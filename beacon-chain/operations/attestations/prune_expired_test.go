@@ -21,13 +21,15 @@ func TestPruneExpired_Ticker(t *testing.T) {
 	defer cancel()
 
 	s, err := NewService(ctx, &Config{
-		Pool:          NewPool(),
+		Pool: NewPool(),
+		// 250ms刷新一次
 		pruneInterval: 250 * time.Millisecond,
 	})
 	require.NoError(t, err)
 
 	ad1 := util.HydrateAttestationData(&ethpb.AttestationData{})
 
+	// 设置slot为1
 	ad2 := util.HydrateAttestationData(&ethpb.AttestationData{Slot: 1})
 
 	atts := []*ethpb.Attestation{
@@ -40,11 +42,14 @@ func TestPruneExpired_Ticker(t *testing.T) {
 		{Data: ad1, AggregationBits: bitfield.Bitlist{0b1101, 0b1}, Signature: make([]byte, fieldparams.BLSSignatureLength)},
 		{Data: ad2, AggregationBits: bitfield.Bitlist{0b1101, 0b1}, Signature: make([]byte, fieldparams.BLSSignatureLength)},
 	}
+	// 作为aggregated attestations保存
 	require.NoError(t, s.cfg.Pool.SaveAggregatedAttestations(atts))
 	assert.Equal(t, 2, s.cfg.Pool.AggregatedAttestationCount())
+	// 作为block attestations保存
 	require.NoError(t, s.cfg.Pool.SaveBlockAttestations(atts))
 
 	// Rewind back one epoch worth of time.
+	// 倒带一个epoch的时间
 	s.genesisTime = uint64(prysmTime.Now().Unix()) - uint64(params.BeaconConfig().SlotsPerEpoch.Mul(params.BeaconConfig().SecondsPerSlot))
 
 	go s.pruneAttsPool()
@@ -55,6 +60,7 @@ func TestPruneExpired_Ticker(t *testing.T) {
 		require.NoError(t, err)
 		for _, attestation := range atts {
 			if attestation.Data.Slot == 0 {
+				// 存在slot为0则直接返回
 				return
 			}
 		}
@@ -68,6 +74,7 @@ func TestPruneExpired_Ticker(t *testing.T) {
 				return
 			}
 		}
+		// 如果unaggregated count和aggregated count数目不为1，则直接返回
 		if s.cfg.Pool.UnaggregatedAttestationCount() != 1 || s.cfg.Pool.AggregatedAttestationCount() != 1 {
 			return
 		}
@@ -76,6 +83,7 @@ func TestPruneExpired_Ticker(t *testing.T) {
 	select {
 	case <-done:
 		// All checks are passed.
+		// 所有检查都已经通过
 	case <-ctx.Done():
 		t.Error("Test case takes too long to complete")
 	}
@@ -102,6 +110,7 @@ func TestPruneExpired_PruneExpiredAtts(t *testing.T) {
 
 	s.pruneExpiredAtts()
 	// All the attestations on slot 0 should be pruned.
+	// 所有slot 0的attestations都应该被删除
 	for _, attestation := range s.cfg.Pool.AggregatedAttestations() {
 		if attestation.Data.Slot == 0 {
 			t.Error("Should be pruned")
@@ -119,6 +128,7 @@ func TestPruneExpired_Expired(t *testing.T) {
 	require.NoError(t, err)
 
 	// Rewind back one epoch worth of time.
+	// 倒回一个epoch的时间
 	s.genesisTime = uint64(prysmTime.Now().Unix()) - uint64(params.BeaconConfig().SlotsPerEpoch.Mul(params.BeaconConfig().SecondsPerSlot))
 	assert.Equal(t, true, s.expired(0), "Should be expired")
 	assert.Equal(t, false, s.expired(1), "Should not be expired")

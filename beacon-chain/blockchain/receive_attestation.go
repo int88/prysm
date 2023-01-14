@@ -236,6 +236,7 @@ func (s *Service) notifyEngineIfChangedHead(ctx context.Context, newHeadRoot [32
 // This processes fork choice attestations from the pool to account for validator votes and fork choice.
 // 处理来自pool的fork choice attestations，来统计validator votes以及fork choice
 func (s *Service) processAttestations(ctx context.Context) {
+	// 对attestation pool中的attestations进行聚合
 	atts := s.cfg.AttPool.ForkchoiceAttestations()
 	// 遍历attestations
 	for _, a := range atts {
@@ -252,11 +253,13 @@ func (s *Service) processAttestations(ctx context.Context) {
 		hasState := s.cfg.BeaconDB.HasStateSummary(ctx, bytesutil.ToBytes32(a.Data.BeaconBlockRoot))
 		hasBlock := s.hasBlock(ctx, bytesutil.ToBytes32(a.Data.BeaconBlockRoot))
 		if !(hasState && hasBlock) {
+			// 如果attestation指定的block root和block state不存在，则继续
 			continue
 		}
 
 		// 删除forkchoice attestation
 		if err := s.cfg.AttPool.DeleteForkchoiceAttestation(a); err != nil {
+			// 不能从pool中移除fork choice attestation
 			log.WithError(err).Error("Could not delete fork choice attestation in pool")
 		}
 

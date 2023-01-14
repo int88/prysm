@@ -27,6 +27,7 @@ func (s *Service) prepareForkChoiceAtts() {
 	for {
 		select {
 		case <-ticker.C:
+			// 定时进行batch
 			if err := s.batchForkChoiceAtts(s.ctx); err != nil {
 				// 不能为fork choice准备attestations
 				log.WithError(err).Error("Could not prepare attestations for fork choice")
@@ -47,6 +48,7 @@ func (s *Service) batchForkChoiceAtts(ctx context.Context) error {
 	ctx, span := trace.StartSpan(ctx, "Operations.attestations.batchForkChoiceAtts")
 	defer span.End()
 
+	// 先对unaggregated attestations做一次聚合
 	if err := s.cfg.Pool.AggregateUnaggregatedAttestations(ctx); err != nil {
 		return err
 	}
@@ -63,6 +65,7 @@ func (s *Service) batchForkChoiceAtts(ctx context.Context) error {
 			return err
 		}
 		if seen {
+			// 已经看到过的，直接跳过
 			continue
 		}
 
@@ -116,6 +119,7 @@ func (s *Service) seen(att *ethpb.Attestation) (bool, error) {
 		return false, err
 	}
 	incomingBits := att.AggregationBits
+	// 获取已经处理过的aggregation roots
 	savedBits, ok := s.forkChoiceProcessedRoots.Get(attRoot)
 	if ok {
 		savedBitlist, ok := savedBits.(bitfield.Bitlist)
@@ -135,6 +139,7 @@ func (s *Service) seen(att *ethpb.Attestation) (bool, error) {
 			}
 			var err error
 			// Update the bit fields by Or'ing them with the new ones.
+			// 更新bit fields，通过将新的进行或操作
 			incomingBits, err = incomingBits.Or(savedBitlist)
 			if err != nil {
 				return false, err
@@ -142,6 +147,7 @@ func (s *Service) seen(att *ethpb.Attestation) (bool, error) {
 		}
 	}
 
+	// 添加到forkchoice processed roots
 	s.forkChoiceProcessedRoots.Add(attRoot, incomingBits)
 	return false, nil
 }

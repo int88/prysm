@@ -19,5 +19,6 @@ func TestStop_OK(t *testing.T) {
 func TestStatus_Error(t *testing.T) {
 	err := errors.New("bad bad bad")
 	s := &Service{err: err}
+	// 返回的状态包含error?
 	assert.ErrorContains(t, s.err.Error(), s.Status())
 }
