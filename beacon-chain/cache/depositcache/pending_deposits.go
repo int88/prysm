@@ -96,6 +96,8 @@ func (dc *DepositCache) PendingContainers(ctx context.Context, untilBlk *big.Int
 
 // RemovePendingDeposit from the database. The deposit is indexed by the
 // Index. This method does nothing if deposit ptr is nil.
+// RemovePendingDeposit从数据库中移除pending deposit，这个deposit用Index进行索引
+// 这个方法什么都不做，如果depoist ptr为nil
 func (dc *DepositCache) RemovePendingDeposit(ctx context.Context, d *ethpb.Deposit) {
 	ctx, span := trace.StartSpan(ctx, "DepositsCache.RemovePendingDeposit")
 	defer span.End()
@@ -105,6 +107,7 @@ func (dc *DepositCache) RemovePendingDeposit(ctx context.Context, d *ethpb.Depos
 		return
 	}
 
+	// 获取deposit root
 	depRoot, err := hash.HashProto(d)
 	if err != nil {
 		log.WithError(err).Error("Could not remove deposit")
@@ -122,6 +125,7 @@ func (dc *DepositCache) RemovePendingDeposit(ctx context.Context, d *ethpb.Depos
 			continue
 		}
 		if h == depRoot {
+			// 找到deposit的索引
 			idx = i
 			break
 		}

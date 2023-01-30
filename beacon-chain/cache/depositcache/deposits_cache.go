@@ -2,6 +2,9 @@
 // in-memory by the beacon node – deposits processed from the
 // eth1 powchain are then stored in this cache to be accessed by
 // any other service during a beacon node's runtime.
+// depositcache包是validator deposits的源泉，由beacon node维护在内存中
+// 被eth1 powchain处理的deposits之后被存储在这个缓存中，让beacon node的运行时
+// 其他服务访问
 package depositcache
 
 import (
@@ -62,6 +65,7 @@ type DepositCache struct {
 }
 
 // New instantiates a new deposit cache
+// New实例化一个新的deposit cache
 func New() (*DepositCache, error) {
 	finalizedDepositsTrie, err := trie.NewTrie(params.BeaconConfig().DepositContractTreeDepth)
 	if err != nil {
@@ -70,6 +74,8 @@ func New() (*DepositCache, error) {
 
 	// finalizedDeposits.MerkleTrieIndex is initialized to -1 because it represents the index of the last trie item.
 	// Inserting the first item into the trie will set the value of the index to 0.
+	// finalizedDeposits.MerkleTrieIndex初始化为-1，因为它代表最后一个trie item的索引
+	// 插入第一个item到trie，会设置index的值为0
 	return &DepositCache{
 		pendingDeposits:   []*ethpb.DepositContainer{},
 		deposits:          []*ethpb.DepositContainer{},
@@ -117,6 +123,7 @@ func (dc *DepositCache) InsertDeposit(ctx context.Context, d *ethpb.Deposit, blo
 }
 
 // InsertDepositContainers inserts a set of deposit containers into our deposit cache.
+// InsertDepositContainers插入一系列的deposit containers到deposit cache
 func (dc *DepositCache) InsertDepositContainers(ctx context.Context, ctrs []*ethpb.DepositContainer) {
 	ctx, span := trace.StartSpan(ctx, "DepositsCache.InsertDepositContainers")
 	defer span.End()
@@ -136,6 +143,7 @@ func (dc *DepositCache) InsertDepositContainers(ctx context.Context, ctrs []*eth
 }
 
 // InsertFinalizedDeposits inserts deposits up to eth1DepositIndex (inclusive) into the finalized deposits cache.
+// InsertFinalizedDeposits插入deposits直到eth1DepositIndex（包含）到finalized deposits cache
 func (dc *DepositCache) InsertFinalizedDeposits(ctx context.Context, eth1DepositIndex int64) {
 	ctx, span := trace.StartSpan(ctx, "DepositsCache.InsertFinalizedDeposits")
 	defer span.End()
@@ -212,6 +220,8 @@ func (dc *DepositCache) AllDepositContainers(ctx context.Context) []*ethpb.Depos
 
 // AllDeposits returns a list of historical deposits until the given block number
 // (inclusive). If no block is specified then this method returns all historical deposits.
+// AllDeposits返回一系列的historical deposits，直到给定的block number（包含）
+// 如果没有指定block，则这个方法返回所有的historical deposits
 func (dc *DepositCache) AllDeposits(ctx context.Context, untilBlk *big.Int) []*ethpb.Deposit {
 	ctx, span := trace.StartSpan(ctx, "DepositsCache.AllDeposits")
 	defer span.End()
@@ -251,6 +261,7 @@ func (dc *DepositCache) DepositsNumberAndRootAtHeight(ctx context.Context, block
 
 // DepositByPubkey looks through historical deposits and finds one which contains
 // a certain public key within its deposit data.
+// DepositByPubkey查找historical deposits并且找到在deposit data中包含特定public key的deposit
 func (dc *DepositCache) DepositByPubkey(ctx context.Context, pubKey []byte) (*ethpb.Deposit, *big.Int) {
 	ctx, span := trace.StartSpan(ctx, "DepositsCache.DepositByPubkey")
 	defer span.End()
@@ -310,6 +321,7 @@ func (dc *DepositCache) NonFinalizedDeposits(ctx context.Context, lastFinalizedI
 }
 
 // PruneProofs removes proofs from all deposits whose index is equal or less than untilDepositIndex.
+// PruneProofs移除所有deposits的proofs，如果它们的索引等于或者小于untilDepositIndex
 func (dc *DepositCache) PruneProofs(ctx context.Context, untilDepositIndex int64) error {
 	ctx, span := trace.StartSpan(ctx, "DepositsCache.PruneProofs")
 	defer span.End()
@@ -317,6 +329,7 @@ func (dc *DepositCache) PruneProofs(ctx context.Context, untilDepositIndex int64
 	defer dc.depositsLock.Unlock()
 
 	if untilDepositIndex >= int64(len(dc.deposits)) {
+		// 如果大于dc.deposits的数目
 		untilDepositIndex = int64(len(dc.deposits) - 1)
 	}
 
@@ -325,6 +338,7 @@ func (dc *DepositCache) PruneProofs(ctx context.Context, untilDepositIndex int64
 			return ctx.Err()
 		}
 		// Finding a nil proof means that all proofs up to this deposit have been already pruned.
+		// 找到一个nil proof，意味着到它为止的所有proofs已经被清除了
 		if dc.deposits[i].Deposit.Proof == nil {
 			break
 		}
