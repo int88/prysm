@@ -40,9 +40,10 @@ type Store struct {
 	// 之前的proposer的boosted root score
 	previousProposerBoostScore uint64 // previous proposer boosted root score.
 	// store tree的root node
-	treeRootNode        *Node                                  // the root node of the store tree.
-	headNode            *Node                                  // last head Node
-	nodeByRoot          map[[fieldparams.RootLength]byte]*Node // nodes indexed by roots.
+	treeRootNode *Node                                  // the root node of the store tree.
+	headNode     *Node                                  // last head Node
+	nodeByRoot   map[[fieldparams.RootLength]byte]*Node // nodes indexed by roots.
+	// 通过payload hash进行索引的nodes
 	nodeByPayload       map[[fieldparams.RootLength]byte]*Node // nodes indexed by payload Hash
 	slashedIndices      map[types.ValidatorIndex]bool          // the list of equivocating validator indices
 	originRoot          [fieldparams.RootLength]byte           // The genesis block root
