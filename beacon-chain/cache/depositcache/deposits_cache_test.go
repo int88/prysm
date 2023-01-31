@@ -48,9 +48,10 @@ func TestInsertDeposit_MaintainsSortedOrderByIndex(t *testing.T) {
 			expectedErr: "",
 		},
 		{
-			blkNum:      0,
-			deposit:     &ethpb.Deposit{Data: &ethpb.Deposit_Data{PublicKey: []byte{'B'}}},
-			index:       3,
+			blkNum:  0,
+			deposit: &ethpb.Deposit{Data: &ethpb.Deposit_Data{PublicKey: []byte{'B'}}},
+			index:   3,
+			// 需要按索引顺序插入？
 			expectedErr: "wanted deposit with index 1 to be inserted but received 3",
 		},
 		{
@@ -193,7 +194,8 @@ func TestDepositsNumberAndRootAtHeight(t *testing.T) {
 				Eth1BlockHeight: 13,
 				Index:           3,
 				Deposit:         &ethpb.Deposit{},
-				DepositRoot:     wantedRoot,
+				// 设置deposit root
+				DepositRoot: wantedRoot,
 			},
 		}
 		n, root := dc.DepositsNumberAndRootAtHeight(context.Background(), big.NewInt(13))
@@ -763,6 +765,7 @@ func TestFinalizedDeposits_ReturnsTrieCorrectly(t *testing.T) {
 
 	generateCtr := func(height uint64, index int64) *ethpb.DepositContainer {
 		return &ethpb.DepositContainer{
+			// block的高度
 			Eth1BlockHeight: height,
 			Deposit: &ethpb.Deposit{
 				Data: &ethpb.Deposit_Data{
@@ -771,6 +774,7 @@ func TestFinalizedDeposits_ReturnsTrieCorrectly(t *testing.T) {
 					Signature:             make([]byte, 96),
 				},
 			},
+			// deposit的索引
 			Index: index,
 		}
 	}
@@ -791,14 +795,17 @@ func TestFinalizedDeposits_ReturnsTrieCorrectly(t *testing.T) {
 		generateCtr(30, 10))
 	trieItems := make([][]byte, 0, len(dc.deposits))
 	for _, dep := range dc.allDeposits(big.NewInt(30)) {
+		// 获取deposit的hash root
 		depHash, err := dep.Data.HashTreeRoot()
 		assert.NoError(t, err)
 		trieItems = append(trieItems, depHash[:])
 	}
+	// 从item构建trie
 	depositTrie, err := trie.GenerateTrieFromItems(trieItems, params.BeaconConfig().DepositContractTreeDepth)
 	assert.NoError(t, err)
 
 	// Perform this in a non-sensical ordering
+	// 按照无意义的顺序执行
 	dc.InsertFinalizedDeposits(context.Background(), 10)
 	dc.InsertFinalizedDeposits(context.Background(), 2)
 	dc.InsertFinalizedDeposits(context.Background(), 3)
@@ -833,6 +840,7 @@ func TestFinalizedDeposits_ReturnsTrieCorrectly(t *testing.T) {
 		}
 		insertIndex++
 	}
+	// 两个trie树相等
 	assert.Equal(t, fd.Deposits.NumOfItems(), depositTrie.NumOfItems())
 }
 
@@ -964,6 +972,7 @@ func TestPruneProofs_PruneAllWhenDepositIndexTooBig(t *testing.T) {
 		assert.NoError(t, dc.InsertDeposit(context.Background(), ins.deposit, ins.blkNum, ins.index, [32]byte{}))
 	}
 
+	// index等于99，太大了，则所有deposit都移除
 	require.NoError(t, dc.PruneProofs(context.Background(), 99))
 
 	assert.DeepEqual(t, [][]byte(nil), dc.deposits[0].Deposit.Proof)
@@ -1039,11 +1048,13 @@ func TestDepositMap_WorksCorrectly(t *testing.T) {
 	assert.NoError(t, dc.InsertDeposit(context.Background(), dep, 1000, 1, [32]byte{}))
 
 	// Make sure we have the same deposit returned over here.
+	// 确保这里返回相同的deposit
 	dep, _ = dc.DepositByPubkey(context.Background(), pk0)
 	assert.NotEqual(t, nilDep, dep)
 	assert.Equal(t, uint64(1000), dep.Data.Amount)
 
 	// Make sure another key doesn't work.
+	// 确保另一个key不能work
 	pk1 := bytesutil.PadTo([]byte("pk1"), 48)
 	dep, _ = dc.DepositByPubkey(context.Background(), pk1)
 	assert.DeepEqual(t, nilDep, dep)

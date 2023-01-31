@@ -155,16 +155,19 @@ func (dc *DepositCache) InsertFinalizedDeposits(ctx context.Context, eth1Deposit
 
 	// Don't insert into finalized trie if there is no deposit to
 	// insert.
+	// 如果没有deposit，则不用插入到finalized trie
 	if len(dc.deposits) == 0 {
 		return
 	}
 	// In the event we have less deposits than we need to
 	// finalize we finalize till the index on which we do have it.
+	// 如果我们的deposits比我们需要finalized少，则finalize直到我们有的索引
 	if len(dc.deposits) <= int(eth1DepositIndex) {
 		eth1DepositIndex = int64(len(dc.deposits)) - 1
 	}
 	// If we finalize to some lower deposit index, we
 	// ignore it.
+	// 如果我们finalie一些更小的deposit index，则我们忽略它
 	if int(eth1DepositIndex) < insertIndex {
 		return
 	}
@@ -177,9 +180,11 @@ func (dc *DepositCache) InsertFinalizedDeposits(ctx context.Context, eth1Deposit
 		}
 		depHash, err := d.Deposit.Data.HashTreeRoot()
 		if err != nil {
+			// 不能对deposit data进行哈希，finalized deposit cache不更新
 			log.WithError(err).Error("Could not hash deposit data. Finalized deposit cache not updated.")
 			return
 		}
+		// 插入deposit trie
 		if err = depositTrie.Insert(depHash[:], insertIndex); err != nil {
 			log.WithError(err).Error("Could not insert deposit hash")
 			return
@@ -253,6 +258,7 @@ func (dc *DepositCache) DepositsNumberAndRootAtHeight(ctx context.Context, block
 	heightIdx := sort.Search(len(dc.deposits), func(i int) bool { return dc.deposits[i].Eth1BlockHeight > blockHeight.Uint64() })
 	// send the deposit root of the empty trie, if eth1follow distance is greater than the time of the earliest
 	// deposit.
+	// 发送空的trie的deposit root，如果eth1follow distance大于最早的deposit的时间
 	if heightIdx == 0 {
 		return 0, [32]byte{}
 	}
@@ -291,6 +297,7 @@ func (dc *DepositCache) FinalizedDeposits(ctx context.Context) *FinalizedDeposit
 	defer dc.depositsLock.RUnlock()
 
 	return &FinalizedDeposits{
+		// 对deposits进行拷贝后返回
 		Deposits:        dc.finalizedDeposits.Deposits.Copy(),
 		MerkleTrieIndex: dc.finalizedDeposits.MerkleTrieIndex,
 	}
