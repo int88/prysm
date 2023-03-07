@@ -1,6 +1,8 @@
 // Package state defines the actual beacon state interface used
 // by a Prysm beacon node, also containing useful, scoped interfaces such as
 // a ReadOnlyState and WriteOnlyBeaconState.
+// state定义了beacon state的真实接口，由Prysm beacon node使用，同时包含了有意义的
+// 限定范围的接口，例如一个ReadOnlyState以及WriteOnlyBeaconState
 package state
 
 import (
@@ -15,6 +17,7 @@ import (
 )
 
 // BeaconState has read and write access to beacon state methods.
+// BeaconState包含对于beacon state方法的读写访问
 type BeaconState interface {
 	SpecParametersProvider
 	ReadOnlyBeaconState
@@ -144,12 +147,14 @@ type ReadOnlyCheckpoint interface {
 }
 
 // ReadOnlyBlockRoots defines a struct which only has read access to block roots methods.
+// ReadOnlyBlockRoots定义了一个结构，对于block roots方法只有读方法
 type ReadOnlyBlockRoots interface {
 	BlockRoots() [][]byte
 	BlockRootAtIndex(idx uint64) ([]byte, error)
 }
 
 // ReadOnlyStateRoots defines a struct which only has read access to state roots methods.
+// ReadOnlyStateRoots定义了一个结构，对于state roots方法只有读权限
 type ReadOnlyStateRoots interface {
 	StateRoots() [][]byte
 	StateRootAtIndex(idx uint64) ([]byte, error)

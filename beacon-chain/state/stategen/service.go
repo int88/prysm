@@ -1,6 +1,8 @@
 // Package stategen defines functions to regenerate beacon chain states
 // by replaying blocks from a stored state checkpoint, useful for
 // optimization and reducing a beacon node's resource consumption.
+// stategen定义了函数用于重新生成beacon chain states，通过重放blocks，从一个存储的
+// state checkpoint，用于优化以及降低一个beacon node的资源消耗
 package stategen
 
 import (
@@ -22,6 +24,7 @@ var defaultHotStateDBInterval primitives.Slot = 128
 
 // StateManager represents a management object that handles the internal
 // logic of maintaining both hot and cold states in DB.
+// StateManager代表一个管理对象，处理DB中hot以及cold states的内部逻辑
 type StateManager interface {
 	Resume(ctx context.Context, fState state.BeaconState) (state.BeaconState, error)
 	DisableSaveHotStateToDB(ctx context.Context) error
@@ -32,6 +35,7 @@ type StateManager interface {
 	SaveState(ctx context.Context, blockRoot [32]byte, st state.BeaconState) error
 	SaveFinalizedState(fSlot primitives.Slot, fRoot [32]byte, fState state.BeaconState)
 	MigrateToCold(ctx context.Context, fRoot [32]byte) error
+	// 通过block root找到state
 	StateByRoot(ctx context.Context, blockRoot [32]byte) (state.BeaconState, error)
 	ActiveNonSlashedBalancesByRoot(context.Context, [32]byte) ([]uint64, error)
 	StateByRootIfCachedNoCopy(blockRoot [32]byte) state.BeaconState

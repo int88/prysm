@@ -19,13 +19,17 @@ import (
 //	  """
 //	  Return the block root at a recent ``slot``.
 //	  """
-//	  assert slot < state.slot <= slot + SLOTS_PER_HISTORICAL_ROOT
-//	  return state.block_roots[slot % SLOTS_PER_HISTORICAL_ROOT]
+//
+// 返回一个在最近的“slot“的block root
+//
+//	assert slot < state.slot <= slot + SLOTS_PER_HISTORICAL_ROOT
+//	return state.block_roots[slot % SLOTS_PER_HISTORICAL_ROOT]
 func BlockRootAtSlot(state state.ReadOnlyBeaconState, slot primitives.Slot) ([]byte, error) {
 	if math.MaxUint64-slot < params.BeaconConfig().SlotsPerHistoricalRoot {
 		return []byte{}, errors.New("slot overflows uint64")
 	}
 	if slot >= state.Slot() || state.Slot() > slot+params.BeaconConfig().SlotsPerHistoricalRoot {
+		// slot在范围之外
 		return []byte{}, errors.Errorf("slot %d out of bounds", slot)
 	}
 	return state.BlockRootAtIndex(uint64(slot % params.BeaconConfig().SlotsPerHistoricalRoot))
@@ -33,6 +37,7 @@ func BlockRootAtSlot(state state.ReadOnlyBeaconState, slot primitives.Slot) ([]b
 
 // StateRootAtSlot returns the cached state root at that particular slot. If no state
 // root has been cached it will return a zero-hash.
+// StateRootAtSlot返回缓存的state root在特定的slot，如果没有state root被缓存，则返回zero-hash
 func StateRootAtSlot(state state.ReadOnlyBeaconState, slot primitives.Slot) ([]byte, error) {
 	if slot >= state.Slot() || state.Slot() > slot+params.BeaconConfig().SlotsPerHistoricalRoot {
 		return []byte{}, errors.Errorf("slot %d out of bounds", slot)
@@ -41,6 +46,7 @@ func StateRootAtSlot(state state.ReadOnlyBeaconState, slot primitives.Slot) ([]b
 }
 
 // BlockRoot returns the block root stored in the BeaconState for epoch start slot.
+// BlockRoot返回block root，存储在BeaconState，对于epoch start slot
 //
 // Spec pseudocode definition:
 //
