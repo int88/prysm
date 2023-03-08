@@ -20,14 +20,19 @@ func TestStateByRoot_GenesisState(t *testing.T) {
 	ctx := context.Background()
 	beaconDB := testDB.SetupDB(t)
 
+	// 构建一个state service
 	service := New(beaconDB, doublylinkedtree.New())
+	// 构建一个新的block
 	b := util.NewBeaconBlock()
 	bRoot, err := b.Block.HashTreeRoot()
 	require.NoError(t, err)
 	beaconState, _ := util.DeterministicGenesisState(t, 32)
+	// 保存beacon state到DB中
 	require.NoError(t, service.beaconDB.SaveState(ctx, beaconState, bRoot))
+	// 保存block到DB中
 	util.SaveBlock(t, ctx, service.beaconDB, b)
 	require.NoError(t, service.beaconDB.SaveGenesisBlockRoot(ctx, bRoot))
+	// Zero hash是genesis state root
 	loadedState, err := service.StateByRoot(ctx, params.BeaconConfig().ZeroHash) // Zero hash is genesis state root.
 	require.NoError(t, err)
 	require.DeepSSZEqual(t, loadedState.ToProtoUnsafe(), beaconState.ToProtoUnsafe())
@@ -81,6 +86,7 @@ func TestStateByRootIfCachedNoCopy_HotState(t *testing.T) {
 	beaconState, _ := util.DeterministicGenesisState(t, 32)
 	r := [32]byte{'A'}
 	require.NoError(t, service.beaconDB.SaveStateSummary(ctx, &ethpb.StateSummary{Root: r[:]}))
+	// 保存到hot state cache中
 	service.hotStateCache.put(r, beaconState)
 
 	loadedState := service.StateByRootIfCachedNoCopy(r)
@@ -105,6 +111,7 @@ func TestStateByRootIfCachedNoCopy_ColdState(t *testing.T) {
 	require.NoError(t, service.beaconDB.SaveState(ctx, beaconState, bRoot))
 	util.SaveBlock(t, ctx, service.beaconDB, b)
 	require.NoError(t, service.beaconDB.SaveGenesisBlockRoot(ctx, bRoot))
+	// 无法从hot state中获取
 	loadedState := service.StateByRootIfCachedNoCopy(bRoot)
 	require.NoError(t, err)
 	require.Equal(t, loadedState, nil)
@@ -117,11 +124,13 @@ func TestStateByRoot_HotStateUsingEpochBoundaryCacheNoReplay(t *testing.T) {
 	service := New(beaconDB, doublylinkedtree.New())
 
 	beaconState, _ := util.DeterministicGenesisState(t, 32)
+	// 设置slot
 	require.NoError(t, beaconState.SetSlot(10))
 	blk := util.NewBeaconBlock()
 	blkRoot, err := blk.Block.HashTreeRoot()
 	require.NoError(t, err)
 	require.NoError(t, service.beaconDB.SaveStateSummary(ctx, &ethpb.StateSummary{Root: blkRoot[:]}))
+	// 保存到epoch boundary state cache
 	require.NoError(t, service.epochBoundaryStateCache.put(blkRoot, beaconState))
 	loadedState, err := service.StateByRoot(ctx, blkRoot)
 	require.NoError(t, err)
@@ -140,6 +149,7 @@ func TestStateByRoot_HotStateUsingEpochBoundaryCacheWithReplay(t *testing.T) {
 	require.NoError(t, err)
 	require.NoError(t, service.epochBoundaryStateCache.put(blkRoot, beaconState))
 	targetSlot := primitives.Slot(10)
+	// 构建target block
 	targetBlock := util.NewBeaconBlock()
 	targetBlock.Block.Slot = 11
 	targetBlock.Block.ParentRoot = blkRoot[:]
@@ -148,6 +158,7 @@ func TestStateByRoot_HotStateUsingEpochBoundaryCacheWithReplay(t *testing.T) {
 	targetRoot, err := targetBlock.Block.HashTreeRoot()
 	require.NoError(t, err)
 	require.NoError(t, service.beaconDB.SaveStateSummary(ctx, &ethpb.StateSummary{Slot: targetSlot, Root: targetRoot[:]}))
+	// 通过target root获取state
 	loadedState, err := service.StateByRoot(ctx, targetRoot)
 	require.NoError(t, err)
 	assert.Equal(t, targetSlot, loadedState.Slot(), "Did not correctly load state")
@@ -305,6 +316,7 @@ func TestLoadeStateByRoot_FinalizedState(t *testing.T) {
 	require.NoError(t, err)
 	require.NoError(t, service.beaconDB.SaveStateSummary(ctx, &ethpb.StateSummary{Slot: 0, Root: gRoot[:]}))
 
+	// 保存finalizedInfo
 	service.finalizedInfo.state = beaconState
 	service.finalizedInfo.slot = beaconState.Slot()
 	service.finalizedInfo.root = gRoot

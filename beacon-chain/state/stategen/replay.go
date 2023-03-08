@@ -23,6 +23,7 @@ import (
 )
 
 // ReplayBlocks replays the input blocks on the input state until the target slot is reached.
+// ReplayBlocks重放收入的blocks，针对input state，直到到达target slot
 //
 // WARNING Blocks passed to the function must be in decreasing slots order.
 func (_ *State) replayBlocks(
@@ -55,6 +56,7 @@ func (_ *State) replayBlocks(
 			if state.Slot() >= signed[i].Block().Slot() {
 				continue
 			}
+			// 执行state transition
 			state, err = executeStateTransitionStateGen(ctx, state, signed[i])
 			if err != nil {
 				return nil, err
@@ -63,6 +65,7 @@ func (_ *State) replayBlocks(
 	}
 
 	// If there are skip slots at the end.
+	// 如果最后有skip slots
 	if targetSlot > state.Slot() {
 		state, err = ReplayProcessSlots(ctx, state, targetSlot)
 		if err != nil {
@@ -80,6 +83,8 @@ func (_ *State) replayBlocks(
 
 // loadBlocks loads the blocks between start slot and end slot by recursively fetching from end block root.
 // The Blocks are returned in slot-descending order.
+// loadBlocks加载start slot和end slot之间的blocks，通过递归地从end block root开始抓取
+// blocks以slot下降的顺序返回
 func (s *State) loadBlocks(ctx context.Context, startSlot, endSlot primitives.Slot, endBlockRoot [32]byte) ([]interfaces.ReadOnlySignedBeaconBlock, error) {
 	// Nothing to load for invalid range.
 	if startSlot > endSlot {
@@ -95,6 +100,7 @@ func (s *State) loadBlocks(ctx context.Context, startSlot, endSlot primitives.Sl
 		return nil, errors.New("length of blocks and roots don't match")
 	}
 	// Return early if there's no block given the input.
+	// 尽早返回，如果对于给定的输入没有block
 	length := len(blocks)
 	if length == 0 {
 		return nil, nil
@@ -103,6 +109,8 @@ func (s *State) loadBlocks(ctx context.Context, startSlot, endSlot primitives.Sl
 	// The last retrieved block root has to match input end block root.
 	// Covers the edge case if there's multiple blocks on the same end slot,
 	// the end root may not be the last index in `blockRoots`.
+	// 最后获取的block root必须匹配输入的end block root，覆盖边界条件，如果有多个blocks在同一个
+	// end slot，end root可能不在`blockRoots`的最后一个索引
 	for length >= 3 && blocks[length-1].Block().Slot() == blocks[length-2].Block().Slot() && blockRoots[length-1] != endBlockRoot {
 		if ctx.Err() != nil {
 			return nil, ctx.Err()
@@ -172,6 +180,7 @@ func executeStateTransitionStateGen(
 }
 
 // ReplayProcessSlots to process old slots for state gen usages.
+// ReplayProcessSlots用于处理old slots，用于state gen
 // There's no skip slot cache involved given state gen only works with already stored block and state in DB.
 //
 // WARNING: This method should not be used for future slot.

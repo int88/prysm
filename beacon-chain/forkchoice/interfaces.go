@@ -15,16 +15,22 @@ import (
 type BalancesByRooter func(context.Context, [32]byte) ([]uint64, error)
 
 // ForkChoicer represents the full fork choice interface composed of all the sub-interfaces.
+// ForkChoicer代表完整的fork choice接口，由所有子接口组成
 type ForkChoicer interface {
 	Lock()
 	Unlock()
 	RLock()
 	RUnlock()
-	HeadRetriever        // to compute head.
-	BlockProcessor       // to track new block for fork choice.
+	// 计算head
+	HeadRetriever // to compute head.
+	// 追踪新的block，对于fork choice
+	BlockProcessor // to track new block for fork choice.
+	// 追踪新的attestation，对于fork choice
 	AttestationProcessor // to track new attestation for fork choice.
-	Getter               // to retrieve fork choice information.
-	Setter               // to set fork choice information.
+	// 用于获取fork choice信息
+	Getter // to retrieve fork choice information.
+	// 用于设置fork choice信息
+	Setter // to set fork choice information.
 }
 
 // HeadRetriever retrieves head root and optimistic info of the current chain.

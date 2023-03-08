@@ -8,6 +8,7 @@ type ReadOnlyDatabase = iface.ReadOnlyDatabase
 
 // NoHeadAccessDatabase exposes Prysm's Ethereum data backend for read/write access, no information
 // about head info. For head info, use github.com/prysmaticlabs/prysm/blockchain.HeadFetcher.
+// NoHeadAccessDatabase暴露Prysm的Ethereum data backend用于读写操作，没有关于head info
 type NoHeadAccessDatabase = iface.NoHeadAccessDatabase
 
 // HeadAccessDatabase exposes Prysm's Ethereum backend for read/write access with information about

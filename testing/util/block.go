@@ -54,6 +54,7 @@ func DefaultBlockGenConfig() *BlockGenConfig {
 }
 
 // NewBeaconBlock creates a beacon block with minimum marshalable fields.
+// NewBeaconBlock创建一个beacon block，有着最少的marshalable字段
 func NewBeaconBlock() *ethpb.SignedBeaconBlock {
 	return &ethpb.SignedBeaconBlock{
 		Block: &ethpb.BeaconBlock{

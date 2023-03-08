@@ -63,6 +63,7 @@ func GenesisBeaconState(ctx context.Context, deposits []*ethpb.Deposit, genesisT
 	}
 
 	// Process initial deposits.
+	// 处理初始的deposits
 	st, err = helpers.UpdateGenesisEth1Data(st, deposits, eth1Data)
 	if err != nil {
 		return nil, err
@@ -115,6 +116,7 @@ func PreminedGenesisBeaconState(ctx context.Context, deposits []*ethpb.Deposit, 
 
 // OptimizedGenesisBeaconState is used to create a state that has already processed deposits. This is to efficiently
 // create a mainnet state at chainstart.
+// OptimizedGenesisBeaconState用于创建一个state，已经处理了deposits，这用于在chainstart的时候创建一个mainnet state
 func OptimizedGenesisBeaconState(genesisTime uint64, preState state.BeaconState, eth1Data *ethpb.Eth1Data) (state.BeaconState, error) {
 	if eth1Data == nil {
 		return nil, errors.New("no eth1data provided for genesis state")
@@ -220,6 +222,7 @@ func OptimizedGenesisBeaconState(genesisTime uint64, preState state.BeaconState,
 }
 
 // EmptyGenesisState returns an empty beacon state object.
+// EmptyGenesisState返回一个空的beacon state对象
 func EmptyGenesisState() (state.BeaconState, error) {
 	st := &ethpb.BeaconState{
 		// Misc fields.

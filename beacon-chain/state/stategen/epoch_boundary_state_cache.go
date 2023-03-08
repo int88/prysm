@@ -51,6 +51,7 @@ func rootKeyFn(obj interface{}) (string, error) {
 }
 
 // epochBoundaryState struct with two queues by looking up beacon state by slot or root.
+// epochBoundaryState有着两个队列，用于通过slot或者root查找beacon state
 type epochBoundaryState struct {
 	rootStateCache *cache.FIFO
 	slotRootCache  *cache.FIFO
@@ -59,6 +60,7 @@ type epochBoundaryState struct {
 
 // newBoundaryStateCache creates a new block newBoundaryStateCache for storing and accessing epoch boundary states from
 // memory.
+// newBoundaryStateCache创建一个新的block newBoundaryStateCache，用于存储以及访问epoch boundary states，从内存中
 func newBoundaryStateCache() *epochBoundaryState {
 	return &epochBoundaryState{
 		rootStateCache: cache.NewFIFO(rootKeyFn),

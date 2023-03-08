@@ -25,12 +25,14 @@ var (
 )
 
 // hotStateCache is used to store the processed beacon state after finalized check point.
+// hotStateCache用于存储处理过的beacon state，在finalized checkpoint之后
 type hotStateCache struct {
 	cache *lru.Cache
 	lock  sync.RWMutex
 }
 
 // newHotStateCache initializes the map and underlying cache.
+// newHotStateCache初始化map以及底层的cache
 func newHotStateCache() *hotStateCache {
 	return &hotStateCache{
 		cache: lruwrpr.New(hotStateCacheSize),

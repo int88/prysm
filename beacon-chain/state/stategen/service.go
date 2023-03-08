@@ -43,6 +43,7 @@ type StateManager interface {
 }
 
 // State is a concrete implementation of StateManager.
+// State是StateManager的具体实现
 type State struct {
 	beaconDB                db.NoHeadAccessDatabase
 	slotsPerArchivedPoint   primitives.Slot
@@ -84,6 +85,7 @@ func WithBackfillStatus(bfs *backfill.Status) StateGenOption {
 }
 
 // New returns a new state management object.
+// New返回一个新的state management对象
 func New(beaconDB db.NoHeadAccessDatabase, fc forkchoice.ForkChoicer, opts ...StateGenOption) *State {
 	s := &State{
 		beaconDB:                beaconDB,
@@ -157,6 +159,7 @@ func (s *State) SaveFinalizedState(fSlot primitives.Slot, fRoot [32]byte, fState
 }
 
 // Returns true if input root equals to cached finalized root.
+// 返回true，如果输入的root等于缓存的finalized root
 func (s *State) isFinalizedRoot(r [32]byte) bool {
 	s.finalizedInfo.lock.RLock()
 	defer s.finalizedInfo.lock.RUnlock()

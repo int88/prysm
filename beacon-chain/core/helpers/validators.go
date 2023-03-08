@@ -44,6 +44,7 @@ func IsActiveValidatorUsingTrie(validator state.ReadOnlyValidator, epoch primiti
 }
 
 // IsActiveNonSlashedValidatorUsingTrie checks if a read only validator is active and not slashed
+// IsActiveNonSlashedValidatorUsingTrie检查是否一个read only validator是active并且没有slashed
 func IsActiveNonSlashedValidatorUsingTrie(validator state.ReadOnlyValidator, epoch primitives.Epoch) bool {
 	active := checkValidatorActiveStatus(validator.ActivationEpoch(), validator.ExitEpoch(), epoch)
 	return active && !validator.Slashed()

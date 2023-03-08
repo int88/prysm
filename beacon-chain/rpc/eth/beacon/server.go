@@ -1,6 +1,8 @@
 // Package beacon defines a gRPC beacon service implementation,
 // following the official API standards https://ethereum.github.io/beacon-apis/#/.
 // This package includes the beacon and config endpoints.
+// beacon包定义了一个gRPC service的实现，遵循官方的API标准
+// 这个包包含beacon以及config endpoints
 package beacon
 
 import (
@@ -22,6 +24,8 @@ import (
 
 // Server defines a server implementation of the gRPC Beacon Chain service,
 // providing RPC endpoints to access data relevant to the Ethereum Beacon Chain.
+// Server定义了一个gRPC Beacon Chain service的server实现，提供RPC endpoints来访问Ethereum
+// Beacon Chain相关的数据
 type Server struct {
 	BeaconDB                      db.ReadOnlyDatabase
 	ChainInfoFetcher              blockchain.ChainInfoFetcher

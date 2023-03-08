@@ -18,16 +18,19 @@ import (
 )
 
 // ProcessPreGenesisDeposits processes a deposit for the beacon state before chainstart.
+// ProcessPreGenesisDeposits处理deposits用于beacon state，在chainstart之前
 func ProcessPreGenesisDeposits(
 	ctx context.Context,
 	beaconState state.BeaconState,
 	deposits []*ethpb.Deposit,
 ) (state.BeaconState, error) {
 	var err error
+	// 处理deposits失败
 	beaconState, err = ProcessDeposits(ctx, beaconState, deposits)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not process deposit")
 	}
+	// 用effective balance激活validators
 	beaconState, err = ActivateValidatorWithEffectiveBalance(beaconState, deposits)
 	if err != nil {
 		return nil, err
@@ -36,6 +39,7 @@ func ProcessPreGenesisDeposits(
 }
 
 // ActivateValidatorWithEffectiveBalance updates validator's effective balance, and if it's above MaxEffectiveBalance, validator becomes active in genesis.
+// ActivateValidatorWithEffectiveBalance更新validator的effective balance，并且如果它超过了MaxEffectiveBalance，validator变为active，在genesis
 func ActivateValidatorWithEffectiveBalance(beaconState state.BeaconState, deposits []*ethpb.Deposit) (state.BeaconState, error) {
 	for _, d := range deposits {
 		pubkey := d.Data.PublicKey
