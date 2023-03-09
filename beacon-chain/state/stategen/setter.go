@@ -14,6 +14,7 @@ import (
 )
 
 // SaveState saves the state in the cache and/or DB.
+// SaveState保存state到cache或者DB中
 func (s *State) SaveState(ctx context.Context, blockRoot [32]byte, st state.BeaconState) error {
 	ctx, span := trace.StartSpan(ctx, "stateGen.SaveState")
 	defer span.End()
@@ -47,6 +48,8 @@ func (s *State) ForceCheckpoint(ctx context.Context, blockRoot []byte) error {
 // This saves a post beacon state. On the epoch boundary,
 // it saves a full state. On an intermediate slot, it saves a back pointer to the
 // nearest epoch boundary state.
+// 保存一个post beacon state，在epoch boundary，它保存一个full state，对于中间的slot，它保存
+// 一个back pointer到最近的epoch boundary state
 func (s *State) saveStateByRoot(ctx context.Context, blockRoot [32]byte, st state.BeaconState) error {
 	ctx, span := trace.StartSpan(ctx, "stateGen.saveStateByRoot")
 	defer span.End()
@@ -56,6 +59,7 @@ func (s *State) saveStateByRoot(ctx context.Context, blockRoot [32]byte, st stat
 
 	s.saveHotStateDB.lock.Lock()
 	if s.saveHotStateDB.enabled && st.Slot().Mod(duration) == 0 {
+		// 保存到DB中
 		if err := s.beaconDB.SaveState(ctx, st, blockRoot); err != nil {
 			s.saveHotStateDB.lock.Unlock()
 			return err
@@ -70,6 +74,7 @@ func (s *State) saveStateByRoot(ctx context.Context, blockRoot [32]byte, st stat
 	s.saveHotStateDB.lock.Unlock()
 
 	// If the hot state is already in cache, one can be sure the state was processed and in the DB.
+	// 如果hot state已经在cache
 	if s.hotStateCache.has(blockRoot) {
 		return nil
 	}

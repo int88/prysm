@@ -21,12 +21,14 @@ func TestSaveState_HotStateCanBeSaved(t *testing.T) {
 	service.slotsPerArchivedPoint = 1
 	beaconState, _ := util.DeterministicGenesisState(t, 32)
 	// This goes to hot section, verify it can save on epoch boundary.
+	// 这会到hot section，校验它可以保存在epoch boundary
 	require.NoError(t, beaconState.SetSlot(params.BeaconConfig().SlotsPerEpoch))
 
 	r := [32]byte{'a'}
 	require.NoError(t, service.SaveState(ctx, r, beaconState))
 
 	// Should save both state and state summary.
+	// 应该同时保存state和state summary
 	_, ok, err := service.epochBoundaryStateCache.getByBlockRoot(r)
 	require.NoError(t, err)
 	assert.Equal(t, true, ok, "Should have saved the state")

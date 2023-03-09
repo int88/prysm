@@ -13,6 +13,7 @@ import (
 var (
 	// maxCacheSize is 8. That means 8 epochs and roughly an hour
 	// of no finality can be endured.
+	// maxCacheSize是8，意味着8个epochs，大概一个小时的no finality是能够忍受的
 	maxCacheSize        = uint64(8)
 	errNotSlotRootInfo  = errors.New("not slot root info type")
 	errNotRootStateInfo = errors.New("not root state info type")

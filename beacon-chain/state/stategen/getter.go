@@ -18,6 +18,7 @@ import (
 var ErrNoDataForSlot = errors.New("cannot retrieve data for slot")
 
 // HasState returns true if the state exists in cache or in DB.
+// HasState返回true，如果state存在于cache或者DB中
 func (s *State) HasState(ctx context.Context, blockRoot [32]byte) (bool, error) {
 	has, err := s.hasStateInCache(ctx, blockRoot)
 	if err != nil {
@@ -30,6 +31,7 @@ func (s *State) HasState(ctx context.Context, blockRoot [32]byte) (bool, error) 
 }
 
 // hasStateInCache returns true if the state exists in cache.
+// hasStateInCache返回true，如果state存在于cache中
 func (s *State) hasStateInCache(_ context.Context, blockRoot [32]byte) (bool, error) {
 	if s.hotStateCache.has(blockRoot) {
 		return true, nil
