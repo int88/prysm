@@ -46,6 +46,7 @@ func TestSaveState_HotStateCached(t *testing.T) {
 	require.NoError(t, beaconState.SetSlot(params.BeaconConfig().SlotsPerEpoch))
 
 	// Cache the state prior.
+	// 提前保存state
 	r := [32]byte{'a'}
 	service.hotStateCache.put(r, beaconState)
 	require.NoError(t, service.SaveState(ctx, r, beaconState))
@@ -67,11 +68,13 @@ func TestState_ForceCheckpoint_SavesStateToDatabase(t *testing.T) {
 	r := [32]byte{'a'}
 	svc.hotStateCache.put(r, beaconState)
 
+	// 之前db中不存在state，在force checkpoint之后，存在于db中
 	require.Equal(t, false, beaconDB.HasState(ctx, r), "Database has state stored already")
 	assert.NoError(t, svc.ForceCheckpoint(ctx, r[:]))
 	assert.Equal(t, true, beaconDB.HasState(ctx, r), "Did not save checkpoint to database")
 
 	// Should not panic with genesis finalized root.
+	// 用genesis finalized root不应该panic
 	assert.NoError(t, svc.ForceCheckpoint(ctx, params.BeaconConfig().ZeroHash[:]))
 }
 
@@ -90,6 +93,7 @@ func TestSaveState_Alreadyhas(t *testing.T) {
 	require.NoError(t, service.saveStateByRoot(ctx, r, beaconState))
 
 	// Should not save the state and state summary.
+	// db中不应该有state和state summary
 	assert.Equal(t, false, service.beaconDB.HasState(ctx, r), "Should not have saved the state")
 	assert.Equal(t, false, service.beaconDB.HasStateSummary(ctx, r), "Should have saved the state summary")
 	require.LogsDoNotContain(t, hook, "Saved full state on epoch boundary")
@@ -112,6 +116,7 @@ func TestSaveState_CanSaveOnEpochBoundary(t *testing.T) {
 	require.Equal(t, true, ok, "Did not save epoch boundary state")
 	assert.Equal(t, true, service.beaconDB.HasStateSummary(ctx, r), "Should have saved the state summary")
 	// Should have not been saved in DB.
+	// 不应该保存到DB中
 	require.Equal(t, false, beaconDB.HasState(ctx, r))
 }
 
@@ -144,6 +149,7 @@ func TestSaveState_CanSaveHotStateToDB(t *testing.T) {
 	ctx := context.Background()
 	beaconDB := testDB.SetupDB(t)
 	service := New(beaconDB, doublylinkedtree.New())
+	// 使能hot state to db
 	service.EnableSaveHotStateToDB(ctx)
 	beaconState, _ := util.DeterministicGenesisState(t, 32)
 	require.NoError(t, beaconState.SetSlot(defaultHotStateDBInterval))
@@ -153,6 +159,7 @@ func TestSaveState_CanSaveHotStateToDB(t *testing.T) {
 
 	require.LogsContain(t, hook, "Saving hot state to DB")
 	// Should have saved in DB.
+	// 应该已经保存在DB中
 	require.Equal(t, true, beaconDB.HasState(ctx, r))
 }
 

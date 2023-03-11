@@ -44,6 +44,7 @@ func (s *Service) UpdateAndSaveHeadWithBalances(ctx context.Context) error {
 }
 
 // This defines the current chain service's view of head.
+// 这定义了当前的chain service对于head的视角
 type head struct {
 	root  [32]byte                             // current head root.
 	block interfaces.ReadOnlySignedBeaconBlock // current head block.

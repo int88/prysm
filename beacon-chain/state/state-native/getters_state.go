@@ -274,6 +274,7 @@ func (b *BeaconState) StateRoots() [][]byte {
 
 // StateRootAtIndex retrieves a specific state root based on an
 // input index value.
+// StateRootAtIndex获取一个特定的state root，基于输入的索引值
 func (b *BeaconState) StateRootAtIndex(idx uint64) ([]byte, error) {
 	if b.stateRoots == nil {
 		return nil, nil

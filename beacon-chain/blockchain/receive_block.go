@@ -18,6 +18,7 @@ import (
 )
 
 // This defines how many epochs since finality the run time will begin to save hot state on to the DB.
+// 定义了从finality之后多少个epochs，runtime会开始保存hot state到DB中
 var epochsSinceFinalitySaveHotStateDB = primitives.Epoch(100)
 
 // BlockReceiver interface defines the methods of chain service for receiving and processing new blocks.
@@ -62,6 +63,7 @@ func (s *Service) ReceiveBlock(ctx context.Context, block interfaces.ReadOnlySig
 	}
 
 	// Have we been finalizing? Should we start saving hot states to db?
+	// 我们已经finalizing了？我们应该开始保存hot states到db?
 	if err := s.checkSaveHotStateDB(ctx); err != nil {
 		return err
 	}
@@ -190,8 +192,10 @@ func (s *Service) handleBlockBLSToExecChanges(blk interfaces.ReadOnlyBeaconBlock
 }
 
 // This checks whether it's time to start saving hot state to DB.
+// 检查是否是时候开始保存hot state到DB中
 // It's time when there's `epochsSinceFinalitySaveHotStateDB` epochs of non-finality.
 // Requires a read lock on forkchoice
+// 当从non-finality开始有`epochsSinceFinalitySaveHotStateDB`时开始，需要对于forkchoice的读锁
 func (s *Service) checkSaveHotStateDB(ctx context.Context) error {
 	currentEpoch := slots.ToEpoch(s.CurrentSlot())
 	// Prevent `sinceFinality` going underflow.

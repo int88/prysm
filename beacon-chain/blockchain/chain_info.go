@@ -49,6 +49,7 @@ type GenesisFetcher interface {
 
 // HeadFetcher defines a common interface for methods in blockchain service which
 // directly retrieve head related data.
+// HeadFetcher定义了一个公共的接口，对于blockchain service中的方法，直接获取head相关的数据
 type HeadFetcher interface {
 	HeadSlot() primitives.Slot
 	HeadRoot(ctx context.Context) ([]byte, error)
@@ -202,6 +203,8 @@ func (s *Service) HeadState(ctx context.Context) (state.BeaconState, error) {
 // state instance to read fields from the state. Any type assertions back
 // to the concrete type and subsequent use of it could lead to corruption
 // of the state.
+// HeadStateReadOnly返回只读的head state of the chain，如果head为nil，则试着从DB中
+// 获取head state
 func (s *Service) HeadStateReadOnly(ctx context.Context) (state.ReadOnlyBeaconState, error) {
 	ctx, span := trace.StartSpan(ctx, "blockChain.HeadStateReadOnly")
 	defer span.End()

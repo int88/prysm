@@ -59,6 +59,7 @@ type State struct {
 // This tracks the config in the event of long non-finality,
 // how often does the node save hot states to db? what are
 // the saved hot states in db?... etc
+// 追踪long non-finality的配置，node保存hot states到db的频率，保存到db中的hot states是什么
 type saveHotStateDbConfig struct {
 	enabled                 bool
 	lock                    sync.Mutex

@@ -24,6 +24,8 @@ func (s *State) SaveState(ctx context.Context, blockRoot [32]byte, st state.Beac
 
 // ForceCheckpoint initiates a cold state save of the given block root's state. This method does not update the
 // "last archived state" but simply saves the specified state from the root argument into the DB.
+// ForceCheckpoint初始化一个cold state保存，对于给定block root的state，这个方法没有更新"last archived state"，只是简单地
+// 保存特定的state到DB中
 //
 // The name "Checkpoint" isn't referring to checkpoint in the sense of our consensus type, but checkpoint for our historical states.
 func (s *State) ForceCheckpoint(ctx context.Context, blockRoot []byte) error {
@@ -37,6 +39,7 @@ func (s *State) ForceCheckpoint(ctx context.Context, blockRoot []byte) error {
 		return nil
 	}
 
+	// 通过root加载state，保存到DB中
 	fs, err := s.loadStateByRoot(ctx, root32)
 	if err != nil {
 		return err
@@ -80,6 +83,7 @@ func (s *State) saveStateByRoot(ctx context.Context, blockRoot [32]byte, st stat
 	}
 
 	// Only on an epoch boundary slot, save epoch boundary state in epoch boundary root state cache.
+	// 只在一个epoch boundary slot，保存epoch boundary state到epoch boundary root state cache中
 	if slots.IsEpochStart(st.Slot()) {
 		if err := s.epochBoundaryStateCache.put(blockRoot, st); err != nil {
 			return err
@@ -87,6 +91,7 @@ func (s *State) saveStateByRoot(ctx context.Context, blockRoot [32]byte, st stat
 	}
 
 	// On an intermediate slot, save state summary.
+	// 在一个中间的slot，保存state summary
 	if err := s.beaconDB.SaveStateSummary(ctx, &ethpb.StateSummary{
 		Slot: st.Slot(),
 		Root: blockRoot[:],
@@ -95,6 +100,7 @@ func (s *State) saveStateByRoot(ctx context.Context, blockRoot [32]byte, st stat
 	}
 
 	// Store the copied state in the hot state cache.
+	// 保存拷贝的state到hot state cache
 	s.hotStateCache.put(blockRoot, st)
 
 	return nil
@@ -102,6 +108,8 @@ func (s *State) saveStateByRoot(ctx context.Context, blockRoot [32]byte, st stat
 
 // EnableSaveHotStateToDB enters the mode that saves hot beacon state to the DB.
 // This usually gets triggered when there's long duration since finality.
+// EnableSaveHotStateToDB进入一种模式，它会保存hot beacon state到DB中，这通常在finality
+// 之后很长一段时间才触发
 func (s *State) EnableSaveHotStateToDB(_ context.Context) {
 	s.saveHotStateDB.lock.Lock()
 	defer s.saveHotStateDB.lock.Unlock()
@@ -118,7 +126,9 @@ func (s *State) EnableSaveHotStateToDB(_ context.Context) {
 }
 
 // DisableSaveHotStateToDB exits the mode that saves beacon state to DB for the hot states.
+// DisableSaveHotStateToDB离开保存beacon state到DB中，对于hot states的模式
 // This usually gets triggered once there's finality after long duration since finality.
+// 这通常在很长时间没有finality后finality的时候发生
 func (s *State) DisableSaveHotStateToDB(ctx context.Context) error {
 	s.saveHotStateDB.lock.Lock()
 	defer s.saveHotStateDB.lock.Unlock()
@@ -132,6 +142,7 @@ func (s *State) DisableSaveHotStateToDB(ctx context.Context) error {
 	}).Warn("Exiting mode to save hot states in DB")
 
 	// Delete previous saved states in DB as we are turning this mode off.
+	// 关闭DB中的保存的states，因为我们正在关闭这种模式
 	s.saveHotStateDB.enabled = false
 	if err := s.beaconDB.DeleteStates(ctx, s.saveHotStateDB.blockRootsOfSavedStates); err != nil {
 		return err
