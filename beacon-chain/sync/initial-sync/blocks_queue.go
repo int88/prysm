@@ -70,6 +70,8 @@ type blocksQueueConfig struct {
 
 // blocksQueue is a priority queue that serves as a intermediary between block fetchers (producers)
 // and block processing goroutine (consumer). Consumer can rely on order of incoming blocks.
+// blocksQueue是一个优先级队列，服务于block fetchers和block processing goroutine，Consumer可以依赖于
+// incoming blocks的顺序
 type blocksQueue struct {
 	ctx                 context.Context
 	cancel              context.CancelFunc
@@ -81,6 +83,7 @@ type blocksQueue struct {
 	exitConditions      struct {
 		noRequiredPeersErrRetries int
 	}
+	// output channel用于ready的blocks
 	fetchedData chan *blocksQueueFetchedData // output channel for ready blocks
 	staleEpochs map[primitives.Epoch]uint8   // counter to keep track of stale FSMs
 	quit        chan struct{}                // termination notifier

@@ -407,6 +407,7 @@ func ProcessParticipationRecordUpdates(state state.BeaconState) (state.BeaconSta
 }
 
 // ProcessFinalUpdates processes the final updates during epoch processing.
+// ProcessFinalUpdates处理epoch processing的final updates
 func ProcessFinalUpdates(state state.BeaconState) (state.BeaconState, error) {
 	var err error
 

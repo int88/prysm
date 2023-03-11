@@ -55,6 +55,7 @@ type SyncedData struct {
 // InitializedData is the data sent with Initialized events.
 type InitializedData struct {
 	// StartTime is the time at which the chain started.
+	// StartTime是chain启动的时间
 	StartTime time.Time
 	// GenesisValidatorsRoot represents state.validators.HashTreeRoot().
 	GenesisValidatorsRoot []byte

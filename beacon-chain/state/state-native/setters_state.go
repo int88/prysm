@@ -30,6 +30,7 @@ func (b *BeaconState) SetStateRoots(val [][]byte) error {
 
 // UpdateStateRootAtIndex for the beacon state. Updates the state root
 // at a specific index to a new value.
+// UpdateStateRootAtIndex更新beacon state，更新特定索引的state root到一个新的值
 func (b *BeaconState) UpdateStateRootAtIndex(idx uint64, stateRoot [32]byte) error {
 	b.lock.RLock()
 	if uint64(len(b.stateRoots)) <= idx {
@@ -42,6 +43,7 @@ func (b *BeaconState) UpdateStateRootAtIndex(idx uint64, stateRoot [32]byte) err
 	defer b.lock.Unlock()
 
 	// Check if we hold the only reference to the shared state roots slice.
+	// 检查我们对于共享的state root slice有唯一的引用
 	r := b.stateRoots
 	if ref := b.sharedFieldReferences[types.StateRoots]; ref.Refs() > 1 {
 		// Copy elements in underlying array by reference.

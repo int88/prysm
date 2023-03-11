@@ -1,5 +1,6 @@
 // Package testing includes useful mocks for writing unit
 // tests which depend on logic from the blockchain package.
+// testing包包含了有用的mocks用于编写单元测试，依赖blockchain包的逻辑
 package testing
 
 import (
@@ -33,6 +34,7 @@ import (
 var ErrNilState = errors.New("nil state")
 
 // ChainService defines the mock interface for testing
+// ChainService定义了用于测试的mock接口
 type ChainService struct {
 	NotFinalized                bool
 	Optimistic                  bool

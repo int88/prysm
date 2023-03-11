@@ -52,6 +52,7 @@ func (c *CanonicalHistory) BlockRootForSlot(ctx context.Context, target primitiv
 
 	slotAbove := target + 1
 	// don't bother searching for candidate roots when we know the target slot is genesis
+	// 我们不需要去寻找candidate roots，当我们知道target root是genesis
 	for slotAbove > 1 {
 		if ctx.Err() != nil {
 			return [32]byte{}, errors.Wrap(ctx.Err(), "context canceled during canonicalBlockForSlot")
@@ -66,13 +67,17 @@ func (c *CanonicalHistory) BlockRootForSlot(ctx context.Context, target primitiv
 		r, err := c.bestForSlot(ctx, roots)
 		if err == nil {
 			// we found a valid, canonical block!
+			// 我们找到一个合法的canonical block
 			return r, nil
 		}
 
 		// we found a block, but it wasn't considered canonical - keep looking
+		// 我们找到一个block，但是它不是canonical，继续查找
 		if errors.Is(err, ErrNoCanonicalBlockForSlot) {
 			// break once we've seen slot 0 (and prevent underflow)
+			// 退出，如果我们已经到slot 0
 			if slot == params.BeaconConfig().GenesisSlot {
+				// genesis block，跳出
 				break
 			}
 			slotAbove = slot
@@ -86,6 +91,8 @@ func (c *CanonicalHistory) BlockRootForSlot(ctx context.Context, target primitiv
 
 // bestForSlot encapsulates several messy realities of the underlying db code, looping through multiple blocks,
 // performing null/validity checks, and using CanonicalChecker to only pick canonical blocks.
+// bestForSlot封装了底层db代码中混乱的现实，遍历多个blocks，执行null/validity checks并且使用CanonicalChecker来
+// 只选择canonical blocks
 func (c *CanonicalHistory) bestForSlot(ctx context.Context, roots [][32]byte) ([32]byte, error) {
 	for _, root := range roots {
 		canon, err := c.cc.IsCanonical(ctx, root)
@@ -101,8 +108,11 @@ func (c *CanonicalHistory) bestForSlot(ctx context.Context, roots [][32]byte) ([
 
 // ChainForSlot creates a value that satisfies the Replayer interface via db queries
 // and the stategen transition helper methods. This implementation uses the following algorithm:
+// ChainForSlot创建一个value，满足Replayer接口，通过db的请求以及stategen transition的帮助方法，使用如下的算法
 // - find the highest canonical block <= the target slot
+// - 找到最大的canonical block <= the target slot
 // - starting with this block, recursively search backwards for a stored state, and accumulate intervening blocks
+// - 从这个block开始，递归地往后搜索一个stored state，并且积累中间的blocks
 func (c *CanonicalHistory) chainForSlot(ctx context.Context, target primitives.Slot) (state.BeaconState, []interfaces.ReadOnlySignedBeaconBlock, error) {
 	ctx, span := trace.StartSpan(ctx, "canonicalChainer.chainForSlot")
 	defer span.End()

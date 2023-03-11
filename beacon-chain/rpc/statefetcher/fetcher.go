@@ -90,6 +90,7 @@ type StateProvider struct {
 }
 
 // State returns the BeaconState for a given identifier. The identifier can be one of:
+// State返回一个给定identifer的BeaconState
 //   - "head" (canonical head in node's view)
 //   - "genesis"
 //   - "finalized"
@@ -149,6 +150,7 @@ func (p *StateProvider) State(ctx context.Context, stateId []byte) (state.Beacon
 			slotNumber, parseErr := strconv.ParseUint(stateIdString, 10, 64)
 			if parseErr != nil {
 				// ID format does not match any valid options.
+				// ID格式不匹配合法的选项
 				e := NewStateIdParseError(parseErr)
 				return nil, &e
 			}
@@ -215,8 +217,12 @@ func (p *StateProvider) stateByRoot(ctx context.Context, stateRoot []byte) (stat
 // StateBySlot returns the post-state for the requested slot. To generate the state, it uses the
 // most recent canonical state prior to the target slot, and all canonical blocks
 // between the found state's slot and the target slot.
+// StateBySlot返回请求的slot的post-state，为了生成state，它使用最新的canonical state，在target slot之前
+// 以及所有的canonical blocks，在found state的slot和target slot之间
 // process_blocks is applied for all canonical blocks, and process_slots is called for any skipped
 // slots, or slots following the most recent canonical block up to and including the target slot.
+// process_blocks应用到所有的canonical blocks以及process_slots处理所有跳过的slots，或者slots跟随最近的
+// canonical block直到包含的target slot
 func (p *StateProvider) StateBySlot(ctx context.Context, target primitives.Slot) (state.BeaconState, error) {
 	ctx, span := trace.StartSpan(ctx, "statefetcher.StateBySlot")
 	defer span.End()

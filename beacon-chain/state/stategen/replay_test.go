@@ -27,6 +27,7 @@ func TestReplayBlocks_AllSkipSlots(t *testing.T) {
 	genesisBlock := blocks.NewGenesisBlock([]byte{})
 	bodyRoot, err := genesisBlock.Block.HashTreeRoot()
 	require.NoError(t, err)
+	// 设置last block header
 	err = beaconState.SetLatestBlockHeader(&ethpb.BeaconBlockHeader{
 		Slot:       genesisBlock.Block.Slot,
 		ParentRoot: genesisBlock.Block.ParentRoot,
@@ -46,6 +47,7 @@ func TestReplayBlocks_AllSkipSlots(t *testing.T) {
 	targetSlot := params.BeaconConfig().SlotsPerEpoch - 1
 	newState, err := service.replayBlocks(context.Background(), beaconState, []interfaces.ReadOnlySignedBeaconBlock{}, targetSlot)
 	require.NoError(t, err)
+	// 向前移动空的slots
 	assert.Equal(t, targetSlot, newState.Slot(), "Did not advance slots")
 }
 

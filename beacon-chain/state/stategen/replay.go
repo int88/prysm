@@ -145,6 +145,9 @@ func (s *State) loadBlocks(ctx context.Context, startSlot, endSlot primitives.Sl
 // executeStateTransitionStateGen applies state transition on input historical state and block for state gen usages.
 // There's no signature verification involved given state gen only works with stored block and state in DB.
 // If the objects are already in stored in DB, one can omit redundant signature checks and ssz hashing calculations.
+// executeStateTransitionStateGen对于输入的historical state以及block应用state transition，用于state gen
+// 没有signature verification，因此只对DB中存储的block以及state有效
+// 如果对象已经存储在DB中，则可以忽略冗余的signature checks以及ssz hashing
 //
 // WARNING: This method should not be used on an unverified new block.
 func executeStateTransitionStateGen(
@@ -164,14 +167,18 @@ func executeStateTransitionStateGen(
 
 	// Execute per slots transition.
 	// Given this is for state gen, a node uses the version of process slots without skip slots cache.
+	// 执行每个slots的transition
+	// 对于给定的state gen，一个节点使用process slots，而不用跳过slot cache
 	state, err = ReplayProcessSlots(ctx, state, signed.Block().Slot())
 	if err != nil {
 		return nil, errors.Wrap(err, "could not process slot")
 	}
 
 	// Execute per block transition.
+	// 执行每个block transition
 	// Given this is for state gen, a node only cares about the post state without proposer
 	// and randao signature verifications.
+	// 对于给定的state gen，一个节点只关心post state，而不是proposer以及randao signature的校验
 	state, err = transition.ProcessBlockForStateRoot(ctx, state, signed)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not process block")
@@ -182,6 +189,7 @@ func executeStateTransitionStateGen(
 // ReplayProcessSlots to process old slots for state gen usages.
 // ReplayProcessSlots用于处理old slots，用于state gen
 // There's no skip slot cache involved given state gen only works with already stored block and state in DB.
+// 没有包含skip slot cache，给定state gen，只作用于已经存在在DB中的block和state
 //
 // WARNING: This method should not be used for future slot.
 func ReplayProcessSlots(ctx context.Context, state state.BeaconState, slot primitives.Slot) (state.BeaconState, error) {
@@ -207,6 +215,7 @@ func ReplayProcessSlots(ctx context.Context, state state.BeaconState, slot primi
 			return nil, errors.Wrap(err, "could not process slot")
 		}
 		if prysmtime.CanProcessEpoch(state) {
+			// 处理epoch
 			switch state.Version() {
 			case version.Phase0:
 				state, err = transition.ProcessEpochPrecompute(ctx, state)

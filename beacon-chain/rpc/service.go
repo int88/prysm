@@ -1,5 +1,7 @@
 // Package rpc defines a gRPC server implementing the Ethereum consensus API as needed
 // by validator clients and consumers of chain data.
+// rpc包定义了一个gRPC server，实现了Ethereum consensus API，validator clients以及chain data
+// 的消费者需要
 package rpc
 
 import (

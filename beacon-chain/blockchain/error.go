@@ -10,8 +10,10 @@ var (
 	// ErrUndefinedExecutionEngineError is returned when the execution engine returns an error that is not defined
 	ErrUndefinedExecutionEngineError = errors.New("received an undefined execution engine error")
 	// errNilFinalizedInStore is returned when a nil finalized checkpt is returned from store.
+	// errNilFinalizedInStore被返回，当一个nil finalized checkpt从store中返回
 	errNilFinalizedInStore = errors.New("nil finalized checkpoint returned from store")
 	// errNilFinalizedCheckpoint is returned when a nil finalized checkpt is returned from a state.
+	// errNilFinalizedCheckpoint被返回，当一个nil finalized checkpt从一个state中被返回
 	errNilFinalizedCheckpoint = errors.New("nil finalized checkpoint returned from state")
 	// errNilJustifiedCheckpoint is returned when a nil justified checkpt is returned from a state.
 	errNilJustifiedCheckpoint = errors.New("nil justified checkpoint returned from state")

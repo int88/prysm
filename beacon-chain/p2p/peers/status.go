@@ -697,6 +697,7 @@ func (p *Status) BestFinalized(maxPeers int, ourFinalizedEpoch primitives.Epoch)
 
 // BestNonFinalized returns the highest known epoch, higher than ours,
 // and is shared by at least minPeers.
+// BestNonFinalized返回最高已知的epoch，比我们的高，并且被至少minPeers共享
 func (p *Status) BestNonFinalized(minPeers int, ourHeadEpoch primitives.Epoch) (primitives.Epoch, []peer.ID) {
 	connected := p.Connected()
 	epochVotes := make(map[primitives.Epoch]uint64)
@@ -706,6 +707,7 @@ func (p *Status) BestNonFinalized(minPeers int, ourHeadEpoch primitives.Epoch) (
 
 	ourHeadSlot := params.BeaconConfig().SlotsPerEpoch.Mul(uint64(ourHeadEpoch))
 	for _, pid := range connected {
+		// 获取peer的chain state
 		peerChainState, err := p.ChainState(pid)
 		if err == nil && peerChainState != nil && peerChainState.HeadSlot > ourHeadSlot {
 			epoch := slots.ToEpoch(peerChainState.HeadSlot)

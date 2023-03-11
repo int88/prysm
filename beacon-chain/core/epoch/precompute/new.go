@@ -1,6 +1,8 @@
 // Package precompute provides gathering of nicely-structured
 // data important to feed into epoch processing, such as attesting
 // records and balances, for faster computation.
+// precompute提供了对于良好结构数据的收集，用于epoch processing，例如attesting records
+// 以及balances，对于更快地处理
 package precompute
 
 import (
@@ -17,6 +19,8 @@ import (
 // New gets called at the beginning of process epoch cycle to return
 // pre computed instances of validators attesting records and total
 // balances attested in an epoch.
+// New在每个epoch cycle的开始被处理，返回提前计算的实例，关于validators attesting records
+// 以及全部的attested balances，在一个epoch中
 func New(ctx context.Context, s state.BeaconState) ([]*Validator, *Balance, error) {
 	ctx, span := trace.StartSpan(ctx, "precomputeEpoch.New")
 	defer span.End()

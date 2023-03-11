@@ -191,6 +191,7 @@ func InitializeFromProtoUnsafePhase0(st *ethpb.BeaconState) (state.BeaconState, 
 	b.sharedFieldReferences[types.PreviousEpochAttestations] = stateutil.NewRef(1)
 	b.sharedFieldReferences[types.CurrentEpochAttestations] = stateutil.NewRef(1)
 
+	// state count + 1
 	state.StateCount.Inc()
 	// Finalizer runs when dst is being destroyed in garbage collection.
 	runtime.SetFinalizer(b, finalizerCleanup)
@@ -918,5 +919,6 @@ func finalizerCleanup(b *BeaconState) {
 	for i := range b.stateFieldLeaves {
 		delete(b.stateFieldLeaves, i)
 	}
+	// finalizer cleanup
 	state.StateCount.Sub(1)
 }

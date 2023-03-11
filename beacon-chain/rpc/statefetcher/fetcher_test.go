@@ -100,6 +100,7 @@ func TestGetState(t *testing.T) {
 
 		p := StateProvider{
 			ChainInfoFetcher: &chainMock.ChainService{
+				// 构建finalized checkpoint
 				FinalizedCheckPoint: &ethpb.Checkpoint{
 					Root:  stateRoot[:],
 					Epoch: 10,
@@ -124,6 +125,7 @@ func TestGetState(t *testing.T) {
 
 		p := StateProvider{
 			ChainInfoFetcher: &chainMock.ChainService{
+				// 设置justified checkpoint
 				CurrentJustifiedCheckPoint: &ethpb.Checkpoint{
 					Root:  stateRoot[:],
 					Epoch: 10,
@@ -144,6 +146,7 @@ func TestGetState(t *testing.T) {
 		stateId, err := hexutil.Decode("0x" + strings.Repeat("0", 63) + "1")
 		require.NoError(t, err)
 		stateGen := mockstategen.NewMockService()
+		// 设置state id，在stateGen中保存
 		stateGen.StatesByRoot[bytesutil.ToBytes32(stateId)] = newBeaconState
 
 		p := StateProvider{
@@ -189,6 +192,7 @@ func TestGetState(t *testing.T) {
 
 	t.Run("invalid_state", func(t *testing.T) {
 		p := StateProvider{}
+		// 非法的state
 		_, err := p.State(ctx, []byte("foo"))
 		require.ErrorContains(t, "could not parse state ID", err)
 	})
@@ -267,6 +271,7 @@ func TestGetStateRoot(t *testing.T) {
 			Root:  root[:],
 		}
 		// a valid chain is required to save finalized checkpoint.
+		// 保存finalized checkpoint需要一个valid chain
 		util.SaveBlock(t, ctx, db, blk)
 		st, err := util.NewBeaconState()
 		require.NoError(t, err)
@@ -279,6 +284,7 @@ func TestGetStateRoot(t *testing.T) {
 			BeaconDB: db,
 		}
 
+		// 获取state root
 		s, err := p.StateRoot(ctx, []byte("finalized"))
 		require.NoError(t, err)
 		assert.DeepEqual(t, blk.Block.StateRoot, s)

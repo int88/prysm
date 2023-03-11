@@ -270,6 +270,7 @@ func ProcessOperationsNoVerifyAttsSigs(
 
 // ProcessBlockForStateRoot processes the state for state root computation. It skips proposer signature
 // and randao signature verifications.
+// ProcessBlockForStateRoot处理state，对于state root的计算
 //
 // Spec pseudocode definition:
 // def process_block(state: BeaconState, block: ReadOnlyBeaconBlock) -> None:
@@ -305,6 +306,7 @@ func ProcessBlockForStateRoot(
 		return nil, errors.Wrap(err, "could not process block header")
 	}
 
+	// 检查是否使能了execution
 	enabled, err := b.IsExecutionEnabled(state, blk.Body())
 	if err != nil {
 		return nil, errors.Wrap(err, "could not check if execution is enabled")

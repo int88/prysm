@@ -83,6 +83,7 @@ var blockedBuckets = [][]byte{
 
 // Store defines an implementation of the Prysm Database interface
 // using BoltDB as the underlying persistent kv-store for Ethereum Beacon Nodes.
+// Store定义了Prysm Database的接口的实现，使用BoltDB作为底层的kv-store，用于Ethereum Beacon Nodes
 type Store struct {
 	db                  *bolt.DB
 	databasePath        string

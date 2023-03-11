@@ -43,6 +43,7 @@ import (
 
 // Service represents a service that handles the internal
 // logic of managing the full PoS beacon chain.
+// Service代表一个service，处理内部的管理完整的PoS beacon chain的链
 type Service struct {
 	cfg                   *config
 	ctx                   context.Context

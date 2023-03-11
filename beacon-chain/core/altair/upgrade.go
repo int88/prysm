@@ -13,6 +13,7 @@ import (
 )
 
 // UpgradeToAltair updates input state to return the version Altair state.
+// UpgradeToAltair更新输入的state，返回Altair state
 //
 // Spec code:
 // def upgrade_to_altair(pre: phase0.BeaconState) -> BeaconState:
@@ -71,6 +72,7 @@ func UpgradeToAltair(ctx context.Context, state state.BeaconState) (state.Beacon
 	if err != nil {
 		return nil, err
 	}
+	// 构建新的state
 	s := &ethpb.BeaconStateAltair{
 		GenesisTime:           state.GenesisTime(),
 		GenesisValidatorsRoot: state.GenesisValidatorsRoot(),

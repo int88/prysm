@@ -60,6 +60,7 @@ type ReadOnlyDatabase interface {
 }
 
 // NoHeadAccessDatabase defines a struct without access to chain head data.
+// NoHeadAccessDatabase定义了一个结构，对于chain head data没有访问权限
 type NoHeadAccessDatabase interface {
 	ReadOnlyDatabase
 
@@ -69,13 +70,16 @@ type NoHeadAccessDatabase interface {
 	SaveBlocks(ctx context.Context, blocks []interfaces.ReadOnlySignedBeaconBlock) error
 	SaveGenesisBlockRoot(ctx context.Context, blockRoot [32]byte) error
 	// State related methods.
+	// State相关的方法
 	SaveState(ctx context.Context, state state.ReadOnlyBeaconState, blockRoot [32]byte) error
 	SaveStates(ctx context.Context, states []state.ReadOnlyBeaconState, blockRoots [][32]byte) error
 	DeleteState(ctx context.Context, blockRoot [32]byte) error
 	DeleteStates(ctx context.Context, blockRoots [][32]byte) error
+	// state summary
 	SaveStateSummary(ctx context.Context, summary *ethpb.StateSummary) error
 	SaveStateSummaries(ctx context.Context, summaries []*ethpb.StateSummary) error
 	// Checkpoint operations.
+	// checkpoint操作
 	SaveJustifiedCheckpoint(ctx context.Context, checkpoint *ethpb.Checkpoint) error
 	SaveFinalizedCheckpoint(ctx context.Context, checkpoint *ethpb.Checkpoint) error
 	SaveLastValidatedCheckpoint(ctx context.Context, checkpoint *ethpb.Checkpoint) error

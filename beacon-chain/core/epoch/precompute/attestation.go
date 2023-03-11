@@ -19,6 +19,8 @@ import (
 
 // ProcessAttestations process the attestations in state and update individual validator's pre computes,
 // it also tracks and updates epoch attesting balances.
+// ProcessAttestations处理state中的attestations并且更新单个validator的pre computes
+// 它同时追踪并且更新epoch attesting balances
 func ProcessAttestations(
 	ctx context.Context,
 	state state.ReadOnlyBeaconState,

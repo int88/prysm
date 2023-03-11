@@ -25,16 +25,20 @@ const (
 type blockReceiverFn func(ctx context.Context, block interfaces.ReadOnlySignedBeaconBlock, blockRoot [32]byte) error
 
 // batchBlockReceiverFn defines batch receiving function.
+// batchBlockReceiverFn定义了batch receiving函数
 type batchBlockReceiverFn func(ctx context.Context, blks []interfaces.ReadOnlySignedBeaconBlock, roots [][32]byte) error
 
 // Round Robin sync looks at the latest peer statuses and syncs up to the highest known epoch.
 //
 // Step 1 - Sync to finalized epoch.
 // Sync with peers having the majority on best finalized epoch greater than node's head state.
+// 和peers同步，他们大多数的best finalized epoch都比我们的node的head state高
 //
 // Step 2 - Sync to head from finalized epoch.
 // Using enough peers (at least, MinimumSyncPeers*2, for example) obtain best non-finalized epoch,
 // known to majority of the peers, and keep fetching blocks, up until that epoch is reached.
+// 使用足够的peers（至少，MinimumSyncPeers*2，比如），获取最好的non-finalized epoch，被大多数peers已知
+// 持续抓取blocks，直到到达epoch
 func (s *Service) roundRobinSync(genesis time.Time) error {
 	ctx, cancel := context.WithCancel(s.ctx)
 	defer cancel()
@@ -44,11 +48,13 @@ func (s *Service) roundRobinSync(genesis time.Time) error {
 	s.counter = ratecounter.NewRateCounter(counterSeconds * time.Second)
 
 	// Step 1 - Sync to end of finalized epoch.
+	// 步骤一，同步到end of finalized epoch
 	if err := s.syncToFinalizedEpoch(ctx, genesis); err != nil {
 		return err
 	}
 
 	// Already at head, no need for 2nd phase.
+	// 已经在head，不需要第二阶段
 	if s.cfg.Chain.HeadSlot() == slots.Since(genesis) {
 		return nil
 	}
@@ -59,6 +65,7 @@ func (s *Service) roundRobinSync(genesis time.Time) error {
 }
 
 // syncToFinalizedEpoch sync from head to best known finalized epoch.
+// syncToFinalizedEpoch从head同步到最终已知的finalized epoch
 func (s *Service) syncToFinalizedEpoch(ctx context.Context, genesis time.Time) error {
 	highestFinalizedSlot, err := slots.EpochStart(s.highestFinalizedEpoch() + 1)
 	if err != nil {
@@ -66,9 +73,11 @@ func (s *Service) syncToFinalizedEpoch(ctx context.Context, genesis time.Time) e
 	}
 	if s.cfg.Chain.HeadSlot() >= highestFinalizedSlot {
 		// No need to sync, already synced to the finalized slot.
+		// 不需要同步，已经同步到了finalized slot
 		log.Debug("Already synced to finalized epoch")
 		return nil
 	}
+	// 构建block queue
 	queue := newBlocksQueue(ctx, &blocksQueueConfig{
 		p2p:                 s.cfg.P2P,
 		db:                  s.cfg.DB,
@@ -123,11 +132,13 @@ func (s *Service) syncToNonFinalizedEpoch(ctx context.Context, genesis time.Time
 }
 
 // processFetchedData processes data received from queue.
+// processFetchedData处理来自队列中的数据
 func (s *Service) processFetchedData(
 	ctx context.Context, genesis time.Time, startSlot primitives.Slot, data *blocksQueueFetchedData) {
 	defer s.updatePeerScorerStats(data.pid, startSlot)
 
 	// Use Batch Block Verify to process and verify batches directly.
+	// 使用Batch Block Verify来处理以及校验batches，最终调用ReceiveBlockBatch
 	if err := s.processBatchedBlocks(ctx, genesis, data.blocks, s.cfg.Chain.ReceiveBlockBatch); err != nil {
 		log.WithError(err).Warn("Skip processing batched blocks")
 	}
@@ -204,6 +215,7 @@ func (s *Service) logSyncStatus(genesis time.Time, blk interfaces.ReadOnlyBeacon
 }
 
 // logBatchSyncStatus and increments the block processing counter.
+// 记录batch sync status并且增加block processing的计数
 func (s *Service) logBatchSyncStatus(genesis time.Time, blks []interfaces.ReadOnlySignedBeaconBlock, blkRoot [32]byte) {
 	s.counter.Incr(int64(len(blks)))
 	rate := float64(s.counter.Rate()) / counterSeconds
@@ -289,6 +301,7 @@ func (s *Service) processBatchedBlocks(ctx context.Context, genesis time.Time,
 }
 
 // updatePeerScorerStats adjusts monitored metrics for a peer.
+// updatePeerScorerStats为一个peer调整monitored metrics
 func (s *Service) updatePeerScorerStats(pid peer.ID, startSlot primitives.Slot) {
 	if pid == "" {
 		return
@@ -299,6 +312,7 @@ func (s *Service) updatePeerScorerStats(pid peer.ID, startSlot primitives.Slot) 
 	}
 	if diff := s.cfg.Chain.HeadSlot() - startSlot; diff > 0 {
 		scorer := s.cfg.P2P.Peers().Scorers().BlockProviderScorer()
+		// 增加处理的blocks
 		scorer.IncrementProcessedBlocks(pid, uint64(diff))
 	}
 }

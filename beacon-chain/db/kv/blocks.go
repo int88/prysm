@@ -275,6 +275,7 @@ func (s *Store) SaveBlock(ctx context.Context, signed interfaces.ReadOnlySignedB
 // if a `saveBlindedBeaconBlocks` key exists in the database. Otherwise, we check if the last
 // blocked stored to check if it is blinded, and then write that `saveBlindedBeaconBlocks` key
 // to the DB for future checks.
+// 这个函数决定我们是否应该在DB中存储beacon blocks，以blinded的形式
 func (s *Store) shouldSaveBlinded(ctx context.Context) (bool, error) {
 	var saveBlinded bool
 	if err := s.db.View(func(tx *bolt.Tx) error {
@@ -288,12 +289,15 @@ func (s *Store) shouldSaveBlinded(ctx context.Context) (bool, error) {
 }
 
 // SaveBlocks via bulk updates to the db.
+// SaveBlocks保存blocks到db中，通过bulk updates
 func (s *Store) SaveBlocks(ctx context.Context, blks []interfaces.ReadOnlySignedBeaconBlock) error {
 	ctx, span := trace.StartSpan(ctx, "BeaconDB.SaveBlocks")
 	defer span.End()
 
 	// Performing marshaling, hashing, and indexing outside the bolt transaction
 	// to minimize the time we hold the DB lock.
+	// 执行marshaling，hashing以及indexing，在bolt transaction之外，来最小化我们
+	// 持有DB锁的时间
 	blockRoots := make([][]byte, len(blks))
 	encodedBlocks := make([][]byte, len(blks))
 	indicesForBlocks := make([]map[string][]byte, len(blks))
@@ -429,6 +433,7 @@ func (s *Store) SaveBackfillBlockRoot(ctx context.Context, blockRoot [32]byte) e
 }
 
 // HighestRootsBelowSlot returns roots from the database slot index from the highest slot below the input slot.
+// HighestRootsBelowSlot从db中返回slot index，在输入的slot以下的最高的slot
 // The slot value at the beginning of the return list is the slot where the roots were found. This is helpful so that
 // calling code can make decisions based on the slot without resolving the blocks to discover their slot (for instance
 // checking which root is canonical in fork choice, which operates purely on roots,
@@ -729,6 +734,8 @@ func blockRootsBySlot(ctx context.Context, tx *bolt.Tx, slot primitives.Slot) ([
 // createBlockIndicesFromBlock takes in a beacon block and returns
 // a map of bolt DB index buckets corresponding to each particular key for indices for
 // data, such as (shard indices bucket -> shard 5).
+// createBlockIndicesFromBlock根据一个beacon block返回bolt DB index buckets映射到每个特定的key，用于
+// data，例如（shard indices bucket -> shard 5?）
 func createBlockIndicesFromBlock(ctx context.Context, block interfaces.ReadOnlyBeaconBlock) map[string][]byte {
 	ctx, span := trace.StartSpan(ctx, "BeaconDB.createBlockIndicesFromBlock")
 	defer span.End()

@@ -1,6 +1,8 @@
 // Package initialsync includes all initial block download and processing
 // logic for the beacon node, using a round robin strategy and a finite-state-machine
 // to handle edge-cases in a beacon node's sync status.
+// initialsync包包含所有的初始block下载以及处理逻辑，对于beacon node，使用一个round robin策略
+// 以及有限状态机来处理边界条件，在一个beacon node的sync status
 package initialsync
 
 import (
@@ -27,12 +29,14 @@ import (
 var _ runtime.Service = (*Service)(nil)
 
 // blockchainService defines the interface for interaction with block chain service.
+// blockchainService定义了接口用于和block chain service进行交互
 type blockchainService interface {
 	blockchain.BlockReceiver
 	blockchain.ChainInfoFetcher
 }
 
 // Config to set up the initial sync service.
+// 用于建立initial sync service的配置
 type Config struct {
 	P2P           p2p.P2P
 	DB            db.ReadOnlyDatabase
@@ -54,6 +58,7 @@ type Service struct {
 
 // NewService configures the initial sync service responsible for bringing the node up to the
 // latest head of the blockchain.
+// NewService配置initial sync service，负责将node带到最新的head of the blockchain
 func NewService(ctx context.Context, cfg *Config) *Service {
 	ctx, cancel := context.WithCancel(ctx)
 	s := &Service{
@@ -68,6 +73,7 @@ func NewService(ctx context.Context, cfg *Config) *Service {
 
 	// The reason why we have this goroutine in the constructor is to avoid a race condition
 	// between services' Start method and the initialization event.
+	// 有这个goroutine的原因是避免service的Start方法和初始化事件之间的竞争
 	// See https://github.com/prysmaticlabs/prysm/issues/10602 for details.
 	go s.waitForStateInitialization()
 
@@ -75,6 +81,7 @@ func NewService(ctx context.Context, cfg *Config) *Service {
 }
 
 // Start the initial sync service.
+// 启动初始的sync service
 func (s *Service) Start() {
 	// Wait for state initialized event.
 	genesis := <-s.genesisChan
@@ -89,6 +96,7 @@ func (s *Service) Start() {
 	}
 	currentSlot := slots.Since(genesis)
 	if slots.ToEpoch(currentSlot) == 0 {
+		// 当前就在slot 0?
 		log.WithField("genesisTime", genesis).Info("Chain started within the last epoch - not syncing")
 		s.markSynced(genesis)
 		return
@@ -96,11 +104,13 @@ func (s *Service) Start() {
 	s.chainStarted.Set()
 	log.Info("Starting initial chain sync...")
 	// Are we already in sync, or close to it?
+	// 我们已经在sync，还是离它很近了？
 	if slots.ToEpoch(s.cfg.Chain.HeadSlot()) == slots.ToEpoch(currentSlot) {
 		log.Info("Already synced to the current chain head")
 		s.markSynced(genesis)
 		return
 	}
+	// 等待最少数目的peers
 	s.waitForMinimumPeers()
 	if err := s.roundRobinSync(genesis); err != nil {
 		if errors.Is(s.ctx.Err(), context.Canceled) {
@@ -183,8 +193,10 @@ func (s *Service) waitForMinimumPeers() {
 
 // waitForStateInitialization makes sure that beacon node is ready to be accessed: it is either
 // already properly configured or system waits up until state initialized event is triggered.
+// waitForStateInitialization确保beacon node已经准备好被访问
 func (s *Service) waitForStateInitialization() {
 	// Wait for state to be initialized.
+	// 等待state初始化完成
 	stateChannel := make(chan *feed.Event, 1)
 	stateSub := s.cfg.StateNotifier.StateFeed().Subscribe(stateChannel)
 	defer stateSub.Unsubscribe()
@@ -217,6 +229,7 @@ func (s *Service) waitForStateInitialization() {
 }
 
 // markSynced marks node as synced and notifies feed listeners.
+// markSynced标记为synced并且通知feed listeners
 func (s *Service) markSynced(genesis time.Time) {
 	s.synced.Set()
 	s.cfg.StateNotifier.StateFeed().Send(&feed.Event{

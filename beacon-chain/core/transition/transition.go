@@ -85,7 +85,9 @@ func ExecuteStateTransition(
 }
 
 // ProcessSlot happens every slot and focuses on the slot counter and block roots record updates.
+// ProcessSlot处理每个slot并且专注于slot counter和block roots records的更新
 // It happens regardless if there's an incoming block or not.
+// 它会发生，无论有没有incoming block
 // Spec pseudocode definition:
 //
 //	def process_slot(state: BeaconState) -> None:
@@ -108,6 +110,7 @@ func ProcessSlot(ctx context.Context, state state.BeaconState) (state.BeaconStat
 		return nil, err
 	}
 	if err := state.UpdateStateRootAtIndex(
+		// 更新在索引的state root
 		uint64(state.Slot()%params.BeaconConfig().SlotsPerHistoricalRoot),
 		prevStateRoot,
 	); err != nil {
@@ -116,6 +119,7 @@ func ProcessSlot(ctx context.Context, state state.BeaconState) (state.BeaconStat
 
 	zeroHash := params.BeaconConfig().ZeroHash
 	// Cache latest block header state root.
+	// 缓存最新的block header state root
 	header := state.LatestBlockHeader()
 	if header.StateRoot == nil || bytes.Equal(header.StateRoot, zeroHash[:]) {
 		header.StateRoot = prevStateRoot[:]
@@ -129,6 +133,7 @@ func ProcessSlot(ctx context.Context, state state.BeaconState) (state.BeaconStat
 		return nil, errors.Wrap(err, "could not determine prev block root")
 	}
 	// Cache the block root.
+	// 缓存block root
 	if err := state.UpdateBlockRootAtIndex(
 		uint64(state.Slot()%params.BeaconConfig().SlotsPerHistoricalRoot),
 		prevBlockRoot,
@@ -367,7 +372,9 @@ func VerifyOperationLengths(_ context.Context, state state.BeaconState, b interf
 }
 
 // ProcessEpochPrecompute describes the per epoch operations that are performed on the beacon state.
+// ProcessEpochPrecompute描述了在beacon state之上执行的per epoch operations
 // It's optimized by pre computing validator attested info and epoch total/attested balances upfront.
+// 它通过提前计算的validator attested info以及epoch total/attested balances upfront来优化
 func ProcessEpochPrecompute(ctx context.Context, state state.BeaconState) (state.BeaconState, error) {
 	ctx, span := trace.StartSpan(ctx, "core.state.ProcessEpochPrecompute")
 	defer span.End()
