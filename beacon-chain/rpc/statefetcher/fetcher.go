@@ -21,11 +21,13 @@ import (
 )
 
 // StateIdParseError represents an error scenario where a state ID could not be parsed.
+// StateIdParseError代表一个错误场景，其中一个state ID被错误解析了
 type StateIdParseError struct {
 	message string
 }
 
 // NewStateIdParseError creates a new error instance.
+// NewStateIdParseError创建一个新的error实例
 func NewStateIdParseError(reason error) StateIdParseError {
 	return StateIdParseError{
 		message: errors.Wrapf(reason, "could not parse state ID").Error(),
@@ -43,8 +45,10 @@ type StateNotFoundError struct {
 }
 
 // NewStateNotFoundError creates a new error instance.
+// NewStateNotFoundError创建一个新的error实例
 func NewStateNotFoundError(stateRootsSize int) StateNotFoundError {
 	return StateNotFoundError{
+		// 在最近的state roots中找不到state
 		message: fmt.Sprintf("state not found in the last %d state roots", stateRootsSize),
 	}
 }
@@ -169,6 +173,7 @@ func (p *StateProvider) State(ctx context.Context, stateId []byte) (state.Beacon
 //   - <slot>
 //   - <hex encoded state root with '0x' prefix>
 func (p *StateProvider) StateRoot(ctx context.Context, stateId []byte) (root []byte, err error) {
+	// 都变为小写字母
 	stateIdString := strings.ToLower(string(stateId))
 	switch stateIdString {
 	case "head":
@@ -181,14 +186,17 @@ func (p *StateProvider) StateRoot(ctx context.Context, stateId []byte) (root []b
 		root, err = p.justifiedStateRoot(ctx)
 	default:
 		if len(stateId) == 32 {
+			// id为root
 			root, err = p.stateRootByRoot(ctx, stateId)
 		} else {
 			slotNumber, parseErr := strconv.ParseUint(stateIdString, 10, 64)
 			if parseErr != nil {
 				e := NewStateIdParseError(parseErr)
 				// ID format does not match any valid options.
+				// ID格式不符合任何合法的选项
 				return nil, &e
 			}
+			// 转换成了slot number
 			root, err = p.stateRootBySlot(ctx, primitives.Slot(slotNumber))
 		}
 	}
@@ -210,6 +218,7 @@ func (p *StateProvider) stateByRoot(ctx context.Context, stateRoot []byte) (stat
 		}
 	}
 
+	// 否则返回state not found
 	stateNotFoundErr := NewStateNotFoundError(len(headState.StateRoots()))
 	return nil, &stateNotFoundErr
 }
@@ -313,10 +322,12 @@ func (p *StateProvider) stateRootByRoot(ctx context.Context, stateRoot []byte) (
 }
 
 func (p *StateProvider) stateRootBySlot(ctx context.Context, slot primitives.Slot) ([]byte, error) {
+	// 获取当前的slot
 	currentSlot := p.GenesisTimeFetcher.CurrentSlot()
 	if slot > currentSlot {
 		return nil, errors.New("slot cannot be in the future")
 	}
+	// 获取slot对应的blocks
 	blks, err := p.BeaconDB.BlocksBySlot(ctx, slot)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not get blocks")
@@ -324,12 +335,14 @@ func (p *StateProvider) stateRootBySlot(ctx context.Context, slot primitives.Slo
 	if len(blks) == 0 {
 		return nil, errors.New("no block exists")
 	}
+	// 如果有多个blocks存在，则报错
 	if len(blks) != 1 {
 		return nil, errors.New("multiple blocks exist in same slot")
 	}
 	if blks[0] == nil || blks[0].Block() == nil {
 		return nil, errors.New("nil block")
 	}
+	// 从block中获取state root
 	stateRoot := blks[0].Block().StateRoot()
 	return stateRoot[:], nil
 }

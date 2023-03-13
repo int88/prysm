@@ -275,6 +275,8 @@ func createGenesisTime(timeStamp uint64) uint64 {
 
 // processPastLogs processes all the past logs from the deposit contract and
 // updates the deposit trie with the data from each individual log.
+// processPastLogs处理所有来自deposit contract的past logs并且更新deposit trie
+// 用来自单个log的数据
 func (s *Service) processPastLogs(ctx context.Context) error {
 	currentBlockNum := s.latestEth1Data.LastRequestedBlock
 	deploymentBlock := params.BeaconNetworkConfig().ContractDeploymentBlock

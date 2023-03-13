@@ -261,6 +261,7 @@ func (b *BeaconState) ToProto() interface{} {
 }
 
 // StateRoots kept track of in the beacon state.
+// 在beacon state中追踪的StateRoots
 func (b *BeaconState) StateRoots() [][]byte {
 	if b.stateRoots == nil {
 		return nil
@@ -292,6 +293,7 @@ func (b *BeaconState) StateRootAtIndex(idx uint64) ([]byte, error) {
 
 // stateRootAtIndex retrieves a specific state root based on an
 // input index value.
+// stateRootAtIndex获取一个特定的state root，基于一个输入的索引值
 // This assumes that a lock is already held on BeaconState.
 func (b *BeaconState) stateRootAtIndex(idx uint64) ([32]byte, error) {
 	if uint64(len(b.stateRoots)) <= idx {

@@ -39,6 +39,7 @@ const slotDeadline = 5 * time.Second
 const depositDeadline = 20 * time.Second
 
 // This defines size of the upper bound for initial sync block cache.
+// 定义了初始的sync block cache的上限
 var initialSyncBlockCacheSize = uint64(2 * params.BeaconConfig().SlotsPerEpoch)
 
 // onBlock is called when a gossip block is received. It runs regular state transition on the block.
@@ -331,6 +332,7 @@ func (s *Service) onBlockBatch(ctx context.Context, blks []interfaces.ReadOnlySi
 	b := blks[0].Block()
 
 	// Retrieve incoming block's pre state.
+	// 获取block的pre state
 	if err := s.verifyBlkPreState(ctx, b); err != nil {
 		return err
 	}
@@ -343,6 +345,7 @@ func (s *Service) onBlockBatch(ctx context.Context, blks []interfaces.ReadOnlySi
 	}
 
 	// Fill in missing blocks
+	// 填充缺失的blocks
 	if err := s.fillInForkChoiceMissingBlocks(ctx, blks[0].Block(), preState.CurrentJustifiedCheckpoint(), preState.FinalizedCheckpoint()); err != nil {
 		return errors.Wrap(err, "could not fill in missing blocks to forkchoice")
 	}
@@ -357,8 +360,10 @@ func (s *Service) onBlockBatch(ctx context.Context, blks []interfaces.ReadOnlySi
 	preVersionAndHeaders := make([]*versionAndHeader, len(blks))
 	postVersionAndHeaders := make([]*versionAndHeader, len(blks))
 	var set *bls.SignatureBatch
+	// block root到beacon state的映射，仅仅保存boundaries
 	boundaries := make(map[[32]byte]state.BeaconState)
 	for i, b := range blks {
+		// 遍历blocks
 		v, h, err := getStateVersionAndPayload(preState)
 		if err != nil {
 			return err
@@ -368,14 +373,17 @@ func (s *Service) onBlockBatch(ctx context.Context, blks []interfaces.ReadOnlySi
 			header:  h,
 		}
 
+		// 执行state transition
 		set, preState, err = transition.ExecuteStateTransitionNoVerifyAnySig(ctx, preState, b)
 		if err != nil {
 			return invalidBlock{error: err}
 		}
 		// Save potential boundary states.
+		// 保存潜在的boundary states
 		if slots.IsEpochStart(preState.Slot()) {
 			boundaries[blockRoots[i]] = preState.Copy()
 		}
+		// 获取justified checkpoint和finalized checkpoint
 		jCheckpoints[i] = preState.CurrentJustifiedCheckpoint()
 		fCheckpoints[i] = preState.FinalizedCheckpoint()
 
@@ -404,9 +412,11 @@ func (s *Service) onBlockBatch(ctx context.Context, blks []interfaces.ReadOnlySi
 	}
 
 	// blocks have been verified, save them and call the engine
+	// blocks已经被校验，保存它们并且调用engine
 	pendingNodes := make([]*forkchoicetypes.BlockAndCheckpoints, len(blks))
 	var isValidPayload bool
 	for i, b := range blks {
+		// 遍历blocks，与execution engine进行交互
 		isValidPayload, err = s.notifyNewPayload(ctx,
 			postVersionAndHeaders[i].version,
 			postVersionAndHeaders[i].header, b)
@@ -414,6 +424,7 @@ func (s *Service) onBlockBatch(ctx context.Context, blks []interfaces.ReadOnlySi
 			return err
 		}
 		if isValidPayload {
+			// 如果是valid payload
 			if err := s.validateMergeTransitionBlock(ctx, preVersionAndHeaders[i].version,
 				preVersionAndHeaders[i].header, b); err != nil {
 				return err
@@ -427,13 +438,16 @@ func (s *Service) onBlockBatch(ctx context.Context, blks []interfaces.ReadOnlySi
 			tracing.AnnotateError(span, err)
 			return err
 		}
+		// 保存state summary
 		if err := s.cfg.BeaconDB.SaveStateSummary(ctx, &ethpb.StateSummary{
+			// 只有slot和root
 			Slot: b.Block().Slot(),
 			Root: blockRoots[i][:],
 		}); err != nil {
 			tracing.AnnotateError(span, err)
 			return err
 		}
+		// 保存justified和finalized checkpoint
 		if i > 0 && jCheckpoints[i].Epoch > jCheckpoints[i-1].Epoch {
 			if err := s.cfg.BeaconDB.SaveJustifiedCheckpoint(ctx, jCheckpoints[i]); err != nil {
 				tracing.AnnotateError(span, err)
@@ -448,25 +462,31 @@ func (s *Service) onBlockBatch(ctx context.Context, blks []interfaces.ReadOnlySi
 		}
 	}
 	// Save boundary states that will be useful for forkchoice
+	// 保存boundary states，对于forkchoice是有用的
 	for r, st := range boundaries {
 		if err := s.cfg.StateGen.SaveState(ctx, r, st); err != nil {
 			return err
 		}
 	}
 	// Also saves the last post state which to be used as pre state for the next batch.
+	// 同时保存最新的post state，在下一批作为pre state的时候有用
 	lastBR := blockRoots[len(blks)-1]
+	// 保存state
 	if err := s.cfg.StateGen.SaveState(ctx, lastBR, preState); err != nil {
 		return err
 	}
 	// Insert all nodes but the last one to forkchoice
+	// 将除最后一个节点外的所有节点插入forkchoice
 	if err := s.cfg.ForkChoiceStore.InsertChain(ctx, pendingNodes); err != nil {
 		return errors.Wrap(err, "could not insert batch to forkchoice")
 	}
 	// Insert the last block to forkchoice
+	// 插入最后一个block到forkchoice
 	if err := s.cfg.ForkChoiceStore.InsertNode(ctx, preState, lastBR); err != nil {
 		return errors.Wrap(err, "could not insert last block in batch to forkchoice")
 	}
 	// Set their optimistic status
+	// 设置它们的optimistic status
 	if isValidPayload {
 		if err := s.cfg.ForkChoiceStore.SetOptimisticToValid(ctx, lastBR); err != nil {
 			return errors.Wrap(err, "could not set optimistic block to valid")
@@ -478,6 +498,7 @@ func (s *Service) onBlockBatch(ctx context.Context, blks []interfaces.ReadOnlySi
 		headRoot:  lastBR,
 		headBlock: lastB.Block(),
 	}
+	// 通知forkchoide update
 	if _, err := s.notifyForkchoiceUpdate(ctx, arg); err != nil {
 		return err
 	}

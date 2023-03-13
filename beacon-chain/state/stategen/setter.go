@@ -35,6 +35,8 @@ func (s *State) ForceCheckpoint(ctx context.Context, blockRoot []byte) error {
 	root32 := bytesutil.ToBytes32(blockRoot)
 	// Before the first finalized checkpoint, the finalized root is zero hash.
 	// Return early if there hasn't been a finalized checkpoint.
+	// 在第一个finalized checkpoint之前，finalized root是zero hash
+	// 尽早返回，如果没有一个finalied checkpoint
 	if root32 == params.BeaconConfig().ZeroHash {
 		return nil
 	}
@@ -45,6 +47,7 @@ func (s *State) ForceCheckpoint(ctx context.Context, blockRoot []byte) error {
 		return err
 	}
 
+	// 保存state
 	return s.beaconDB.SaveState(ctx, fs, root32)
 }
 

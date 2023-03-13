@@ -53,12 +53,15 @@ type head struct {
 
 // This saves head info to the local service cache, it also saves the
 // new head root to the DB.
+// 保存head info到本地的service cache中，它同时保存新的head root到DB中
 // Caller of the method MUST aqcuire a lock on forkchoice.
+// 这个方法的调用者必须申请一个forkchoice的锁
 func (s *Service) saveHead(ctx context.Context, newHeadRoot [32]byte, headBlock interfaces.ReadOnlySignedBeaconBlock, headState state.BeaconState) error {
 	ctx, span := trace.StartSpan(ctx, "blockChain.saveHead")
 	defer span.End()
 
 	// Do nothing if head hasn't changed.
+	// 如果head没有发生改变，则什么都不做
 	if !s.isNewHead(newHeadRoot) {
 		return nil
 	}
@@ -66,12 +69,14 @@ func (s *Service) saveHead(ctx context.Context, newHeadRoot [32]byte, headBlock 
 	if err := blocks.BeaconBlockIsNil(headBlock); err != nil {
 		return err
 	}
+	// 不能保存nil head state
 	if headState == nil || headState.IsNil() {
 		return errors.New("cannot save nil head state")
 	}
 
 	// If the head state is not available, just return nil.
 	// There's nothing to cache
+	// 如果head state不可用，就返回nil，没有什么需要缓存
 	if !s.cfg.BeaconDB.HasStateSummary(ctx, newHeadRoot) {
 		return nil
 	}
@@ -89,6 +94,7 @@ func (s *Service) saveHead(ctx context.Context, newHeadRoot [32]byte, headBlock 
 	newStateRoot := headBlock.Block().StateRoot()
 
 	// A chain re-org occurred, so we fire an event notifying the rest of the services.
+	// 发生了一个chain re-org，因此我们触发一个事件，对于剩余的service
 	r, err := s.HeadRoot(ctx)
 	if err != nil {
 		return errors.Wrap(err, "could not get old head root")
@@ -149,17 +155,21 @@ func (s *Service) saveHead(ctx context.Context, newHeadRoot [32]byte, headBlock 
 	}
 
 	// Cache the new head info.
+	// 缓存新的head info
 	if err := s.setHead(newHeadRoot, headBlock, headState); err != nil {
 		return errors.Wrap(err, "could not set head")
 	}
 
 	// Save the new head root to DB.
+	// 保存新的head root到DB中
 	if err := s.cfg.BeaconDB.SaveHeadBlockRoot(ctx, newHeadRoot); err != nil {
 		return errors.Wrap(err, "could not save head root in DB")
 	}
 
 	// Forward an event capturing a new chain head over a common event feed
 	// done in a goroutine to avoid blocking the critical runtime main routine.
+	// 转发一个event，包含一个新的chain head事件，通过一个公共的event feed，在一个goroutine
+	// 完成，来避免阻塞main routine的critical runtime
 	go func() {
 		if err := s.notifyNewHeadEvent(ctx, newHeadSlot, headState, newStateRoot[:], newHeadRoot[:]); err != nil {
 			log.WithError(err).Error("Could not notify event feed of new chain head")
@@ -172,6 +182,8 @@ func (s *Service) saveHead(ctx context.Context, newHeadRoot [32]byte, headBlock 
 // This gets called to update canonical root mapping. It does not save head block
 // root in DB. With the inception of initial-sync-cache-state flag, it uses finalized
 // check point as anchors to resume sync therefore head is no longer needed to be saved on per slot basis.
+// 被调用来更新canonical root mapping，它不保存head block root到DB中，随着initial-sync-cache-state
+// 开始，它使用finalied checkpoint作为锚，来继续同步，因此head不再需要保存到每个slot
 func (s *Service) saveHeadNoDB(ctx context.Context, b interfaces.ReadOnlySignedBeaconBlock, r [32]byte, hs state.BeaconState) error {
 	if err := blocks.BeaconBlockIsNil(b); err != nil {
 		return err
@@ -195,11 +207,13 @@ func (s *Service) saveHeadNoDB(ctx context.Context, b interfaces.ReadOnlySignedB
 }
 
 // This sets head view object which is used to track the head slot, root, block and state.
+// 设置head view对象，它用于追踪head slot, root, block以及state
 func (s *Service) setHead(root [32]byte, block interfaces.ReadOnlySignedBeaconBlock, state state.BeaconState) error {
 	s.headLock.Lock()
 	defer s.headLock.Unlock()
 
 	// This does a full copy of the block and state.
+	// 对block以及state做一个完整的拷贝
 	bCp, err := block.Copy()
 	if err != nil {
 		return err
@@ -215,11 +229,14 @@ func (s *Service) setHead(root [32]byte, block interfaces.ReadOnlySignedBeaconBl
 // This sets head view object which is used to track the head slot, root, block and state. The method
 // assumes that state being passed into the method will not be modified by any other alternate
 // caller which holds the state's reference.
+// 设置head view对象，用于追踪head slot, root, block以及state，这个方法假设传入到方法的state不会被其他另外的
+// 调用者修改
 func (s *Service) setHeadInitialSync(root [32]byte, block interfaces.ReadOnlySignedBeaconBlock, state state.BeaconState) error {
 	s.headLock.Lock()
 	defer s.headLock.Unlock()
 
 	// This does a full copy of the block only.
+	// 只对block做一个全拷贝
 	bCp, err := block.Copy()
 	if err != nil {
 		return err

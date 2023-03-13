@@ -127,15 +127,18 @@ func (s *Service) Start() {
 }
 
 // Stop the blockchain service's main event loop and associated goroutines.
+// 停止blockchain service的main event loop以及相关的goroutine
 func (s *Service) Stop() error {
 	defer s.cancel()
 
 	// lock before accessing s.head, s.head.state, s.head.state.FinalizedCheckpoint().Root
 	s.headLock.RLock()
 	if s.cfg.StateGen != nil && s.head != nil && s.head.state != nil {
+		// 获取finalized checkpoint
 		r := s.head.state.FinalizedCheckpoint().Root
 		s.headLock.RUnlock()
 		// Save the last finalized state so that starting up in the following run will be much faster.
+		// 保存最后的finalized state，这样后面的启动会更加快
 		if err := s.cfg.StateGen.ForceCheckpoint(s.ctx, r); err != nil {
 			return err
 		}
@@ -143,6 +146,7 @@ func (s *Service) Stop() error {
 		s.headLock.RUnlock()
 	}
 	// Save initial sync cached blocks to the DB before stop.
+	// 保存初始的sync cached blocks到DB中，在停止之前
 	return s.cfg.BeaconDB.SaveBlocks(s.ctx, s.getInitSyncBlocks())
 }
 

@@ -25,6 +25,7 @@ import (
 
 // State returns the saved state using block's signing root,
 // this particular block was used to generate the state.
+// State返回保存的state，使用block的signing root，这个特定的block用于产生state
 func (s *Store) State(ctx context.Context, blockRoot [32]byte) (state.BeaconState, error) {
 	ctx, span := trace.StartSpan(ctx, "BeaconDB.State")
 	defer span.End()
@@ -111,6 +112,7 @@ func (s *Store) GenesisState(ctx context.Context) (state.BeaconState, error) {
 }
 
 // SaveState stores a state to the db using block's signing root which was used to generate the state.
+// SaveState保存一个state到db中，使用block的signing root，它用于产生state
 func (s *Store) SaveState(ctx context.Context, st state.ReadOnlyBeaconState, blockRoot [32]byte) error {
 	ctx, span := trace.StartSpan(ctx, "BeaconDB.SaveState")
 	defer span.End()
@@ -125,6 +127,7 @@ func (s *Store) SaveState(ctx context.Context, st state.ReadOnlyBeaconState, blo
 }
 
 // SaveStates stores multiple states to the db using the provided corresponding roots.
+// SaveStates保存多个states到db中，使用提供的，对应的roots
 func (s *Store) SaveStates(ctx context.Context, states []state.ReadOnlyBeaconState, blockRoots [][32]byte) error {
 	ctx, span := trace.StartSpan(ctx, "BeaconDB.SaveStates")
 	defer span.End()
@@ -134,6 +137,7 @@ func (s *Store) SaveStates(ctx context.Context, states []state.ReadOnlyBeaconSta
 	startTime := time.Now()
 	multipleEncs := make([][]byte, len(states))
 	for i, st := range states {
+		// 遍历states
 		stateBytes, err := marshalState(ctx, st)
 		if err != nil {
 			return err
@@ -142,6 +146,7 @@ func (s *Store) SaveStates(ctx context.Context, states []state.ReadOnlyBeaconSta
 	}
 
 	if err := s.db.Update(func(tx *bolt.Tx) error {
+		// 获取state的bucket
 		bucket := tx.Bucket(stateBucket)
 		for i, rt := range blockRoots {
 			indicesByBucket := createStateIndicesFromStateSlot(ctx, states[i].Slot())
@@ -587,6 +592,7 @@ func marshalState(ctx context.Context, st state.ReadOnlyBeaconState) ([]byte, er
 
 // Retrieve the validator entries for a given block root. These entries are stored in a
 // separate bucket to reduce state size.
+// 为一个给定的block root获取validator entries，这些enties存储在一个另外的bucket用于减小state size
 func (s *Store) validatorEntries(ctx context.Context, blockRoot [32]byte) ([]*ethpb.Validator, error) {
 	ok, err := s.isStateValidatorMigrationOver()
 	if err != nil {

@@ -44,15 +44,18 @@ func (_ *State) replayBlocks(
 	})
 	log.Debug("Replaying state")
 	// The input block list is sorted in decreasing slots order.
+	// 输入的block list按照降slots的顺序排序
 	if len(signed) > 0 {
 		for i := len(signed) - 1; i >= 0; i-- {
 			if ctx.Err() != nil {
 				return nil, ctx.Err()
 			}
 			if state.Slot() >= targetSlot {
+				// 大于等于target slots就跳出
 				break
 			}
 			// A node shouldn't process the block if the block slot is lower than the state slot.
+			// 一个node不能处理block，如果block slot比state slot哟啊小
 			if state.Slot() >= signed[i].Block().Slot() {
 				continue
 			}
@@ -91,6 +94,7 @@ func (s *State) loadBlocks(ctx context.Context, startSlot, endSlot primitives.Sl
 		return nil, fmt.Errorf("start slot %d > end slot %d", startSlot, endSlot)
 	}
 	filter := filters.NewFilter().SetStartSlot(startSlot).SetEndSlot(endSlot)
+	// 从beacon db中获取blocks和blockRoots
 	blocks, blockRoots, err := s.beaconDB.Blocks(ctx, filter)
 	if err != nil {
 		return nil, err
@@ -128,6 +132,7 @@ func (s *State) loadBlocks(ctx context.Context, startSlot, endSlot primitives.Sl
 
 	filteredBlocks := []interfaces.ReadOnlySignedBeaconBlock{blocks[length-1]}
 	// Starting from second to last index because the last block is already in the filtered block list.
+	// 从第二个到最后一个索引，因为最后一个block已经在filtered block list中
 	for i := length - 2; i >= 0; i-- {
 		if ctx.Err() != nil {
 			return nil, ctx.Err()

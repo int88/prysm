@@ -10,6 +10,7 @@ import (
 )
 
 // SaveStateSummary saves a state summary object to the DB.
+// SaveStateSummary保存一个state summary对象到DB中
 func (s *Store) SaveStateSummary(ctx context.Context, summary *ethpb.StateSummary) error {
 	ctx, span := trace.StartSpan(ctx, "BeaconDB.SaveStateSummary")
 	defer span.End()
@@ -24,6 +25,8 @@ func (s *Store) SaveStateSummaries(ctx context.Context, summaries []*ethpb.State
 
 	// When we reach the state summary cache prune count,
 	// dump the cached state summaries to the DB.
+	// 当我们到达state summary cache的prune count
+	// dump我们缓存的state summaries到DB中
 	if s.stateSummaryCache.len() >= stateSummaryCachePruneCount {
 		if err := s.saveCachedStateSummariesDB(ctx); err != nil {
 			return err
@@ -31,6 +34,7 @@ func (s *Store) SaveStateSummaries(ctx context.Context, summaries []*ethpb.State
 	}
 
 	for _, ss := range summaries {
+		// 放在state summary cache中
 		s.stateSummaryCache.put(bytesutil.ToBytes32(ss.Root), ss)
 	}
 
@@ -63,6 +67,7 @@ func (s *Store) StateSummary(ctx context.Context, blockRoot [32]byte) (*ethpb.St
 }
 
 // HasStateSummary returns true if a state summary exists in DB.
+// HasStateSummary返回true，如果一个state summary存在于DB中
 func (s *Store) HasStateSummary(ctx context.Context, blockRoot [32]byte) bool {
 	ctx, span := trace.StartSpan(ctx, "BeaconDB.HasStateSummary")
 	defer span.End()

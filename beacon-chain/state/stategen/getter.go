@@ -234,6 +234,7 @@ func (s *State) loadStateByRoot(ctx context.Context, blockRoot [32]byte) (state.
 	if err != nil {
 		return nil, errors.Wrap(err, "could not get state summary")
 	}
+	// 根据block root找到slot
 	targetSlot := summary.Slot
 
 	// Since the requested state is not in caches or DB, start replaying using the last
@@ -283,6 +284,7 @@ func (s *State) latestAncestor(ctx context.Context, blockRoot [32]byte) (state.B
 	defer span.End()
 
 	if s.isFinalizedRoot(blockRoot) && s.finalizedState() != nil {
+		// 直接返回finalized state
 		return s.finalizedState(), nil
 	}
 
@@ -314,16 +316,19 @@ func (s *State) latestAncestor(ctx context.Context, blockRoot [32]byte) (state.B
 			return nil, errors.Wrapf(ErrNoDataForSlot, "slot %d not in db due to checkpoint sync", ps)
 		}
 		// Does the state exist in the hot state cache.
+		// state是否存在于hot state cache中
 		if s.hotStateCache.has(parentRoot) {
 			return s.hotStateCache.get(parentRoot), nil
 		}
 
 		// Does the state exist in finalized info cache.
+		// state是否存在于finalized info cache中
 		if s.isFinalizedRoot(parentRoot) {
 			return s.finalizedState(), nil
 		}
 
 		// Does the state exist in epoch boundary cache.
+		// state是否存在于epoch boundary cache中
 		cachedInfo, ok, err := s.epochBoundaryStateCache.getByBlockRoot(parentRoot)
 		if err != nil {
 			return nil, err
@@ -345,6 +350,7 @@ func (s *State) latestAncestor(ctx context.Context, blockRoot [32]byte) (state.B
 			return nil, errors.Wrap(err, "failed to retrieve block from db")
 		}
 		if b == nil || b.IsNil() {
+			// block未知
 			return nil, errUnknownBlock
 		}
 	}

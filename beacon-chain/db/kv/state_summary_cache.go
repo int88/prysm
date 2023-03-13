@@ -9,6 +9,7 @@ import (
 const stateSummaryCachePruneCount = 128
 
 // stateSummaryCache caches state summary object.
+// stateSummaryCache缓存state summary对象
 type stateSummaryCache struct {
 	initSyncStateSummaries     map[[32]byte]*ethpb.StateSummary
 	initSyncStateSummariesLock sync.RWMutex

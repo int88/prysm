@@ -76,6 +76,7 @@ func (c *hotStateCache) getWithoutCopy(blockRoot [32]byte) state.BeaconState {
 }
 
 // put the response in the cache.
+// 将response写入cache中
 func (c *hotStateCache) put(blockRoot [32]byte, state state.BeaconState) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
@@ -83,6 +84,7 @@ func (c *hotStateCache) put(blockRoot [32]byte, state state.BeaconState) {
 }
 
 // has returns true if the key exists in the cache.
+// has返回true，如果key存在于cache中
 func (c *hotStateCache) has(blockRoot [32]byte) bool {
 	c.lock.RLock()
 	defer c.lock.RUnlock()

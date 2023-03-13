@@ -7,6 +7,7 @@ import (
 )
 
 // LatestBlockHeader stored within the beacon state.
+// 存储在beacon state中的LatestBlockHeader
 func (b *BeaconState) LatestBlockHeader() *ethpb.BeaconBlockHeader {
 	if b.latestBlockHeader == nil {
 		return nil
@@ -20,11 +21,14 @@ func (b *BeaconState) LatestBlockHeader() *ethpb.BeaconBlockHeader {
 
 // latestBlockHeaderVal stored within the beacon state.
 // This assumes that a lock is already held on BeaconState.
+// latestBlockHeaderVal存储在beacon state中的最新的block header的状态
+// 这假设已经持有了 BeaconState中的锁
 func (b *BeaconState) latestBlockHeaderVal() *ethpb.BeaconBlockHeader {
 	if b.latestBlockHeader == nil {
 		return nil
 	}
 
+	// 构建beacon block header
 	hdr := &ethpb.BeaconBlockHeader{
 		Slot:          b.latestBlockHeader.Slot,
 		ProposerIndex: b.latestBlockHeader.ProposerIndex,

@@ -12,6 +12,7 @@ import (
 )
 
 // SaveGenesisData bootstraps the beaconDB with a given genesis state.
+// SaveGenesisData自举beaconDB，使用给定的genesis state
 func (s *Store) SaveGenesisData(ctx context.Context, genesisState state.BeaconState) error {
 	wsb, err := blocks.NewGenesisBlockForState(ctx, genesisState)
 	if err != nil {

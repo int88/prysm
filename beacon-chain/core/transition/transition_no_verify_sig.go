@@ -23,6 +23,8 @@ import (
 // This does not validate any BLS signatures of attestations, block proposer signature, randao signature,
 // it is used for performing a state transition as quickly as possible. This function also returns a signature
 // set of all signatures not verified, so that they can be stored and verified later.
+// ExecuteStateTransitionNoVerifyAnySig定义了一个state transition的过程，它不对BLS signatures进行校验
+// 它用于尽快执行一个state transition，它同时返回一系列未被校验的signature，因此它们可以在后面被存储以及校验
 //
 // WARNING: This method does not validate any signatures (i.e. calling `state_transition()` with `validate_result=False`).
 // This method also modifies the passed in state.
@@ -44,6 +46,7 @@ import (
 func ExecuteStateTransitionNoVerifyAnySig(
 	ctx context.Context,
 	st state.BeaconState,
+	// 处理单个block
 	signed interfaces.ReadOnlySignedBeaconBlock,
 ) (*bls.SignatureBatch, state.BeaconState, error) {
 	if ctx.Err() != nil {
@@ -61,24 +64,28 @@ func ExecuteStateTransitionNoVerifyAnySig(
 	interop.WriteStateToDisk(st)
 
 	parentRoot := signed.Block().ParentRoot()
+	// 处理slots
 	st, err = ProcessSlotsUsingNextSlotCache(ctx, st, parentRoot[:], signed.Block().Slot())
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "could not process slots")
 	}
 
 	// Execute per block transition.
+	// 执行每个block的transition
 	set, st, err := ProcessBlockNoVerifyAnySig(ctx, st, signed)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "could not process block")
 	}
 
 	// State root validation.
+	// state root的校验
 	postStateRoot, err := st.HashTreeRoot(ctx)
 	if err != nil {
 		return nil, nil, err
 	}
 	stateRoot := signed.Block().StateRoot()
 	if !bytes.Equal(postStateRoot[:], stateRoot[:]) {
+		// 不能校验state root
 		return nil, nil, fmt.Errorf("could not validate state root, wanted: %#x, received: %#x",
 			postStateRoot[:], signed.Block().StateRoot())
 	}
@@ -150,6 +157,8 @@ func CalculateStateRoot(
 // transformations as defined in the Ethereum Serenity specification. It does not validate
 // any block signature except for deposit and slashing signatures. It also returns the relevant
 // signature set from all the respective methods.
+// ProcessBlockNoVerifyAnySig创建一个新的，修改的beacon state，通过应用block操作，定义在Ethereum Serenity
+// 定义中
 //
 // Spec pseudocode definition:
 //

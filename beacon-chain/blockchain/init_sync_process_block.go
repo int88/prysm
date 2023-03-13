@@ -10,15 +10,19 @@ import (
 
 // This saves a beacon block to the initial sync blocks cache. It rate limits how many blocks
 // the cache keeps in memory (2 epochs worth of blocks) and saves them to DB when it hits this limit.
+// 保存一个beacon block到初始的sync blocks cache，它限制多少blocks保存在内存中（2个epochs的blocks）
+// 并且保存它们到DB中，在到达limit的时候
 func (s *Service) saveInitSyncBlock(ctx context.Context, r [32]byte, b interfaces.ReadOnlySignedBeaconBlock) error {
 	s.initSyncBlocksLock.Lock()
 	s.initSyncBlocks[r] = b
 	numBlocks := len(s.initSyncBlocks)
 	s.initSyncBlocksLock.Unlock()
 	if uint64(numBlocks) > initialSyncBlockCacheSize {
+		// 保存blocks到db中
 		if err := s.cfg.BeaconDB.SaveBlocks(ctx, s.getInitSyncBlocks()); err != nil {
 			return err
 		}
+		// 清理init sync blocks
 		s.clearInitSyncBlocks()
 	}
 	return nil
@@ -26,6 +30,7 @@ func (s *Service) saveInitSyncBlock(ctx context.Context, r [32]byte, b interface
 
 // This checks if a beacon block exists in the initial sync blocks cache using the root
 // of the block.
+// 检查一个beacon block存在于initial sync blocks cache，使用block的root
 func (s *Service) hasInitSyncBlock(r [32]byte) bool {
 	s.initSyncBlocksLock.RLock()
 	defer s.initSyncBlocksLock.RUnlock()

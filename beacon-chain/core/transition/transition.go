@@ -123,6 +123,7 @@ func ProcessSlot(ctx context.Context, state state.BeaconState) (state.BeaconStat
 	header := state.LatestBlockHeader()
 	if header.StateRoot == nil || bytes.Equal(header.StateRoot, zeroHash[:]) {
 		header.StateRoot = prevStateRoot[:]
+		// 设置最新的block header
 		if err := state.SetLatestBlockHeader(header); err != nil {
 			return nil, err
 		}
@@ -144,6 +145,7 @@ func ProcessSlot(ctx context.Context, state state.BeaconState) (state.BeaconStat
 }
 
 // ProcessSlotsUsingNextSlotCache processes slots by using next slot cache for higher efficiency.
+// ProcessSlotsUsingNextSlotCache处理slots，使用next slot cache，为了更高的效率
 func ProcessSlotsUsingNextSlotCache(
 	ctx context.Context,
 	parentState state.BeaconState,
@@ -153,6 +155,7 @@ func ProcessSlotsUsingNextSlotCache(
 	defer span.End()
 
 	// Check whether the parent state has been advanced by 1 slot in next slot cache.
+	// 检查parent state是否在next slot cache已经向前移动1
 	nextSlotState, err := NextSlotState(ctx, parentRoot)
 	if err != nil {
 		return nil, err
@@ -188,6 +191,7 @@ func ProcessSlotsIfPossible(ctx context.Context, state state.BeaconState, target
 }
 
 // ProcessSlots process through skip slots and apply epoch transition when it's needed
+// ProcessSlots遍历skip slots并且应用epoch transition，当需要的时候
 //
 // Spec pseudocode definition:
 //
@@ -208,6 +212,7 @@ func ProcessSlots(ctx context.Context, state state.BeaconState, slot primitives.
 	span.AddAttributes(trace.Int64Attribute("slots", int64(slot)-int64(state.Slot()))) // lint:ignore uintcast -- This is OK for tracing.
 
 	// The block must have a higher slot than parent state.
+	// block必须比parent state有更高的slot
 	if state.Slot() >= slot {
 		err := fmt.Errorf("expected state.slot %d < slot %d", state.Slot(), slot)
 		tracing.AnnotateError(span, err)
@@ -257,6 +262,7 @@ func ProcessSlots(ctx context.Context, state state.BeaconState, slot primitives.
 			}
 			return nil, ctx.Err()
 		}
+		// 处理slot
 		state, err = ProcessSlot(ctx, state)
 		if err != nil {
 			tracing.AnnotateError(span, err)

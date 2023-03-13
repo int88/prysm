@@ -1,6 +1,8 @@
 // Package iface defines the actual database interface used
 // by a Prysm beacon node, also containing useful, scoped interfaces such as
 // a ReadOnlyDatabase.
+// iface包定义了真正的数据库接口，由Prysm beacon node使用，同时包含有用的，scoped接口
+// 例如，一个ReadOnlyDatabase
 package iface
 
 import (
@@ -18,6 +20,7 @@ import (
 )
 
 // ReadOnlyDatabase defines a struct which only has read access to database methods.
+// ReadOnlyDatabase定义了一个结构，对于数据库方法只有读权限
 type ReadOnlyDatabase interface {
 	// Block related methods.
 	Block(ctx context.Context, blockRoot [32]byte) (interfaces.ReadOnlySignedBeaconBlock, error)
@@ -32,6 +35,7 @@ type ReadOnlyDatabase interface {
 	FinalizedChildBlock(ctx context.Context, blockRoot [32]byte) (interfaces.ReadOnlySignedBeaconBlock, error)
 	HighestRootsBelowSlot(ctx context.Context, slot primitives.Slot) (primitives.Slot, [][32]byte, error)
 	// State related methods.
+	// State相关的方法
 	State(ctx context.Context, blockRoot [32]byte) (state.BeaconState, error)
 	StateOrError(ctx context.Context, blockRoot [32]byte) (state.BeaconState, error)
 	GenesisState(ctx context.Context) (state.BeaconState, error)
@@ -97,6 +101,7 @@ type NoHeadAccessDatabase interface {
 }
 
 // HeadAccessDatabase defines a struct with access to reading chain head data.
+// HeadAccessDatabase定义了一个结构，用于访问chain head data
 type HeadAccessDatabase interface {
 	NoHeadAccessDatabase
 

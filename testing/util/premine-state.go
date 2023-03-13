@@ -208,9 +208,11 @@ func (s *premineGenesisConfig) populate(g state.BeaconState) error {
 	if err := g.SetRandaoMixes(rao); err != nil {
 		return err
 	}
+	// 设置block roots
 	if err := g.SetBlockRoots(nZeroRoots(uint64(params.BeaconConfig().SlotsPerHistoricalRoot))); err != nil {
 		return err
 	}
+	// 设置state roots
 	if err := g.SetStateRoots(nZeroRoots(uint64(params.BeaconConfig().SlotsPerHistoricalRoot))); err != nil {
 		return err
 	}
@@ -405,6 +407,7 @@ func nZeroRoots(n uint64) [][]byte {
 	roots := make([][]byte, n)
 	zh := params.BeaconConfig().ZeroHash[:]
 	for i := uint64(0); i < n; i++ {
+		// 设置zero root
 		roots[i] = zh
 	}
 	return roots
