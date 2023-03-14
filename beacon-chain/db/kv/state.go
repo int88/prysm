@@ -54,6 +54,7 @@ func (s *Store) State(ctx context.Context, blockRoot [32]byte) (state.BeaconStat
 
 // StateOrError is just like State(), except it only returns a non-error response
 // if the requested state is found in the database.
+// StateOrError就像State()，除了它返回一个非error的response，如果请求的state在database中找到
 func (s *Store) StateOrError(ctx context.Context, blockRoot [32]byte) (state.BeaconState, error) {
 	st, err := s.State(ctx, blockRoot)
 	if err != nil {
@@ -66,6 +67,7 @@ func (s *Store) StateOrError(ctx context.Context, blockRoot [32]byte) (state.Bea
 }
 
 // GenesisState returns the genesis state in beacon chain.
+// GenesisState返回beacon chain中的genesis state
 func (s *Store) GenesisState(ctx context.Context) (state.BeaconState, error) {
 	ctx, span := trace.StartSpan(ctx, "BeaconDB.GenesisState")
 	defer span.End()
@@ -84,6 +86,8 @@ func (s *Store) GenesisState(ctx context.Context) (state.BeaconState, error) {
 	err = s.db.View(func(tx *bolt.Tx) error {
 		// Retrieve genesis block's signing root from blocks bucket,
 		// to look up what the genesis state is.
+		// 获取genesis block的signing root，从block bucket，来查找
+		// genesis state是什么
 		bucket := tx.Bucket(blocksBucket)
 		genesisBlockRoot := bucket.Get(genesisBlockRootKey)
 
@@ -93,6 +97,7 @@ func (s *Store) GenesisState(ctx context.Context) (state.BeaconState, error) {
 			return nil
 		}
 		// get the validator entries of the genesis state
+		// 获取genesis state的validator entries
 		valEntries, valErr := s.validatorEntries(ctx, bytesutil.ToBytes32(genesisBlockRoot))
 		if valErr != nil {
 			return valErr
@@ -137,7 +142,7 @@ func (s *Store) SaveStates(ctx context.Context, states []state.ReadOnlyBeaconSta
 	startTime := time.Now()
 	multipleEncs := make([][]byte, len(states))
 	for i, st := range states {
-		// 遍历states
+		// 遍历states，对states进行marshal
 		stateBytes, err := marshalState(ctx, st)
 		if err != nil {
 			return err
@@ -153,6 +158,7 @@ func (s *Store) SaveStates(ctx context.Context, states []state.ReadOnlyBeaconSta
 			if err := updateValueForIndices(ctx, indicesByBucket, rt[:], tx); err != nil {
 				return errors.Wrap(err, "could not update DB indices")
 			}
+			// 构建block root和states的映射
 			if err := bucket.Put(rt[:], multipleEncs[i]); err != nil {
 				return err
 			}
@@ -170,6 +176,7 @@ type withValidators interface {
 }
 
 // SaveStatesEfficient stores multiple states to the db (new schema) using the provided corresponding roots.
+// SaveStatesEfficient存储多个states到db（新的schema），使用提供的对应的roots
 func (s *Store) SaveStatesEfficient(ctx context.Context, states []state.ReadOnlyBeaconState, blockRoots [][32]byte) error {
 	ctx, span := trace.StartSpan(ctx, "BeaconDB.SaveStatesEfficient")
 	defer span.End()
@@ -355,6 +362,7 @@ func (s *Store) storeValidatorEntriesSeparately(ctx context.Context, tx *bolt.Tx
 }
 
 // HasState checks if a state by root exists in the db.
+// HasState检查一个state是否存在于db中，通过root
 func (s *Store) HasState(ctx context.Context, blockRoot [32]byte) bool {
 	ctx, span := trace.StartSpan(ctx, "BeaconDB.HasState")
 	defer span.End()
@@ -374,6 +382,7 @@ func (s *Store) HasState(ctx context.Context, blockRoot [32]byte) bool {
 }
 
 // DeleteState by block root.
+// 通过block root删除state
 func (s *Store) DeleteState(ctx context.Context, blockRoot [32]byte) error {
 	ctx, span := trace.StartSpan(ctx, "BeaconDB.DeleteState")
 	defer span.End()
@@ -401,11 +410,13 @@ func (s *Store) DeleteState(ctx context.Context, blockRoot [32]byte) error {
 
 		bkt = tx.Bucket(stateBucket)
 		// Safeguard against deleting genesis, finalized, head state.
+		// 保护，防止删除genesis, finalized以及head state
 		if bytes.Equal(blockRoot[:], finalized.Root) || bytes.Equal(blockRoot[:], genesisBlockRoot) || bytes.Equal(blockRoot[:], justified.Root) {
 			return ErrDeleteJustifiedAndFinalized
 		}
 
 		// Nothing to delete if state doesn't exist.
+		// 如果state不存在，则什么都不用删除
 		enc = bkt.Get(blockRoot[:])
 		if enc == nil {
 			return nil
@@ -461,6 +472,7 @@ func (s *Store) DeleteStates(ctx context.Context, blockRoots [][32]byte) error {
 	defer span.End()
 
 	for _, r := range blockRoots {
+		// 遍历blockRoots进行删除
 		if err := s.DeleteState(ctx, r); err != nil {
 			return err
 		}
@@ -660,12 +672,14 @@ func (s *Store) validatorEntries(ctx context.Context, blockRoot [32]byte) ([]*et
 }
 
 // retrieves and assembles the state information from multiple buckets.
+// 从多个buckets获取以及组装state信息
 func (s *Store) stateBytes(ctx context.Context, blockRoot [32]byte) ([]byte, error) {
 	ctx, span := trace.StartSpan(ctx, "BeaconDB.stateBytes")
 	defer span.End()
 	var dst []byte
 	err := s.db.View(func(tx *bolt.Tx) error {
 		bkt := tx.Bucket(stateBucket)
+		// 从state bucket中获取state
 		stBytes := bkt.Get(blockRoot[:])
 		if len(stBytes) == 0 {
 			return nil
@@ -674,6 +688,8 @@ func (s *Store) stateBytes(ctx context.Context, blockRoot [32]byte) ([]byte, err
 		// allocate a byte slice separately in the transaction or there
 		// is the possibility of a panic when accessing that particular
 		// area of memory.
+		// 需要另外申请一个byte slice，在transaction中，否则会有panic的可能
+		// 当访问特定的内存区域的时候
 		dst = make([]byte, len(stBytes))
 		copy(dst, stBytes)
 		return nil
@@ -736,6 +752,9 @@ func (s *Store) slotByBlockRoot(ctx context.Context, tx *bolt.Tx, blockRoot []by
 // from the db. Ideally there should just be one state per slot, but given validator
 // can double propose, a single slot could have multiple block roots and
 // results states. This returns a list of states.
+// HighestSlotStatesBelow返回在输入的slot之下，有着最高的slot的states，理想情况下，每个slot应该
+// 只有一个state，但是给定的validator可以double propose，单个slot可以有多个block roots以及states
+// 这会返回一系列的states
 func (s *Store) HighestSlotStatesBelow(ctx context.Context, slot primitives.Slot) ([]state.ReadOnlyBeaconState, error) {
 	ctx, span := trace.StartSpan(ctx, "BeaconDB.HighestSlotStatesBelow")
 	defer span.End()
@@ -771,6 +790,7 @@ func (s *Store) HighestSlotStatesBelow(ctx context.Context, slot primitives.Slot
 		}
 	}
 	if st == nil || st.IsNil() {
+		// genesis state总是存在的
 		st, err = s.GenesisState(ctx)
 		if err != nil {
 			return nil, err
@@ -783,6 +803,8 @@ func (s *Store) HighestSlotStatesBelow(ctx context.Context, slot primitives.Slot
 // createStateIndicesFromStateSlot takes in a state slot and returns
 // a map of bolt DB index buckets corresponding to each particular key for indices for
 // data, such as (shard indices bucket -> shard 5).
+// createStateIndicesFromStateSlot输入一个state slot并且返回一个map，关于bold DB index buckets
+// 对应到每个特定的key，对于数据的索引，例如（shard indices bucket -> shard 5）
 func createStateIndicesFromStateSlot(ctx context.Context, slot primitives.Slot) map[string][]byte {
 	ctx, span := trace.StartSpan(ctx, "BeaconDB.createStateIndicesFromState")
 	defer span.End()
@@ -864,6 +886,7 @@ func (s *Store) CleanUpDirtyStates(ctx context.Context, slotsPerArchivedPoint pr
 
 func (s *Store) isStateValidatorMigrationOver() (bool, error) {
 	// if flag is enabled, then always follow the new code path.
+	// 如果flag使能，总是使用新代码
 	if features.Get().EnableHistoricalSpaceRepresentation {
 		return true, nil
 	}

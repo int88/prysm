@@ -39,6 +39,11 @@ type SlashingReceiver interface {
 //  1. Validate block, apply state transition and update checkpoints
 //  2. Apply fork choice to the processed block
 //  3. Save latest head info
+//
+// ReceiveBlock是一个函数定义了如下操作（除了pubsub），对一个接收到的block
+// 1. 检查block，应用state transition以及更新checkpoints
+// 2. 对处理的block执行fork choice
+// 3. 保存最新的head info
 func (s *Service) ReceiveBlock(ctx context.Context, block interfaces.ReadOnlySignedBeaconBlock, blockRoot [32]byte) error {
 	ctx, span := trace.StartSpan(ctx, "blockChain.ReceiveBlock")
 	defer span.End()
@@ -52,6 +57,7 @@ func (s *Service) ReceiveBlock(ctx context.Context, block interfaces.ReadOnlySig
 	defer s.cfg.ForkChoiceStore.Unlock()
 
 	// Apply state transition on the new block.
+	// 对新的block执行state transition
 	if err := s.onBlock(ctx, blockCopy, blockRoot); err != nil {
 		err := errors.Wrap(err, "could not process block")
 		tracing.AnnotateError(span, err)
@@ -59,6 +65,7 @@ func (s *Service) ReceiveBlock(ctx context.Context, block interfaces.ReadOnlySig
 	}
 
 	// Handle post block operations such as attestations and exits.
+	// 处理post block操作，例如attestation以及exits
 	if err := s.handlePostBlockOperations(blockCopy.Block()); err != nil {
 		return err
 	}
@@ -70,21 +77,25 @@ func (s *Service) ReceiveBlock(ctx context.Context, block interfaces.ReadOnlySig
 	}
 
 	// Reports on block and fork choice metrics.
+	// 报告block以及fork choice metrics
 	cp := s.ForkChoicer().FinalizedCheckpoint()
 	finalized := &ethpb.Checkpoint{Epoch: cp.Epoch, Root: bytesutil.SafeCopyBytes(cp.Root[:])}
 	reportSlotMetrics(blockCopy.Block().Slot(), s.HeadSlot(), s.CurrentSlot(), finalized)
 
 	// Log block sync status.
+	// 对log sync status进行日志
 	cp = s.ForkChoicer().JustifiedCheckpoint()
 	justified := &ethpb.Checkpoint{Epoch: cp.Epoch, Root: bytesutil.SafeCopyBytes(cp.Root[:])}
 	if err := logBlockSyncStatus(blockCopy.Block(), blockRoot, justified, finalized, receivedTime, uint64(s.genesisTime.Unix())); err != nil {
 		log.WithError(err).Error("Unable to log block sync status")
 	}
 	// Log payload data
+	// 对payload data进行日志
 	if err := logPayload(blockCopy.Block()); err != nil {
 		log.WithError(err).Error("Unable to log debug block payload data")
 	}
 	// Log state transition data.
+	// 对state transition data进行日志
 	if err := logStateTransitionData(blockCopy.Block()); err != nil {
 		log.WithError(err).Error("Unable to log state transition data")
 	}
@@ -211,14 +222,17 @@ func (s *Service) checkSaveHotStateDB(ctx context.Context) error {
 	if finalized == nil {
 		return errNilFinalizedInStore
 	}
+	// 当前的epoch，大于finalized epoch
 	if currentEpoch > finalized.Epoch {
 		sinceFinality = currentEpoch - finalized.Epoch
 	}
 
+	// 超过了epochsSinceFinalitySaveHotStateDB
 	if sinceFinality >= epochsSinceFinalitySaveHotStateDB {
 		s.cfg.StateGen.EnableSaveHotStateToDB(ctx)
 		return nil
 	}
 
+	// 否则清理SaveHotStateToDB
 	return s.cfg.StateGen.DisableSaveHotStateToDB(ctx)
 }

@@ -69,6 +69,7 @@ type saveHotStateDbConfig struct {
 
 // This tracks the finalized point. It's also the point where slot and the block root of
 // cold and hot sections of the DB splits.
+// 追踪finalized point，它同时也是slot以及block root的cold以及hot sections，DB用于区分
 type finalizedInfo struct {
 	slot  primitives.Slot
 	root  [32]byte
@@ -77,6 +78,7 @@ type finalizedInfo struct {
 }
 
 // StateGenOption is a functional option for controlling the initialization of a *State value
+// StateGenOption是一个functional option，用于控制一个*State值的初始化
 type StateGenOption func(*State)
 
 func WithBackfillStatus(bfs *backfill.Status) StateGenOption {
@@ -89,12 +91,15 @@ func WithBackfillStatus(bfs *backfill.Status) StateGenOption {
 // New返回一个新的state management对象
 func New(beaconDB db.NoHeadAccessDatabase, fc forkchoice.ForkChoicer, opts ...StateGenOption) *State {
 	s := &State{
-		beaconDB:                beaconDB,
-		hotStateCache:           newHotStateCache(),
-		finalizedInfo:           &finalizedInfo{slot: 0, root: params.BeaconConfig().ZeroHash},
-		slotsPerArchivedPoint:   params.BeaconConfig().SlotsPerArchivedPoint,
+		beaconDB: beaconDB,
+		// 构建hot state cache
+		hotStateCache:         newHotStateCache(),
+		finalizedInfo:         &finalizedInfo{slot: 0, root: params.BeaconConfig().ZeroHash},
+		slotsPerArchivedPoint: params.BeaconConfig().SlotsPerArchivedPoint,
+		// 构建epoch boundary state cache
 		epochBoundaryStateCache: newBoundaryStateCache(),
 		saveHotStateDB: &saveHotStateDbConfig{
+			// defaultHotStateDBInterval的值为128
 			duration: defaultHotStateDBInterval,
 		},
 		migrationLock: new(sync.Mutex),
@@ -105,6 +110,7 @@ func New(beaconDB db.NoHeadAccessDatabase, fc forkchoice.ForkChoicer, opts ...St
 	}
 	fc.Lock()
 	defer fc.Unlock()
+	// 在forkchoice中设置Balances
 	fc.SetBalancesByRooter(s.ActiveNonSlashedBalancesByRoot)
 	return s
 }

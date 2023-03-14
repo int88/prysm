@@ -95,6 +95,7 @@ func (rs *stateReplayer) ReplayBlocks(ctx context.Context) (state.BeaconState, e
 			return nil, err
 		}
 	default:
+		// Replayer使用未知的state retrieval方法初始化
 		return nil, errors.New("Replayer initialized using unknown state retrieval method")
 	}
 
@@ -141,6 +142,7 @@ func (rs *stateReplayer) ReplayBlocks(ctx context.Context) (state.BeaconState, e
 // but then also runs process_slots to advance the state past the root or slot used in the builder.
 // for example, if you wanted the state to be at the target slot, but only integrating blocks up to
 // slot-1, you could request Builder.ReplayerForSlot(slot-1).ReplayToSlot(slot)
+// ReplayToSlot底层调用ReplayBlocks，但是同时也运行process_slots来推进state到通过builder中使用的root或者slot
 func (rs *stateReplayer) ReplayToSlot(ctx context.Context, replayTo primitives.Slot) (state.BeaconState, error) {
 	ctx, span := trace.StartSpan(ctx, "stateGen.stateReplayer.ReplayToSlot")
 	defer span.End()
@@ -164,6 +166,7 @@ func (rs *stateReplayer) ReplayToSlot(ctx context.Context, replayTo primitives.S
 	}).Debug("calling process_slots on remaining slots")
 
 	// err will be handled after the bookend log
+	// 在剩余的slots调用process_slots
 	s, err = ReplayProcessSlots(ctx, s, replayTo)
 	if err != nil {
 		return nil, errors.Wrap(err, fmt.Sprintf("ReplayToSlot failed to seek to slot %d after applying blocks", replayTo))

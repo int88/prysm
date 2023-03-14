@@ -35,6 +35,8 @@ func NewFileInitializer(blockPath string, statePath string) (*FileInitializer, e
 
 // FileInitializer initializes a beacon-node database to use checkpoint sync,
 // using ssz-encoded block and state data stored in files on the local filesystem.
+// FileInitializer初始化一个beacon-node的db，使用checkpoint sync，使用ssz-encoded block以及
+// 存储在文件中的state data，基于本地文件系统中的文件
 type FileInitializer struct {
 	blockPath string
 	statePath string
@@ -42,6 +44,8 @@ type FileInitializer struct {
 
 // Initialize is called in the BeaconNode db startup code if an Initializer is present.
 // Initialize does what is needed to prepare the beacon node database for syncing from the weak subjectivity checkpoint.
+// Initialize在BeaconNode的db的启动代码中被调用，如果一个Initializer存在的话
+// Initialize做需要做的工作来准备beacon node db，从weak subjectivity checkpoint中同步
 func (fi *FileInitializer) Initialize(ctx context.Context, d db.Database) error {
 	origin, err := d.OriginCheckpointBlockRoot(ctx)
 	if err == nil && origin != params.BeaconConfig().ZeroHash {
@@ -52,10 +56,12 @@ func (fi *FileInitializer) Initialize(ctx context.Context, d db.Database) error 
 			return errors.Wrap(err, "error while checking database for origin root")
 		}
 	}
+	// 读取block文件
 	serBlock, err := file.ReadFileAsBytes(fi.blockPath)
 	if err != nil {
 		return errors.Wrapf(err, "error reading block file %s for checkpoint sync init", fi.blockPath)
 	}
+	// 读取state文件
 	serState, err := file.ReadFileAsBytes(fi.statePath)
 	if err != nil {
 		return errors.Wrapf(err, "error reading state file %s for checkpoint sync init", fi.blockPath)

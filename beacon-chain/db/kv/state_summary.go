@@ -19,12 +19,14 @@ func (s *Store) SaveStateSummary(ctx context.Context, summary *ethpb.StateSummar
 }
 
 // SaveStateSummaries saves state summary objects to the DB.
+// SaveStateSummaries保存state summary对象到DB中
 func (s *Store) SaveStateSummaries(ctx context.Context, summaries []*ethpb.StateSummary) error {
 	ctx, span := trace.StartSpan(ctx, "BeaconDB.SaveStateSummaries")
 	defer span.End()
 
 	// When we reach the state summary cache prune count,
 	// dump the cached state summaries to the DB.
+	// 还有cache
 	// 当我们到达state summary cache的prune count
 	// dump我们缓存的state summaries到DB中
 	if s.stateSummaryCache.len() >= stateSummaryCachePruneCount {
@@ -42,6 +44,7 @@ func (s *Store) SaveStateSummaries(ctx context.Context, summaries []*ethpb.State
 }
 
 // StateSummary returns the state summary object from the db using input block root.
+// StateSummary从db中返回state summary对象，使用输入的block root
 func (s *Store) StateSummary(ctx context.Context, blockRoot [32]byte) (*ethpb.StateSummary, error) {
 	ctx, span := trace.StartSpan(ctx, "BeaconDB.StateSummary")
 	defer span.End()
@@ -72,6 +75,7 @@ func (s *Store) HasStateSummary(ctx context.Context, blockRoot [32]byte) bool {
 	ctx, span := trace.StartSpan(ctx, "BeaconDB.HasStateSummary")
 	defer span.End()
 
+	// 先找cache，再从db中找
 	if s.stateSummaryCache.has(blockRoot) {
 		return true
 	}
@@ -88,10 +92,12 @@ func (s *Store) HasStateSummary(ctx context.Context, blockRoot [32]byte) bool {
 }
 
 // This saves all cached state summary objects to DB, and clears up the cache.
+// 保存所有的state summary对象到DB中，并且清理cache
 func (s *Store) saveCachedStateSummariesDB(ctx context.Context) error {
 	summaries := s.stateSummaryCache.getAll()
 	encs := make([][]byte, len(summaries))
 	for i, s := range summaries {
+		// 对summary进行编码
 		enc, err := encode(ctx, s)
 		if err != nil {
 			return err
@@ -101,6 +107,7 @@ func (s *Store) saveCachedStateSummariesDB(ctx context.Context) error {
 	if err := s.db.Update(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket(stateSummaryBucket)
 		for i, s := range summaries {
+			// 更新state summary bucket
 			if err := bucket.Put(s.Root, encs[i]); err != nil {
 				return err
 			}
@@ -114,6 +121,7 @@ func (s *Store) saveCachedStateSummariesDB(ctx context.Context) error {
 }
 
 // deleteStateSummary deletes a state summary object from the db using input block root.
+// deleteStateSummary从db中删除一个state summary对象，使用输入的block root
 func (s *Store) deleteStateSummary(blockRoot [32]byte) error {
 	s.stateSummaryCache.delete(blockRoot)
 	return s.db.Update(func(tx *bolt.Tx) error {

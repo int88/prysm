@@ -16,6 +16,7 @@ type stateSummaryCache struct {
 }
 
 // newStateSummaryCache creates a new state summary cache.
+// newStateSummaryCache创建一个新的state summary cache
 func newStateSummaryCache() *stateSummaryCache {
 	return &stateSummaryCache{
 		initSyncStateSummaries: make(map[[32]byte]*ethpb.StateSummary),
@@ -23,6 +24,7 @@ func newStateSummaryCache() *stateSummaryCache {
 }
 
 // put saves a state summary to the initial sync state summaries cache.
+// put保存一个state summary到初始的sync state summaries cache
 func (c *stateSummaryCache) put(r [32]byte, b *ethpb.StateSummary) {
 	c.initSyncStateSummariesLock.Lock()
 	defer c.initSyncStateSummariesLock.Unlock()
@@ -78,5 +80,6 @@ func (c *stateSummaryCache) getAll() []*ethpb.StateSummary {
 func (c *stateSummaryCache) clear() {
 	c.initSyncStateSummariesLock.Lock()
 	defer c.initSyncStateSummariesLock.Unlock()
+	// 清理state summary
 	c.initSyncStateSummaries = make(map[[32]byte]*ethpb.StateSummary)
 }

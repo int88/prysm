@@ -116,16 +116,19 @@ func (c *CanonicalHistory) bestForSlot(ctx context.Context, roots [][32]byte) ([
 func (c *CanonicalHistory) chainForSlot(ctx context.Context, target primitives.Slot) (state.BeaconState, []interfaces.ReadOnlySignedBeaconBlock, error) {
 	ctx, span := trace.StartSpan(ctx, "canonicalChainer.chainForSlot")
 	defer span.End()
+	// 获取target slot的block root
 	r, err := c.BlockRootForSlot(ctx, target)
 	if err != nil {
 		return nil, nil, errors.Wrapf(err, "no canonical block root found below slot=%d", target)
 	}
+	// 获取block root对应的block
 	b, err := c.h.Block(ctx, r)
 	if err != nil {
 		return nil, nil, errors.Wrapf(err, "unable to retrieve canonical block for slot, root=%#x", r)
 	}
 	s, descendants, err := c.ancestorChain(ctx, b)
 	if err != nil {
+		// 查询ancestor以及descendant blocks失败
 		return nil, nil, errors.Wrap(err, "failed to query for ancestor and descendant blocks")
 	}
 
@@ -134,6 +137,7 @@ func (c *CanonicalHistory) chainForSlot(ctx context.Context, target primitives.S
 
 func (c *CanonicalHistory) getState(ctx context.Context, blockRoot [32]byte) (state.BeaconState, error) {
 	if c.cache != nil {
+		// 从缓存中获取block root对应的state
 		st, err := c.cache.ByBlockRoot(blockRoot)
 		if err == nil {
 			return st, nil
@@ -150,6 +154,9 @@ func (c *CanonicalHistory) getState(ctx context.Context, blockRoot [32]byte) (st
 // all blocks in the lineage, including the tail block. Blocks are returned in ascending order.
 // Note that this function assumes that the tail is a canonical block, and therefore assumes that
 // all ancestors are also canonical.
+// ancestorChain通过chain lineage向后构建，累计blocks并且检查一个保存的state
+// 如果它找到一个保存的state，是作为tail block的祖先，它返回这个state并且所有的blocks，包含tail block
+// blocks按照升序返回，注意，这个函数假设tail是一个canonical block，因此假设所有的祖先都是canonical的
 func (c *CanonicalHistory) ancestorChain(ctx context.Context, tail interfaces.ReadOnlySignedBeaconBlock) (state.BeaconState, []interfaces.ReadOnlySignedBeaconBlock, error) {
 	ctx, span := trace.StartSpan(ctx, "canonicalChainer.ancestorChain")
 	defer span.End()
@@ -161,6 +168,7 @@ func (c *CanonicalHistory) ancestorChain(ctx context.Context, tail interfaces.Re
 		}
 		b := tail.Block()
 		// compute hash_tree_root of current block and try to look up the corresponding state
+		// 计算当前block的hash_tree_root并且试着查找对应的state
 		root, err := b.HashTreeRoot()
 		if err != nil {
 			msg := fmt.Sprintf("could not compute htr for descendant block at slot=%d", b.Slot())
@@ -178,9 +186,11 @@ func (c *CanonicalHistory) ancestorChain(ctx context.Context, tail interfaces.Re
 			return st, chain, nil
 		}
 		// ErrNotFoundState errors are fine, but other errors mean something is wrong with the db
+		// ErrNotFoundState是ok的，但是其他的errors意味着db有问题
 		if err != nil && !errors.Is(err, db.ErrNotFoundState) {
 			return nil, nil, errors.Wrap(err, fmt.Sprintf("error querying database for state w/ block root = %#x", root))
 		}
+		// 查找parent
 		parent, err := c.h.Block(ctx, b.ParentRoot())
 		if err != nil {
 			msg := fmt.Sprintf("db error when retrieving parent of block at slot=%d by root=%#x", b.Slot(), b.ParentRoot())
@@ -191,6 +201,7 @@ func (c *CanonicalHistory) ancestorChain(ctx context.Context, tail interfaces.Re
 			return nil, nil, errors.Wrap(db.ErrNotFound, msg)
 		}
 		chain = append(chain, tail)
+		// 用parent给tail赋值
 		tail = parent
 	}
 }

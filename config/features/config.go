@@ -41,12 +41,13 @@ const disabledFeatureFlag = "Disabled feature flag"
 // Flags is a struct to represent which features the client will perform on runtime.
 type Flags struct {
 	// Feature related flags.
-	RemoteSlasherProtection             bool // RemoteSlasherProtection utilizes a beacon node with --slasher mode for validator slashing protection.
-	WriteSSZStateTransitions            bool // WriteSSZStateTransitions to tmp directory.
-	EnablePeerScorer                    bool // EnablePeerScorer enables experimental peer scoring in p2p.
-	DisableReorgLateBlocks              bool // DisableReorgLateBlocks disables reorgs of late blocks.
-	WriteWalletPasswordOnWebOnboarding  bool // WriteWalletPasswordOnWebOnboarding writes the password to disk after Prysm web signup.
-	EnableDoppelGanger                  bool // EnableDoppelGanger enables doppelganger protection on startup for the validator.
+	RemoteSlasherProtection            bool // RemoteSlasherProtection utilizes a beacon node with --slasher mode for validator slashing protection.
+	WriteSSZStateTransitions           bool // WriteSSZStateTransitions to tmp directory.
+	EnablePeerScorer                   bool // EnablePeerScorer enables experimental peer scoring in p2p.
+	DisableReorgLateBlocks             bool // DisableReorgLateBlocks disables reorgs of late blocks.
+	WriteWalletPasswordOnWebOnboarding bool // WriteWalletPasswordOnWebOnboarding writes the password to disk after Prysm web signup.
+	EnableDoppelGanger                 bool // EnableDoppelGanger enables doppelganger protection on startup for the validator.
+	// EnableHistoricalSpaceRepresentation使能在另外的bucket保存registry validators，来保存空间
 	EnableHistoricalSpaceRepresentation bool // EnableHistoricalSpaceRepresentation enables the saving of registry validators in separate buckets to save space
 	EnableBeaconRESTApi                 bool // EnableBeaconRESTApi enables experimental usage of the beacon REST API by the validator when querying a beacon node
 	// Logging related toggles.

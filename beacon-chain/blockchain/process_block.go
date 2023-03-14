@@ -103,12 +103,14 @@ func (s *Service) onBlock(ctx context.Context, signed interfaces.ReadOnlySignedB
 	startTime := time.Now()
 	b := signed.Block()
 
+	// 获取block的prestate
 	preState, err := s.getBlockPreState(ctx, b)
 	if err != nil {
 		return err
 	}
 
 	// Verify that the parent block is in forkchoice
+	// 校验parent block在forkchoice中
 	if !s.ForkChoicer().HasNode(b.ParentRoot()) {
 		return ErrNotDescendantOfFinalized
 	}
@@ -124,6 +126,7 @@ func (s *Service) onBlock(ctx context.Context, signed interfaces.ReadOnlySignedB
 		return err
 	}
 	stateTransitionStartTime := time.Now()
+	// 执行state transition
 	postState, err := transition.ExecuteStateTransition(ctx, preState, signed)
 	if err != nil {
 		return invalidBlock{error: err}
@@ -143,10 +146,12 @@ func (s *Service) onBlock(ctx context.Context, signed interfaces.ReadOnlySignedB
 			return err
 		}
 	}
+	// 保存post state?
 	if err := s.savePostStateInfo(ctx, blockRoot, signed, postState); err != nil {
 		return err
 	}
 
+	// 插入block到fork choice store
 	if err := s.insertBlockToForkchoiceStore(ctx, signed.Block(), blockRoot, postState); err != nil {
 		return errors.Wrapf(err, "could not insert block %d to fork choice store", signed.Block().Slot())
 	}
@@ -193,11 +198,13 @@ func (s *Service) onBlock(ctx context.Context, signed interfaces.ReadOnlySignedB
 
 	justified := s.ForkChoicer().JustifiedCheckpoint()
 	start := time.Now()
+	// 获取head root
 	headRoot, err := s.cfg.ForkChoiceStore.Head(ctx)
 	if err != nil {
 		log.WithError(err).Warn("Could not update head")
 	}
 	if blockRoot != headRoot {
+		// head root发生了改变
 		receivedWeight, err := s.ForkChoicer().Weight(blockRoot)
 		if err != nil {
 			log.WithField("root", fmt.Sprintf("%#x", blockRoot)).Warn("could not determine node weight")
@@ -220,6 +227,7 @@ func (s *Service) onBlock(ctx context.Context, signed interfaces.ReadOnlySignedB
 	}
 
 	// Send notification of the processed block to the state feed.
+	// 发送processed block事件到state feed
 	s.cfg.StateNotifier.StateFeed().Send(&feed.Event{
 		Type: statefeed.BlockProcessed,
 		Data: &statefeed.BlockProcessedData{
@@ -506,6 +514,7 @@ func (s *Service) onBlockBatch(ctx context.Context, blks []interfaces.ReadOnlySi
 }
 
 // Epoch boundary bookkeeping such as logging epoch summaries.
+// Epoch boundary对epoch summaries的日志进行记录
 func (s *Service) handleEpochBoundary(ctx context.Context, postState state.BeaconState) error {
 	ctx, span := trace.StartSpan(ctx, "blockChain.handleEpochBoundary")
 	defer span.End()
@@ -605,6 +614,8 @@ func (s *Service) InsertSlashingsToForkChoiceStore(ctx context.Context, slashing
 
 // This saves post state info to DB or cache. This also saves post state info to fork choice store.
 // Post state info consists of processed block and state. Do not call this method unless the block and state are verified.
+// 保存post state info到DB或者cache中，它同时保存post state info到fork choice store
+// Post state info由processed block以及state组成，不要调用这个方法，除非state被校验过
 func (s *Service) savePostStateInfo(ctx context.Context, r [32]byte, b interfaces.ReadOnlySignedBeaconBlock, st state.BeaconState) error {
 	ctx, span := trace.StartSpan(ctx, "blockChain.savePostStateInfo")
 	defer span.End()

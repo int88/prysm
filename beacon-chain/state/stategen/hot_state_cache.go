@@ -12,6 +12,7 @@ import (
 
 var (
 	// hotStateCacheSize defines the max number of hot state this can cache.
+	// hotStateCacheSize定义了可以最大缓存的hot state的数目
 	hotStateCacheSize = 32
 	// Metrics
 	hotStateCacheHit = promauto.NewCounter(prometheus.CounterOpts{
@@ -41,6 +42,7 @@ func newHotStateCache() *hotStateCache {
 
 // Get returns a cached response via input block root, if any.
 // The response is copied by default.
+// get返回一个缓存的response，通过输入的block root，如果有的话，response默认拷贝
 func (c *hotStateCache) get(blockRoot [32]byte) state.BeaconState {
 	c.lock.RLock()
 	defer c.lock.RUnlock()
@@ -63,6 +65,7 @@ func (c *hotStateCache) ByBlockRoot(r [32]byte) (state.BeaconState, error) {
 }
 
 // GetWithoutCopy returns a non-copied cached response via input block root.
+// GetWithoutCopy返回一个非拷贝的，缓存的response，通过输入的block root
 func (c *hotStateCache) getWithoutCopy(blockRoot [32]byte) state.BeaconState {
 	c.lock.RLock()
 	defer c.lock.RUnlock()

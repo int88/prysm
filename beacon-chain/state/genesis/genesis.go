@@ -16,6 +16,7 @@ var (
 )
 
 // State returns a copy of the genesis state from a hardcoded value.
+// State返回一个genesis state的拷贝，从一个硬编码的值中
 func State(name string) (state.BeaconState, error) {
 	switch name {
 	case params.MainnetName:

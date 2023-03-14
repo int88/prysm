@@ -57,6 +57,7 @@ func (s *Service) getBlockPreState(ctx context.Context, b interfaces.ReadOnlyBea
 }
 
 // verifyBlkPreState validates input block has a valid pre-state.
+// verifyBlkPreState校验输入的block有一个合法的pre-state
 func (s *Service) verifyBlkPreState(ctx context.Context, b interfaces.ReadOnlyBeaconBlock) error {
 	ctx, span := trace.StartSpan(ctx, "blockChain.verifyBlkPreState")
 	defer span.End()
@@ -65,6 +66,8 @@ func (s *Service) verifyBlkPreState(ctx context.Context, b interfaces.ReadOnlyBe
 	// Loosen the check to HasBlock because state summary gets saved in batches
 	// during initial syncing. There's no risk given a state summary object is just a
 	// a subset of the block object.
+	// 将检查放松到HasBlock，因为state summary在initial syncing的时候批量保存，没有任何风险
+	// 因为给定一个state summary对象只是block对象的一个子集
 	if !s.cfg.BeaconDB.HasStateSummary(ctx, parentRoot) && !s.cfg.BeaconDB.HasBlock(ctx, parentRoot) {
 		return errors.New("could not reconstruct parent state")
 	}

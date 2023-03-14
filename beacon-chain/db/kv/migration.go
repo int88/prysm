@@ -17,6 +17,7 @@ var migrations = []migration{
 }
 
 // RunMigrations defined in the migrations array.
+// RunMigrations定义在migrations array中
 func (s *Store) RunMigrations(ctx context.Context) error {
 	for _, m := range migrations {
 		if err := m(ctx, s.db); err != nil {

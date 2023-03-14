@@ -20,6 +20,7 @@ var ErrNoDataForSlot = errors.New("cannot retrieve data for slot")
 // HasState returns true if the state exists in cache or in DB.
 // HasState返回true，如果state存在于cache或者DB中
 func (s *State) HasState(ctx context.Context, blockRoot [32]byte) (bool, error) {
+	// 先判断cache中是不是有state
 	has, err := s.hasStateInCache(ctx, blockRoot)
 	if err != nil {
 		return false, err
@@ -27,12 +28,14 @@ func (s *State) HasState(ctx context.Context, blockRoot [32]byte) (bool, error) 
 	if has {
 		return true, nil
 	}
+	// 再看db中有没有state
 	return s.beaconDB.HasState(ctx, blockRoot), nil
 }
 
 // hasStateInCache returns true if the state exists in cache.
 // hasStateInCache返回true，如果state存在于cache中
 func (s *State) hasStateInCache(_ context.Context, blockRoot [32]byte) (bool, error) {
+	// 先看hotStateCache，再看epochBoundaryStateCache
 	if s.hotStateCache.has(blockRoot) {
 		return true, nil
 	}
@@ -61,6 +64,7 @@ func (s *State) StateByRoot(ctx context.Context, blockRoot [32]byte) (state.Beac
 	// Genesis case. If block root is zero hash, short circuit to use genesis state stored in DB.
 	// Genesis的场景，如果block root是zero hash，直接使用存储在DB中的genesis state
 	if blockRoot == params.BeaconConfig().ZeroHash {
+		// 如果是zero hash，还是要找到block root?
 		root, err := s.beaconDB.GenesisBlockRoot(ctx)
 		if err != nil {
 			return nil, errors.Wrap(err, "could not get genesis block root")
@@ -140,10 +144,12 @@ func (s *State) StateByRootInitialSync(ctx context.Context, blockRoot [32]byte) 
 	if startState == nil || startState.IsNil() {
 		return nil, errUnknownState
 	}
+	// 获取state summary
 	summary, err := s.stateSummary(ctx, blockRoot)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not get state summary")
 	}
+	// 如果start state就是summary的slot，直接返回
 	if startState.Slot() == summary.Slot {
 		return startState, nil
 	}
@@ -172,6 +178,7 @@ func (s *State) stateSummary(ctx context.Context, blockRoot [32]byte) (*ethpb.St
 	}
 
 	if summary == nil {
+		// 恢复state summary?
 		return s.recoverStateSummary(ctx, blockRoot)
 	}
 	return summary, nil
@@ -181,11 +188,14 @@ func (s *State) stateSummary(ctx context.Context, blockRoot [32]byte) (*ethpb.St
 // RecoverStateSummary从一个给定的block root恢复state summary对象，使用DB中保存的block
 func (s *State) recoverStateSummary(ctx context.Context, blockRoot [32]byte) (*ethpb.StateSummary, error) {
 	if s.beaconDB.HasBlock(ctx, blockRoot) {
+		// 确保db中有block
 		b, err := s.beaconDB.Block(ctx, blockRoot)
 		if err != nil {
 			return nil, err
 		}
+		// 构建state summary
 		summary := &ethpb.StateSummary{Slot: b.Block().Slot(), Root: blockRoot[:]}
+		// 保存到db中
 		if err := s.beaconDB.SaveStateSummary(ctx, summary); err != nil {
 			return nil, err
 		}
@@ -195,6 +205,7 @@ func (s *State) recoverStateSummary(ctx context.Context, blockRoot [32]byte) (*e
 }
 
 // DeleteStateFromCaches deletes the state from the caches.
+// DeleteStateFromCaches从caches中删除state
 func (s *State) DeleteStateFromCaches(_ context.Context, blockRoot [32]byte) error {
 	s.hotStateCache.delete(blockRoot)
 	return s.epochBoundaryStateCache.delete(blockRoot)

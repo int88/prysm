@@ -117,6 +117,7 @@ func (s *State) EnableSaveHotStateToDB(_ context.Context) {
 	s.saveHotStateDB.lock.Lock()
 	defer s.saveHotStateDB.lock.Unlock()
 	if s.saveHotStateDB.enabled {
+		// 已经使能了则直接返回
 		return
 	}
 
@@ -147,6 +148,7 @@ func (s *State) DisableSaveHotStateToDB(ctx context.Context) error {
 	// Delete previous saved states in DB as we are turning this mode off.
 	// 关闭DB中的保存的states，因为我们正在关闭这种模式
 	s.saveHotStateDB.enabled = false
+	// 从db中删除states
 	if err := s.beaconDB.DeleteStates(ctx, s.saveHotStateDB.blockRootsOfSavedStates); err != nil {
 		return err
 	}

@@ -17,6 +17,7 @@ const dbExistsYesNoPrompt = "A database file already exists in the target direct
 	"Are you sure that you want to overwrite it? [y/n]"
 
 // Restore a beacon chain database.
+// 恢复一个beacon chain数据库
 func Restore(cliCtx *cli.Context) error {
 	sourceFile := cliCtx.String(cmd.RestoreSourceFileFlag.Name)
 	targetDir := cliCtx.String(cmd.RestoreTargetDirFlag.Name)

@@ -1,5 +1,6 @@
 // Package runtime includes useful utilities globally accessible in
 // the Prysm monorepo.
+// runtime包包含了有用的工具，能够在Prysm monorepo全局访问
 package runtime
 
 import (

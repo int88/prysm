@@ -1,4 +1,5 @@
 // Package beacon-chain defines the entire runtime of an Ethereum beacon node.
+// beacon-chain包定义了一个Ethereum beacon node的整个运行时
 package main
 
 import (
@@ -141,6 +142,7 @@ func main() {
 	app.Name = "beacon-chain"
 	app.Usage = "this is a beacon chain implementation for Ethereum"
 	app.Action = func(ctx *cli.Context) error {
+		// 启动Node
 		if err := startNode(ctx); err != nil {
 			return cli.Exit(err.Error(), 1)
 		}

@@ -110,6 +110,7 @@ type BeaconNode struct {
 
 // New creates a new node instance, sets up configuration options, and registers
 // every required service to the node.
+// New创建一个新的node实例，设置配置选项，并且注册每个需要的service到node
 func New(cliCtx *cli.Context, opts ...Option) (*BeaconNode, error) {
 	if err := configureTracing(cliCtx); err != nil {
 		return nil, err
@@ -188,11 +189,13 @@ func New(cliCtx *cli.Context, opts ...Option) (*BeaconNode, error) {
 		return nil, err
 	}
 	log.Debugln("Starting DB")
+	// 启动DB
 	if err := beacon.startDB(cliCtx, depositAddress); err != nil {
 		return nil, err
 	}
 
 	log.Debugln("Starting Slashing DB")
+	// 启动slashing DB
 	if err := beacon.startSlasherDB(cliCtx); err != nil {
 		return nil, err
 	}
@@ -203,6 +206,7 @@ func New(cliCtx *cli.Context, opts ...Option) (*BeaconNode, error) {
 	}
 
 	log.Debugln("Starting State Gen")
+	// 启动state gen
 	if err := beacon.startStateGen(ctx, bfs, beacon.forkChoicer); err != nil {
 		return nil, err
 	}
@@ -228,11 +232,13 @@ func New(cliCtx *cli.Context, opts ...Option) (*BeaconNode, error) {
 	}
 
 	log.Debugln("Registering Blockchain Service")
+	// 启动block chain service
 	if err := beacon.registerBlockchainService(beacon.forkChoicer); err != nil {
 		return nil, err
 	}
 
 	log.Debugln("Registering Intial Sync Service")
+	// 启动initial sync service
 	if err := beacon.registerInitialSyncService(); err != nil {
 		return nil, err
 	}
@@ -358,6 +364,7 @@ func (b *BeaconNode) startDB(cliCtx *cli.Context, depositAddress string) error {
 
 	log.WithField("database-path", dbPath).Info("Checking DB")
 
+	// 构建一个新的DB
 	d, err := db.NewDB(b.ctx, dbPath)
 	if err != nil {
 		return err
@@ -392,6 +399,7 @@ func (b *BeaconNode) startDB(cliCtx *cli.Context, depositAddress string) error {
 
 	b.db = d
 
+	// 构建deposit cache
 	depositCache, err := depositcache.New()
 	if err != nil {
 		return errors.Wrap(err, "could not create deposit cache")

@@ -1,5 +1,7 @@
 // Package kv defines a bolt-db, key-value store implementation
 // of the Database interface defined by a Prysm beacon node.
+// kv包定义了一个bolt-db，键值store的实现，由一个Prysm beacon node定义的
+// Database接口
 package kv
 
 import (
@@ -27,6 +29,7 @@ var _ iface.Database = (*Store)(nil)
 const (
 	// NumOfValidatorEntries is the size of the validator cache entries.
 	// we expect to hold a max of 200K validators, so setting it to 2 million (10x the capacity).
+	// 预期维护超过20w个validators
 	NumOfValidatorEntries = 1 << 21
 	// ValidatorEntryMaxCost is set to ~64Mb to allow 200K validators entries to be cached.
 	ValidatorEntryMaxCost = 1 << 26
@@ -135,6 +138,8 @@ var Buckets = [][]byte{
 // NewKVStore initializes a new boltDB key-value store at the directory
 // path specified, creates the kv-buckets based on the schema, and stores
 // an open connection db object as a property of the Store struct.
+// NewKVStore实例化一个新的boltDB键值存储，在指定的路径，基于shema创建kv-buckets
+// 并且存储一个open connection到db对象，作为Store结构的一部分
 func NewKVStore(ctx context.Context, dirPath string) (*Store, error) {
 	hasDir, err := file.HasDir(dirPath)
 	if err != nil {
@@ -162,6 +167,7 @@ func NewKVStore(ctx context.Context, dirPath string) (*Store, error) {
 		return nil, err
 	}
 	boltDB.AllocSize = boltAllocSize
+	// 构建block cache
 	blockCache, err := ristretto.NewCache(&ristretto.Config{
 		NumCounters: 1000,           // number of keys to track frequency of (1000).
 		MaxCost:     BlockCacheSize, // maximum cost of cache (1000 Blocks).
@@ -171,6 +177,7 @@ func NewKVStore(ctx context.Context, dirPath string) (*Store, error) {
 		return nil, err
 	}
 
+	// 构建validator cache
 	validatorCache, err := ristretto.NewCache(&ristretto.Config{
 		NumCounters: NumOfValidatorEntries, // number of entries in cache (2 Million).
 		MaxCost:     ValidatorEntryMaxCost, // maximum size of the cache (64Mb)
@@ -185,10 +192,12 @@ func NewKVStore(ctx context.Context, dirPath string) (*Store, error) {
 		databasePath:        dirPath,
 		blockCache:          blockCache,
 		validatorEntryCache: validatorCache,
-		stateSummaryCache:   newStateSummaryCache(),
-		ctx:                 ctx,
+		// 构建新的state summary
+		stateSummaryCache: newStateSummaryCache(),
+		ctx:               ctx,
 	}
 	if err := kv.db.Update(func(tx *bolt.Tx) error {
+		// 创建一系列的buckets
 		return createBuckets(tx, Buckets...)
 	}); err != nil {
 		return nil, err
@@ -197,6 +206,7 @@ func NewKVStore(ctx context.Context, dirPath string) (*Store, error) {
 		return nil, err
 	}
 	// Setup the type of block storage used depending on whether or not this is a fresh database.
+	// 设置block storage的类型，取决于这是不是一个新的database
 	if err := kv.setupBlockStorageType(ctx); err != nil {
 		return nil, err
 	}
@@ -204,6 +214,7 @@ func NewKVStore(ctx context.Context, dirPath string) (*Store, error) {
 }
 
 // ClearDB removes the previously stored database in the data directory.
+// ClearDB清除之前在data目录存储的db
 func (s *Store) ClearDB() error {
 	if _, err := os.Stat(s.databasePath); os.IsNotExist(err) {
 		return nil
@@ -216,10 +227,12 @@ func (s *Store) ClearDB() error {
 }
 
 // Close closes the underlying BoltDB database.
+// Close关闭底层的BoltDB数据库
 func (s *Store) Close() error {
 	prometheus.Unregister(createBoltCollector(s.db))
 
 	// Before DB closes, we should dump the cached state summary objects to DB.
+	// 在关闭DB之前，我们应该bump换成的state summary对象到DB中
 	if err := s.saveCachedStateSummariesDB(s.ctx); err != nil {
 		return err
 	}
@@ -235,6 +248,8 @@ func (s *Store) DatabasePath() string {
 func (s *Store) setupBlockStorageType(ctx context.Context) error {
 	// We check if we want to save blinded beacon blocks by checking a key in the db
 	// otherwise, we check the last stored block and set that key in the DB if it is blinded.
+	// 检查是否我们想要保存blinded beacon blocks，通过检查db中的key
+	// 否则，我们检查最后一个存储的block并且设置DB中的key，如果它是blinded
 	headBlock, err := s.HeadBlock(ctx)
 	if err != nil {
 		return errors.Wrap(err, "could not get head block when setting up block storage type")

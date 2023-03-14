@@ -14,6 +14,7 @@ import (
 )
 
 // setupDB instantiates and returns a Store instance.
+// setupDB实例化并且返回一个Store实例
 func setupDB(t testing.TB) *Store {
 	db, err := NewKVStore(context.Background(), t.TempDir())
 	require.NoError(t, err, "Failed to instantiate DB")

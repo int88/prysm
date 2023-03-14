@@ -265,6 +265,7 @@ func (s *Store) SaveBlock(ctx context.Context, signed interfaces.ReadOnlySignedB
 	if err != nil {
 		return err
 	}
+	// 如果存在于block cache中
 	if v, ok := s.blockCache.Get(string(blockRoot[:])); v != nil && ok {
 		return nil
 	}

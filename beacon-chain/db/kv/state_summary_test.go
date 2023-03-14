@@ -12,6 +12,7 @@ import (
 )
 
 func TestStateSummary_CanSaveRetrieve(t *testing.T) {
+	// 可以存取
 	db := setupDB(t)
 	ctx := context.Background()
 	r1 := bytesutil.ToBytes32([]byte{'A'})
@@ -55,6 +56,7 @@ func TestStateSummary_CacheToDB(t *testing.T) {
 	require.Equal(t, db.stateSummaryCache.len(), stateSummaryCachePruneCount)
 
 	require.NoError(t, db.SaveStateSummary(context.Background(), &ethpb.StateSummary{Slot: 1001, Root: []byte{'c', 'd'}}))
+	// 长度重新变为1，刷到数据库中了
 	require.Equal(t, db.stateSummaryCache.len(), 1)
 
 	for i := range summaries {

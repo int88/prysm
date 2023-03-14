@@ -16,6 +16,9 @@ import (
 // (ex: an open file) prepares the database so that the beacon node can begin
 // syncing, using the provided values as their point of origin. This is an alternative
 // to syncing from genesis, and should only be run on an empty database.
+// SaveOrigin加载一个ssz序列化的Block以及BeaconState，从一个io.Reader（例如一个open file）
+// 准备database，这样beacon node可以开始同步，使用提供的值作为point of origin，这是另一种
+// 从genesis开始同步的方式，并且只应该在空的database上运行
 func (s *Store) SaveOrigin(ctx context.Context, serState, serBlock []byte) error {
 	genesisRoot, err := s.GenesisBlockRoot(ctx)
 	if err != nil {
@@ -51,6 +54,7 @@ func (s *Store) SaveOrigin(ctx context.Context, serState, serBlock []byte) error
 	blk := wblk.Block()
 
 	// save block
+	// 保存block
 	blockRoot, err := blk.HashTreeRoot()
 	if err != nil {
 		return errors.Wrap(err, "could not compute HashTreeRoot of checkpoint block")
@@ -61,6 +65,7 @@ func (s *Store) SaveOrigin(ctx context.Context, serState, serBlock []byte) error
 	}
 
 	// save state
+	// 保存state
 	log.Infof("calling SaveState w/ blockRoot=%x", blockRoot)
 	if err = s.SaveState(ctx, state, blockRoot); err != nil {
 		return errors.Wrap(err, "could not save state")
@@ -73,6 +78,7 @@ func (s *Store) SaveOrigin(ctx context.Context, serState, serBlock []byte) error
 	}
 
 	// mark block as head of chain, so that processing will pick up from this point
+	// 将block标记为head of chain，这样处理就会从这里开始
 	if err = s.SaveHeadBlockRoot(ctx, blockRoot); err != nil {
 		return errors.Wrap(err, "could not save head block root")
 	}
@@ -85,6 +91,7 @@ func (s *Store) SaveOrigin(ctx context.Context, serState, serBlock []byte) error
 
 	// rebuild the checkpoint from the block
 	// use it to mark the block as justified and finalized
+	// 从block重新构建checkpoint，使用它将block标记为justified和finalized
 	slotEpoch, err := wblk.Block().Slot().SafeDivSlot(params.BeaconConfig().SlotsPerEpoch)
 	if err != nil {
 		return err

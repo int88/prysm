@@ -80,6 +80,7 @@ type NoHeadAccessDatabase interface {
 	DeleteState(ctx context.Context, blockRoot [32]byte) error
 	DeleteStates(ctx context.Context, blockRoots [][32]byte) error
 	// state summary
+	// state summary相关的操作
 	SaveStateSummary(ctx context.Context, summary *ethpb.StateSummary) error
 	SaveStateSummaries(ctx context.Context, summaries []*ethpb.StateSummary) error
 	// Checkpoint operations.
@@ -115,6 +116,7 @@ type HeadAccessDatabase interface {
 	EnsureEmbeddedGenesis(ctx context.Context) error
 
 	// initialization method needed for origin checkpoint sync
+	// origin checkpoint sync需要的初始化方法
 	SaveOrigin(ctx context.Context, serState, serBlock []byte) error
 	SaveBackfillBlockRoot(ctx context.Context, blockRoot [32]byte) error
 }

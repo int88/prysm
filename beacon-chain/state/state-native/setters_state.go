@@ -58,6 +58,7 @@ func (b *BeaconState) UpdateStateRootAtIndex(idx uint64, stateRoot [32]byte) err
 		b.sharedFieldReferences[types.StateRoots] = stateutil.NewRef(1)
 	}
 
+	// 仅仅只是改某个位置的state root值
 	r[idx] = stateRoot
 	b.stateRoots = r
 

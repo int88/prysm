@@ -101,6 +101,7 @@ type OptimisticModeFetcher interface {
 }
 
 // FinalizedCheckpt returns the latest finalized checkpoint from chain store.
+// FinalizedCheckpt返回最新的finalized checkpoint，从chain store中
 func (s *Service) FinalizedCheckpt() *ethpb.Checkpoint {
 	s.ForkChoicer().RLock()
 	defer s.ForkChoicer().RUnlock()

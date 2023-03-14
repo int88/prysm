@@ -110,16 +110,19 @@ func (p *StateProvider) State(ctx context.Context, stateId []byte) (state.Beacon
 	stateIdString := strings.ToLower(string(stateId))
 	switch stateIdString {
 	case "head":
+		// 直接从ChainInfoFetcher中获取head state
 		s, err = p.ChainInfoFetcher.HeadState(ctx)
 		if err != nil {
 			return nil, errors.Wrap(err, "could not get head state")
 		}
 	case "genesis":
+		// 通过StateBySlot获取genesis
 		s, err = p.StateBySlot(ctx, params.BeaconConfig().GenesisSlot)
 		if err != nil {
 			return nil, errors.Wrap(err, "could not get genesis state")
 		}
 	case "finalized":
+		// 从ChainInfoFetcher获取finalized checkpoint
 		checkpoint := p.ChainInfoFetcher.FinalizedCheckpt()
 		targetSlot, err := slots.EpochStart(checkpoint.Epoch)
 		if err != nil {
@@ -129,6 +132,9 @@ func (p *StateProvider) State(ctx context.Context, stateId []byte) (state.Beacon
 		// replay it to the start slot of our checkpoint's epoch. The replayer
 		// only ever accesses our canonical history, so the state retrieved will
 		// always be the finalized state at that epoch.
+		// 我们使用stategen replayer来获取finalized state，之后再重放它到我们的checkpoint的
+		// epoch的start slot，replayer只访问我们的canonical history，这样获取的state
+		// 总是为这个epoch的finalized state
 		s, err = p.ReplayerBuilder.ReplayerForSlot(targetSlot).ReplayToSlot(ctx, targetSlot)
 		if err != nil {
 			return nil, errors.Wrap(err, "could not get finalized state")
@@ -212,7 +218,7 @@ func (p *StateProvider) stateByRoot(ctx context.Context, stateRoot []byte) (stat
 	}
 	for i, root := range headState.StateRoots() {
 		if bytes.Equal(root, stateRoot) {
-			// 找到对应的block root
+			// 找到对应的block root，state root和block root是一一对应的，因此能找到block root
 			blockRoot := headState.BlockRoots()[i]
 			return p.StateGenService.StateByRoot(ctx, bytesutil.ToBytes32(blockRoot))
 		}

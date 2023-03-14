@@ -141,6 +141,7 @@ func ProcessSlot(ctx context.Context, state state.BeaconState) (state.BeaconStat
 	); err != nil {
 		return nil, err
 	}
+	// 返回经过处理后的state
 	return state, nil
 }
 

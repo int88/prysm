@@ -73,6 +73,7 @@ type Service struct {
 }
 
 // Config options for the beacon node RPC server.
+// Config是对于beacon node RPC server的选项
 type Config struct {
 	ExecutionPayloadReconstructor execution.ExecutionPayloadReconstructor
 	Host                          string

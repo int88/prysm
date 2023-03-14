@@ -1,5 +1,6 @@
 // Package db defines the ability to create a new database
 // for an Ethereum Beacon Node.
+// db包定义了能力来创建一个新的database，对于一个Ethereum Beacon Node
 package db
 
 import (

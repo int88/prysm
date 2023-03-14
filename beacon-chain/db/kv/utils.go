@@ -36,6 +36,8 @@ func lookupValuesForIndices(ctx context.Context, indicesByBucket map[string][]by
 // updateValueForIndices updates the value for each index by appending it to the previous
 // values stored at said index. Typically, indices are roots of data that can then
 // be used for reads or batch reads from the DB.
+// updateValueForIndices更新每个index的值，通过扩展它到之前存储的值，一般来说indices是data的root
+// 可以用于从DB中读取或者批量读取
 func updateValueForIndices(ctx context.Context, indicesByBucket map[string][]byte, root []byte, tx *bolt.Tx) error {
 	ctx, span := trace.StartSpan(ctx, "BeaconDB.updateValueForIndices")
 	defer span.End()

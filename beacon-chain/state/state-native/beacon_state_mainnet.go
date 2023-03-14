@@ -17,6 +17,8 @@ import (
 
 // BeaconState defines a struct containing utilities for the Ethereum Beacon Chain state, defining
 // getters and setters for its respective values and helpful functions such as HashTreeRoot().
+// BeaconState定义了一个结构，包含工具，用于Ethereum Beacon Chain state，定义了getters和setters
+// 对于对应的值，以及帮助函数，例如HashTreeRoot
 type BeaconState struct {
 	version                             int
 	genesisTime                         uint64

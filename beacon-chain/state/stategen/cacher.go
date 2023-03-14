@@ -17,6 +17,7 @@ type CombinedCache struct {
 
 func (c CombinedCache) ByBlockRoot(r [32]byte) (state.BeaconState, error) {
 	for _, getter := range c.getters {
+		// 从getter中，根据block root获取state
 		st, err := getter.ByBlockRoot(r)
 		if err == nil {
 			return st, nil
