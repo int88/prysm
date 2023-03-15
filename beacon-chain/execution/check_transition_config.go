@@ -37,6 +37,8 @@ var (
 // there are no differences in terminal block difficulty and block hash.
 // If there are any discrepancies, we must log errors to ensure users can resolve
 // the problem and be ready for the merge transition.
+// 检查Prysm和连接的execution node的transition配置，来确保对于terminal block difficulty和block hash
+// 没有分歧，如果有任何差异，我们必须记录日志来确保用户可以解决问题并且准备好merge transition
 func (s *Service) checkTransitionConfiguration(
 	ctx context.Context, blockNotifications chan *feed.Event,
 ) {

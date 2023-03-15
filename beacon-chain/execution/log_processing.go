@@ -283,10 +283,13 @@ func (s *Service) processPastLogs(ctx context.Context) error {
 	// Start from the deployment block if our last requested block
 	// is behind it. This is as the deposit logs can only start from the
 	// block of the deployment of the deposit contract.
+	// 如果我们请求的block在deployment block之后，从deployment block开始
+	// 因为deposit logs只可能从部署了deposit contract的block开始
 	if deploymentBlock > currentBlockNum {
 		currentBlockNum = deploymentBlock
 	}
 	// To store all blocks.
+	// 存储所有的blocks
 	headersMap := make(map[uint64]*types.HeaderInfo)
 	rawLogCount, err := s.depositContractCaller.GetDepositCount(&bind.CallOpts{})
 	if err != nil {
@@ -303,6 +306,7 @@ func (s *Service) processPastLogs(ctx context.Context) error {
 	additiveFactor := uint64(float64(batchSize) * additiveFactorMultiplier)
 
 	for currentBlockNum < latestFollowHeight {
+		// 批量处理blocks
 		currentBlockNum, batchSize, err = s.processBlockInBatch(ctx, currentBlockNum, latestFollowHeight, batchSize, additiveFactor, logCount, headersMap)
 		if err != nil {
 			return err
@@ -310,6 +314,7 @@ func (s *Service) processPastLogs(ctx context.Context) error {
 	}
 
 	s.latestEth1DataLock.Lock()
+	// 设置LastRequestedBlock
 	s.latestEth1Data.LastRequestedBlock = currentBlockNum
 	s.latestEth1DataLock.Unlock()
 
@@ -319,6 +324,7 @@ func (s *Service) processPastLogs(ctx context.Context) error {
 	}
 	fRoot := bytesutil.ToBytes32(c.Root)
 	// Return if no checkpoint exists yet.
+	// 返回如果没有checkpoint
 	if fRoot == params.BeaconConfig().ZeroHash {
 		return nil
 	}
@@ -347,6 +353,7 @@ func (s *Service) processPastLogs(ctx context.Context) error {
 func (s *Service) processBlockInBatch(ctx context.Context, currentBlockNum uint64, latestFollowHeight uint64, batchSize uint64, additiveFactor uint64, logCount uint64, headersMap map[uint64]*types.HeaderInfo) (uint64, uint64, error) {
 	// Batch request the desired headers and store them in a
 	// map for quick access.
+	// 批量请求期望的headers并且存储它们到一个map用于快速访问
 	requestHeaders := func(startBlk uint64, endBlk uint64) error {
 		headers, err := s.batchRequestHeaders(startBlk, endBlk)
 		if err != nil {
@@ -419,6 +426,7 @@ func (s *Service) processBlockInBatch(ctx context.Context, currentBlockNum uint6
 			s.latestEth1DataLock.Unlock()
 			currentBlockNum = filterLog.BlockNumber
 		}
+		// 对logs进行处理
 		if err := s.ProcessLog(ctx, filterLog); err != nil {
 			// In the event the execution client gives us a garbled/bad log
 			// we reset the last requested block to the previous valid block range. This

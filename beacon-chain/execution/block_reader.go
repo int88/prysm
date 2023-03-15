@@ -95,6 +95,7 @@ func (s *Service) BlockTimeByHeight(ctx context.Context, height *big.Int) (uint6
 }
 
 // BlockByTimestamp returns the most recent block number up to a given timestamp.
+// BlockByTimestamp返回到给定时间的，最近的block number
 // This is an optimized version with the worst case being O(2*repeatedSearches) number of calls
 // while in best case search for the block is performed in O(1).
 func (s *Service) BlockByTimestamp(ctx context.Context, time uint64) (*types.HeaderInfo, error) {

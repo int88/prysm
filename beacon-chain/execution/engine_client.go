@@ -428,6 +428,7 @@ func (s *Service) HeaderByHash(ctx context.Context, hash common.Hash) (*types.He
 }
 
 // HeaderByNumber returns the relevant header details for the provided block number.
+// HeaderByNumber返回提供的block number的header details
 func (s *Service) HeaderByNumber(ctx context.Context, number *big.Int) (*types.HeaderInfo, error) {
 	var hdr *types.HeaderInfo
 	err := s.rpcClient.CallContext(ctx, &hdr, ExecutionBlockByNumberMethod, toBlockNumArg(number), false /* no transactions */)
@@ -724,6 +725,7 @@ func buildEmptyExecutionPayload() *pb.ExecutionPayload {
 
 func toBlockNumArg(number *big.Int) string {
 	if number == nil {
+		// 获取最新的block
 		return "latest"
 	}
 	pending := big.NewInt(-1)
