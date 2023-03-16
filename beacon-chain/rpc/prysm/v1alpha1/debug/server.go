@@ -23,6 +23,9 @@ import (
 // Server defines a server implementation of the gRPC Debug service,
 // providing RPC endpoints for runtime debugging of a node, this server is
 // gated behind the feature flag --enable-debug-rpc-endpoints.
+// Server定义了一个server的实现，对于gRPC Debug service
+// 提供RPC endpoints，对于一个node的运行时debugging，这个server在feature flag
+// --enable-debug-rpc-endpoints之后
 type Server struct {
 	BeaconDB           db.NoHeadAccessDatabase
 	GenesisTimeFetcher blockchain.TimeFetcher

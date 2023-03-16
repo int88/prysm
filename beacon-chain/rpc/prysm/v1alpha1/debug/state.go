@@ -12,6 +12,8 @@ import (
 
 // GetBeaconState retrieves an ssz-encoded beacon state
 // from the beacon node by either a slot or block root.
+// GetBeaconState获取一个ssz编码的beacon state，从一个beacon node
+// 通过一个slot或者block root
 func (ds *Server) GetBeaconState(
 	ctx context.Context,
 	req *pbrpc.BeaconStateRequest,
@@ -29,6 +31,7 @@ func (ds *Server) GetBeaconState(
 			)
 		}
 
+		// 直接replay到slot
 		st, err := ds.ReplayerBuilder.ReplayerForSlot(q.Slot).ReplayBlocks(ctx)
 		if err != nil {
 			return nil, status.Error(codes.Internal, fmt.Sprintf("error replaying blocks for state at slot %d: %v", q.Slot, err))

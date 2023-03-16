@@ -50,6 +50,7 @@ func encode(ctx context.Context, msg proto.Message) ([]byte, error) {
 }
 
 // isSSZStorageFormat returns true if the object type should be saved in SSZ encoded format.
+// isSSZStorageFormat返回true，如果对象类型应该以SSZ编码的格式保存
 func isSSZStorageFormat(obj interface{}) bool {
 	switch obj.(type) {
 	case *ethpb.BeaconState:

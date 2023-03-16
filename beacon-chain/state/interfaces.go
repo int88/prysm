@@ -227,6 +227,7 @@ type WriteOnlyEth1Data interface {
 }
 
 // WriteOnlyValidators defines a struct which only has write access to validators methods.
+// WriteOnlyValidators定义了一个结构，对于validators方法只有读权限
 type WriteOnlyValidators interface {
 	SetValidators(val []*ethpb.Validator) error
 	ApplyToEveryValidator(f func(idx int, val *ethpb.Validator) (bool, *ethpb.Validator, error)) error

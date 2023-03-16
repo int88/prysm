@@ -18,6 +18,7 @@ import (
 )
 
 // DeterministicGenesisStateBellatrix returns a genesis state in Bellatrix format made using the deterministic deposits.
+// DeterministicGenesisStateBellatrix返回一个genesis state，以Bellatrix格式，使用确定性的deposits
 func DeterministicGenesisStateBellatrix(t testing.TB, numValidators uint64) (state.BeaconState, []bls.SecretKey) {
 	deposits, privKeys, err := DeterministicDepositsAndKeys(numValidators)
 	if err != nil {
@@ -36,6 +37,7 @@ func DeterministicGenesisStateBellatrix(t testing.TB, numValidators uint64) (sta
 }
 
 // genesisBeaconStateBellatrix returns the genesis beacon state.
+// genesisBeaconStateBellatrix返回genesis beacon state
 func genesisBeaconStateBellatrix(ctx context.Context, deposits []*ethpb.Deposit, genesisTime uint64, eth1Data *ethpb.Eth1Data) (state.BeaconState, error) {
 	st, err := emptyGenesisStateBellatrix()
 	if err != nil {
@@ -43,11 +45,13 @@ func genesisBeaconStateBellatrix(ctx context.Context, deposits []*ethpb.Deposit,
 	}
 
 	// Process initial deposits.
+	// 处理初始的deposits
 	st, err = helpers.UpdateGenesisEth1Data(st, deposits, eth1Data)
 	if err != nil {
 		return nil, err
 	}
 
+	// 处理genesis之前的deposits
 	st, err = processPreGenesisDeposits(ctx, st, deposits)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not process validator deposits")
@@ -57,6 +61,7 @@ func genesisBeaconStateBellatrix(ctx context.Context, deposits []*ethpb.Deposit,
 }
 
 // emptyGenesisStateBellatrix returns an empty genesis state in Bellatrix format.
+// emptyGenesisStateBellatrix以Bellatrix格式返回一个空的genesis state
 func emptyGenesisStateBellatrix() (state.BeaconState, error) {
 	st := &ethpb.BeaconStateBellatrix{
 		// Misc fields.

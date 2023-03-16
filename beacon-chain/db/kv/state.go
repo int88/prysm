@@ -825,6 +825,7 @@ func createStateIndicesFromStateSlot(ctx context.Context, slot primitives.Slot) 
 }
 
 // CleanUpDirtyStates removes states in DB that falls to under archived point interval rules.
+// CleanUpDirtyStates移除DB中的states，落入以下的archived point interval rules
 // Only following states would be kept:
 // 1.) state_slot % archived_interval == 0. (e.g. archived_interval=2048, states with slot 2048, 4096... etc)
 // 2.) archived_interval - archived_interval/3 < state_slot % archived_interval
@@ -861,6 +862,7 @@ func (s *Store) CleanUpDirtyStates(ctx context.Context, slotsPerArchivedPoint pr
 			nonFinalized := slot > finalizedSlot
 
 			// The following conditions cover 1, 2, 3 and 4 above.
+			// 覆盖上述四个条件的roots
 			if mod != 0 && mod <= slotsPerArchivedPoint-slotsPerArchivedPoint/3 && !finalizedChkpt && !nonFinalized {
 				deletedRoots = append(deletedRoots, bytesutil.ToBytes32(v))
 			}
@@ -877,6 +879,7 @@ func (s *Store) CleanUpDirtyStates(ctx context.Context, slotsPerArchivedPoint pr
 	}
 
 	log.WithField("count", len(deletedRoots)).Info("Cleaning up dirty states")
+	// 对states进行删除
 	if err := s.DeleteStates(ctx, deletedRoots); err != nil {
 		return err
 	}

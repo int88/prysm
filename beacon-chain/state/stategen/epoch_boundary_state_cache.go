@@ -82,6 +82,7 @@ func (e *epochBoundaryState) ByBlockRoot(r [32]byte) (state.BeaconState, error) 
 }
 
 // get epoch boundary state by its block root. Returns copied state in state info object if exists. Otherwise returns nil.
+// 通过block root获取epoch boundary state，返回拷贝的state，如果state info对象存在的话，否则返回nil
 func (e *epochBoundaryState) getByBlockRoot(r [32]byte) (*rootStateInfo, bool, error) {
 	e.lock.RLock()
 	defer e.lock.RUnlock()

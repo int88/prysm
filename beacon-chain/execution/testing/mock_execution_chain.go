@@ -1,5 +1,7 @@
 // Package testing provides useful mocks for an eth1 powchain
 // service as needed by unit tests for the beacon node.
+// testing提供了有用的mocks，用于eth1 powchain service，供beacon node
+// 的单元测试使用
 package testing
 
 import (
@@ -24,6 +26,7 @@ import (
 )
 
 // Chain defines a properly functioning mock for the powchain service.
+// Chain定义了一个合适的functioning mock，用于powchain service
 type Chain struct {
 	ChainFeed         *event.Feed
 	LatestBlockNumber *big.Int

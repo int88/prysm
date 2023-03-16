@@ -30,6 +30,7 @@ func (s *Store) LastValidatedCheckpoint(ctx context.Context) (*ethpb.Checkpoint,
 }
 
 // SaveLastValidatedCheckpoint saves the last validated checkpoint in beacon chain.
+// SaveLastValidatedCheckpoint保存最新校验的checkpoint到beacon chain中
 func (s *Store) SaveLastValidatedCheckpoint(ctx context.Context, checkpoint *ethpb.Checkpoint) error {
 	ctx, span := trace.StartSpan(ctx, "BeaconDB.SaveLastValidatedCheckpoint")
 	defer span.End()

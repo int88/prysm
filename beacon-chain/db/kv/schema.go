@@ -49,7 +49,9 @@ var (
 	lastValidatedCheckpointKey = []byte("last-validated-checkpoint")
 
 	// Below keys are used to identify objects are to be fork compatible.
+	// 下面的keys用来区分对象，用于fork compatible
 	// Objects that are only compatible with specific forks should be prefixed with such keys.
+	// 只兼容特定forks的对象应该以这些keys为前缀
 	altairKey                  = []byte("altair")
 	bellatrixKey               = []byte("merge")
 	bellatrixBlindKey          = []byte("blind-bellatrix")

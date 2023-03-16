@@ -214,6 +214,7 @@ func (node *BeaconNode) saveConfig() (string, error) {
 }
 
 // Start starts a fresh beacon node, connecting to all passed in beacon nodes.
+// Start启动一个新的beacon node，连接所有传入的beacon nodes
 func (node *BeaconNode) Start(ctx context.Context) error {
 	binaryPath, found := bazel.FindBinary("cmd/beacon-chain", "beacon-chain")
 	if !found {

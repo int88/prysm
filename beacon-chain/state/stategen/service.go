@@ -157,6 +157,9 @@ func (s *State) Resume(ctx context.Context, fState state.BeaconState) (state.Bea
 // SaveFinalizedState saves the finalized slot, root and state into memory to be used by state gen service.
 // This used for migration at the correct start slot and used for hot state play back to ensure
 // lower bound to start is always at the last finalized state.
+// SaveFinalizedState保存finalized slot，root以及state到内存中，供state gen service使用
+// 这用于migration，在正确的start slot并且用于hot state play back，来确保启动的lower bound
+// 总是在最后一个finalized state
 func (s *State) SaveFinalizedState(fSlot primitives.Slot, fRoot [32]byte, fState state.BeaconState) {
 	s.finalizedInfo.lock.Lock()
 	defer s.finalizedInfo.lock.Unlock()

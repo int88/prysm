@@ -298,6 +298,7 @@ func DepositTrieFromDeposits(deposits []*ethpb.Deposit) (*trie.SparseMerkleTrie,
 }
 
 // resetCache clears out the old trie, private keys and deposits.
+// resetCache清理老的trie, private keys以及deposits
 func resetCache() {
 	lock.Lock()
 	defer lock.Unlock()

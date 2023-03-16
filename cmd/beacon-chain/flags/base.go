@@ -130,6 +130,7 @@ var (
 		Value: 3,
 	}
 	// ContractDeploymentBlock is the block in which the eth1 deposit contract was deployed.
+	// ContractDeploymentBlock是我们部署eth1 deposit contract的block
 	ContractDeploymentBlock = &cli.IntFlag{
 		Name:  "contract-deployment-block",
 		Usage: "The eth1 block in which the deposit contract was deployed.",
@@ -151,6 +152,7 @@ var (
 	}
 	// SlotsPerArchivedPoint specifies the number of slots between the archived points, to save beacon state in the cold
 	// section of beaconDB.
+	// SlotsPerArchivedPoint指定archived points之间的slots的数目，保存beacon state到beaconDB的cold section
 	SlotsPerArchivedPoint = &cli.IntFlag{
 		Name:  "slots-per-archive-point",
 		Usage: "The slot durations of when an archived state gets saved in the beaconDB.",
@@ -170,7 +172,8 @@ var (
 	}
 	// EnableDebugRPCEndpoints as /v1/beacon/state.
 	EnableDebugRPCEndpoints = &cli.BoolFlag{
-		Name:  "enable-debug-rpc-endpoints",
+		Name: "enable-debug-rpc-endpoints",
+		// 使能debug rpc service，endpoints包含/eth/v1alpha1/beacon/state.
 		Usage: "Enables the debug rpc service, containing utility endpoints such as /eth/v1alpha1/beacon/state.",
 	}
 	// SubscribeToAllSubnets defines a flag to specify whether to subscribe to all possible attestation/sync subnets or not.

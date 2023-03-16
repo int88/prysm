@@ -33,6 +33,7 @@ type TestAccount struct {
 }
 
 // Setup creates the simulated backend with the deposit contract deployed
+// Setup创建一个模拟的backend，部署着deposit contract
 func Setup() (*TestAccount, error) {
 	genesis := make(core.GenesisAlloc)
 	privKey, err := crypto.GenerateKey()
@@ -56,8 +57,10 @@ func Setup() (*TestAccount, error) {
 	}
 	startingBalance, _ := new(big.Int).SetString("100000000000000000000000000000000000000", 10)
 	genesis[addr] = core.GenesisAccount{Balance: startingBalance}
+	// 构建一个go ethereum的backend
 	backend := backends.NewSimulatedBackend(genesis, 210000000000)
 
+	// 部署contract
 	contractAddr, _, contract, err := DeployDepositContract(txOpts, backend)
 	if err != nil {
 		return nil, err
@@ -80,6 +83,7 @@ func LessThan1Eth() *big.Int {
 }
 
 // DeployDepositContract deploys a new Ethereum contract, binding an instance of DepositContract to it.
+// DeployDepositContract部署一个新的Ethereum contract，绑定一个DepositContract的实例
 func DeployDepositContract(auth *bind.TransactOpts, backend bind.ContractBackend) (common.Address, *types.Transaction, *deposit.DepositContract, error) {
 	parsed, err := abi.JSON(strings.NewReader(deposit.DepositContractABI))
 	if err != nil {

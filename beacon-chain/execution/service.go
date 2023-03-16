@@ -124,6 +124,7 @@ func (RPCClientEmpty) CallContext(context.Context, interface{}, string, ...inter
 }
 
 // config defines a config struct for dependencies into the service.
+// config定义了一个config结构，用于service中的依赖
 type config struct {
 	depositContractAddr     common.Address
 	beaconDB                db.HeadAccessDatabase
@@ -363,6 +364,7 @@ func (s *Service) initDepositCaches(ctx context.Context, ctrs []*ethpb.DepositCo
 	s.cfg.depositCache.InsertDepositContainers(ctx, ctrs)
 	if !s.chainStartData.Chainstarted {
 		// Do not add to pending cache if no genesis state exists.
+		// 不要添加到pending cache，如果没有genesis state
 		validDepositsCount.Add(float64(s.preGenesisState.Eth1DepositIndex()))
 		return nil
 	}
@@ -372,6 +374,7 @@ func (s *Service) initDepositCaches(ctx context.Context, ctrs []*ethpb.DepositCo
 	}
 	// Default to all post-genesis deposits in
 	// the event we cannot find a finalized state.
+	// 默认为所有的post-genesis deposits，如果我们找不到一个finalized state
 	currIndex := genesisState.Eth1DepositIndex()
 	chkPt, err := s.cfg.beaconDB.FinalizedCheckpoint(ctx)
 	if err != nil {
@@ -493,6 +496,7 @@ func (s *Service) handleETH1FollowDistance() {
 		log.Warn("Execution client is not syncing")
 	}
 	if !s.chainStartData.Chainstarted {
+		// 如果chain还没有启动，则从block number开始处理
 		if err := s.processChainStartFromBlockNum(ctx, big.NewInt(int64(s.latestEth1Data.LastRequestedBlock))); err != nil {
 			s.runError = errors.Wrap(err, "processChainStartFromBlockNum")
 			log.Error(err)
@@ -588,6 +592,7 @@ func (s *Service) initPOWService() {
 					if err != nil {
 						err = errors.Wrapf(err, "HeaderByHash, hash=%#x", genHash)
 						s.retryExecutionClientConnection(ctx, err)
+						// 不能获取proof-of-staket genesis block data
 						errorLogger(err, "Unable to retrieve proof-of-stake genesis block data")
 						continue
 					}
@@ -743,6 +748,7 @@ func (s *Service) determineEarliestVotingBlock(ctx context.Context, followBlock 
 	currSlot := slots.CurrentSlot(genesisTime)
 
 	// In the event genesis has not occurred yet, we just request to go back follow_distance blocks.
+	// 如果genesis还没有发生，我们请求go back follow_distance个blocks
 	if genesisTime == 0 || currSlot == 0 {
 		earliestBlk := uint64(0)
 		if followBlock > params.BeaconConfig().Eth1FollowDistance {

@@ -74,6 +74,7 @@ func (s *Store) SaveJustifiedCheckpoint(ctx context.Context, checkpoint *ethpb.C
 }
 
 // SaveFinalizedCheckpoint saves finalized checkpoint in beacon chain.
+// SaveFinalizedCheckpoint保存finalized checkpoint到beacon chain中
 func (s *Store) SaveFinalizedCheckpoint(ctx context.Context, checkpoint *ethpb.Checkpoint) error {
 	ctx, span := trace.StartSpan(ctx, "BeaconDB.SaveFinalizedCheckpoint")
 	defer span.End()
@@ -87,8 +88,10 @@ func (s *Store) SaveFinalizedCheckpoint(ctx context.Context, checkpoint *ethpb.C
 		bucket := tx.Bucket(checkpointBucket)
 		hasStateInDB := tx.Bucket(stateBucket).Get(checkpoint.Root) != nil
 		if !(hasStateInDB || hasStateSummary) {
+			// 为finalized root恢复state summary
 			log.Warnf("Recovering state summary for finalized root: %#x", bytesutil.Trunc(checkpoint.Root))
 			if err := recoverStateSummary(ctx, tx, checkpoint.Root); err != nil {
+				// 不能保存finalized checkpoint
 				return errors.Wrapf(errMissingStateForCheckpoint, "could not save finalized checkpoint, finalized root: %#x", bytesutil.Trunc(checkpoint.Root))
 			}
 		}
@@ -101,6 +104,7 @@ func (s *Store) SaveFinalizedCheckpoint(ctx context.Context, checkpoint *ethpb.C
 }
 
 // Recovers and saves state summary for a given root if the root has a block in the DB.
+// 恢复并且保存state summary，对于一个给定的root，如果root有一个block在DB中
 func recoverStateSummary(ctx context.Context, tx *bolt.Tx, root []byte) error {
 	blkBucket := tx.Bucket(blocksBucket)
 	blkEnc := blkBucket.Get(root)
@@ -119,5 +123,6 @@ func recoverStateSummary(ctx context.Context, tx *bolt.Tx, root []byte) error {
 		return err
 	}
 	summaryBucket := tx.Bucket(stateBucket)
+	// 保存到summary bucket中
 	return summaryBucket.Put(root, summaryEnc)
 }

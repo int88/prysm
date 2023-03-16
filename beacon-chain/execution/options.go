@@ -45,6 +45,7 @@ func WithHeaders(headers []string) Option {
 }
 
 // WithDepositContractAddress for the deposit contract.
+// WithDepositContractAddress为deposit contract设置地址
 func WithDepositContractAddress(addr common.Address) Option {
 	return func(s *Service) error {
 		s.cfg.depositContractAddr = addr

@@ -55,6 +55,7 @@ func TestState_CanSaveRetrieveValidatorEntries(t *testing.T) {
 	db := setupDB(t)
 
 	// enable historical state representation flag to test this
+	// 使能historical state representation flag来测试
 	resetCfg := features.InitWithReset(&features.Flags{
 		EnableHistoricalSpaceRepresentation: true,
 	})
@@ -64,6 +65,7 @@ func TestState_CanSaveRetrieveValidatorEntries(t *testing.T) {
 
 	require.Equal(t, false, db.HasState(context.Background(), r))
 
+	// 构建validators
 	stateValidators := validators(10)
 	st, err := util.NewBeaconState()
 	require.NoError(t, err)
@@ -89,6 +91,7 @@ func TestState_CanSaveRetrieveValidatorEntries(t *testing.T) {
 	require.NoError(t, err)
 
 	// check if all the validator entries are still intact in the validator entry bucket.
+	// 检查所有validators entries依然在validator entry bucket完好无损
 	err = db.db.Update(func(tx *bolt.Tx) error {
 		valBkt := tx.Bucket(stateValidatorsBucket)
 		// if any of the original validator entry is not present, then fail the test.
@@ -283,6 +286,7 @@ func TestState_DeleteState(t *testing.T) {
 	require.Equal(t, false, db.HasState(context.Background(), r2))
 
 	// create two states with the same set of validators.
+	// 创建两个states，有着同样的validators
 	stateValidators := validators(10)
 	st1, err := util.NewBeaconState()
 	require.NoError(t, err)
@@ -295,6 +299,7 @@ func TestState_DeleteState(t *testing.T) {
 	require.NoError(t, st2.SetValidators(stateValidators))
 
 	// save both the states.
+	// 同时保存两个states
 	ctx := context.Background()
 	require.NoError(t, db.SaveState(ctx, st1, r1))
 	require.NoError(t, db.SaveState(ctx, st2, r2))
@@ -305,6 +310,7 @@ func TestState_DeleteState(t *testing.T) {
 	require.NoError(t, db.DeleteStates(ctx, deleteBlockRoots))
 
 	// check if the validator entries of this state is removed from cache.
+	// 检查这个state的validator entries是否从cache中移除
 	for _, val := range stateValidators {
 		hash, hashErr := val.HashTreeRoot()
 		assert.NoError(t, hashErr)
@@ -314,6 +320,7 @@ func TestState_DeleteState(t *testing.T) {
 	}
 
 	// check if the index of the first state is deleted.
+	// 检查第一个state是否被删除
 	err = db.db.Update(func(tx *bolt.Tx) error {
 		idxBkt := tx.Bucket(blockRootValidatorHashesBucket)
 		data := idxBkt.Get(r1[:])
@@ -323,6 +330,7 @@ func TestState_DeleteState(t *testing.T) {
 	require.NoError(t, err)
 
 	// check if the index of the second state is still present.
+	// 检查第二个state是否依然存在
 	err = db.db.Update(func(tx *bolt.Tx) error {
 		idxBkt := tx.Bucket(blockRootValidatorHashesBucket)
 		data := idxBkt.Get(r2[:])
@@ -332,6 +340,7 @@ func TestState_DeleteState(t *testing.T) {
 	require.NoError(t, err)
 
 	// check if all the validator entries are still intact in the validator entry bucket.
+	// 检查所有的validator entries是否完好无损
 	err = db.db.Update(func(tx *bolt.Tx) error {
 		valBkt := tx.Bucket(stateValidatorsBucket)
 		// if any of the original validator entry is not present, then fail the test.
@@ -388,14 +397,17 @@ func TestStore_StatesBatchDelete(t *testing.T) {
 			evenBlockRoots = append(evenBlockRoots, r)
 		}
 	}
+	// 保存所有的blocks
 	require.NoError(t, db.SaveBlocks(ctx, totalBlocks))
 	// We delete all even indexed states.
+	// 删除所有偶数索引的states
 	require.NoError(t, db.DeleteStates(ctx, evenBlockRoots))
 	// When we retrieve the data, only the odd indexed state should remain.
 	for _, r := range blockRoots {
 		s, err := db.State(context.Background(), r)
 		require.NoError(t, err)
 		if s == nil {
+			// nil state直接跳过
 			continue
 		}
 		assert.Equal(t, primitives.Slot(1), s.Slot()%2, "State with slot %d should have been deleted", s.Slot())
@@ -413,6 +425,7 @@ func TestStore_DeleteGenesisState(t *testing.T) {
 	require.NoError(t, st.SetSlot(100))
 	require.NoError(t, db.SaveState(ctx, st, genesisBlockRoot))
 	wantedErr := "cannot delete finalized block or state"
+	// 不能删除finalized block或者state
 	assert.ErrorContains(t, wantedErr, db.DeleteState(ctx, genesisBlockRoot))
 }
 
@@ -439,6 +452,7 @@ func TestStore_DeleteFinalizedState(t *testing.T) {
 	require.NoError(t, finalizedState.SetSlot(100))
 	require.NoError(t, db.SaveState(ctx, finalizedState, finalizedBlockRoot))
 	finalizedCheckpoint := &ethpb.Checkpoint{Root: finalizedBlockRoot[:]}
+	// 保存finalized checkpoint
 	require.NoError(t, db.SaveFinalizedCheckpoint(ctx, finalizedCheckpoint))
 	wantedErr := "cannot delete finalized block or state"
 	assert.ErrorContains(t, wantedErr, db.DeleteState(ctx, finalizedBlockRoot))
@@ -465,6 +479,7 @@ func TestStore_DeleteHeadState(t *testing.T) {
 	require.NoError(t, st.SetSlot(100))
 	require.NoError(t, db.SaveState(ctx, st, headBlockRoot))
 	require.NoError(t, db.SaveHeadBlockRoot(ctx, headBlockRoot))
+	// 可以删除head state，如果它是optimistic
 	require.NoError(t, db.DeleteState(ctx, headBlockRoot)) // Ok to delete head state if it's optimistic.
 }
 

@@ -86,11 +86,13 @@ func TestStart_OK(t *testing.T) {
 	beaconDB := dbutil.SetupDB(t)
 	testAcc, err := mock.Setup()
 	require.NoError(t, err, "Unable to set up simulated backend")
+	// 构建execution rpc server
 	server, endpoint, err := mockExecution.SetupRPCServer()
 	require.NoError(t, err)
 	t.Cleanup(func() {
 		server.Stop()
 	})
+	// 构建web3 service
 	web3Service, err := NewService(context.Background(),
 		WithHttpEndpoint(endpoint),
 		WithDepositContractAddress(testAcc.ContractAddr),
@@ -203,6 +205,7 @@ func TestFollowBlock_OK(t *testing.T) {
 
 	// simulated backend sets eth1 block
 	// time as 10 seconds
+	// 模拟的backend，设置eth1 block time为10s
 	params.SetupTestConfigCleanup(t)
 	conf := params.BeaconConfig().Copy()
 	conf.SecondsPerETH1Block = 10
@@ -212,10 +215,12 @@ func TestFollowBlock_OK(t *testing.T) {
 	web3Service.rpcClient = &mockExecution.RPCClient{Backend: testAcc.Backend}
 	baseHeight := testAcc.Backend.Blockchain().CurrentBlock().NumberU64()
 	// process follow_distance blocks
+	// 处理follow_distance blocks
 	for i := 0; i < int(params.BeaconConfig().Eth1FollowDistance); i++ {
 		testAcc.Backend.Commit()
 	}
 	// set current height
+	// 设置当前的height
 	web3Service.latestEth1Data.BlockHeight = testAcc.Backend.Blockchain().CurrentBlock().NumberU64()
 	web3Service.latestEth1Data.BlockTime = testAcc.Backend.Blockchain().CurrentBlock().Time()
 
@@ -225,6 +230,7 @@ func TestFollowBlock_OK(t *testing.T) {
 	numToForward := uint64(2)
 	expectedHeight := numToForward + baseHeight
 	// forward 2 blocks
+	// 移动2个blocks
 	for i := uint64(0); i < numToForward; i++ {
 		testAcc.Backend.Commit()
 	}
@@ -455,6 +461,7 @@ func TestNewService_EarliestVotingBlock(t *testing.T) {
 	require.NoError(t, err, "unable to setup web3 ETH1.0 chain service")
 	// simulated backend sets eth1 block
 	// time as 10 seconds
+	// 设置simulated backend的eth1 block time为10s
 	params.SetupTestConfigCleanup(t)
 	conf := params.BeaconConfig().Copy()
 	conf.SecondsPerETH1Block = 10
