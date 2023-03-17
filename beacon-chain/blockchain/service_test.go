@@ -121,6 +121,7 @@ func setupBeaconChain(t *testing.T, beaconDB db.Database) *Service {
 	depositCache, err := depositcache.New()
 	require.NoError(t, err)
 
+	// 默认为doublylinkedtree
 	fc := doublylinkedtree.New()
 	stateGen := stategen.New(beaconDB, fc)
 	// Safe a state in stategen to purposes of testing a service stop / shutdown.

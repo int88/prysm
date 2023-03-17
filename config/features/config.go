@@ -233,6 +233,7 @@ func ConfigureBeaconChain(ctx *cli.Context) error {
 	}
 	if ctx.Bool(disableForkChoiceDoublyLinkedTree.Name) {
 		logEnabled(disableForkChoiceDoublyLinkedTree)
+		// 如果指定了这个name，则设置为true
 		cfg.DisableForkchoiceDoublyLinkedTree = true
 	}
 	cfg.EnableBatchGossipAggregation = true

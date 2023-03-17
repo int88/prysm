@@ -27,6 +27,7 @@ type stateRequest struct {
 }
 
 // GetGenesis retrieves details of the chain's genesis which can be used to identify chain.
+// GetGenesis获取chain的genesis的细节，可以用于识别不同的chain
 func (bs *Server) GetGenesis(ctx context.Context, _ *emptypb.Empty) (*ethpb.GenesisResponse, error) {
 	ctx, span := trace.StartSpan(ctx, "beacon.GetGenesis")
 	defer span.End()
@@ -54,6 +55,7 @@ func (bs *Server) GetGenesis(ctx context.Context, _ *emptypb.Empty) (*ethpb.Gene
 }
 
 // GetStateRoot calculates HashTreeRoot for state with given 'stateId'. If stateId is root, same value will be returned.
+// GetStateRoot计算给定'stateId'的state的HashTreeRoot，如果stateId为root，则同样的值会被返回
 func (bs *Server) GetStateRoot(ctx context.Context, req *ethpb.StateRequest) (*ethpb.StateRootResponse, error) {
 	ctx, span := trace.StartSpan(ctx, "beacon.GetStateRoot")
 	defer span.End()
@@ -67,6 +69,7 @@ func (bs *Server) GetStateRoot(ctx context.Context, req *ethpb.StateRequest) (*e
 		}
 		return nil, status.Errorf(codes.Internal, "Could not get state root: %v", err)
 	}
+	// 获取state信息
 	st, err := bs.StateFetcher.State(ctx, req.StateId)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "Could not get state: %v", err)
@@ -75,10 +78,12 @@ func (bs *Server) GetStateRoot(ctx context.Context, req *ethpb.StateRequest) (*e
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "Could not check if slot's block is optimistic: %v", err)
 	}
+	// 获取state对应的block root
 	blockRoot, err := st.LatestBlockHeader().HashTreeRoot()
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "Could not calculate root of latest block header")
 	}
+	// 判断block root是否finalized
 	isFinalized := bs.FinalizationFetcher.IsFinalized(ctx, blockRoot)
 
 	return &ethpb.StateRootResponse{
@@ -91,6 +96,7 @@ func (bs *Server) GetStateRoot(ctx context.Context, req *ethpb.StateRequest) (*e
 }
 
 // GetStateFork returns Fork object for state with given 'stateId'.
+// GetStateFork返回给定'stateId'的Fork对象
 func (bs *Server) GetStateFork(ctx context.Context, req *ethpb.StateRequest) (*ethpb.StateForkResponse, error) {
 	ctx, span := trace.StartSpan(ctx, "beacon.GetStateFork")
 	defer span.End()
@@ -123,6 +129,8 @@ func (bs *Server) GetStateFork(ctx context.Context, req *ethpb.StateRequest) (*e
 
 // GetFinalityCheckpoints returns finality checkpoints for state with given 'stateId'. In case finality is
 // not yet achieved, checkpoint should return epoch 0 and ZERO_HASH as root.
+// GetFinalityCheckpoints返回finality checkpoints，对于给定'stateId'的state，如果finality还没有实现
+// checkpoint应该返回epoch 0以及ZERO_HASH作为root
 func (bs *Server) GetFinalityCheckpoints(ctx context.Context, req *ethpb.StateRequest) (*ethpb.StateFinalityCheckpointResponse, error) {
 	ctx, span := trace.StartSpan(ctx, "beacon.GetFinalityCheckpoints")
 	defer span.End()
@@ -143,6 +151,7 @@ func (bs *Server) GetFinalityCheckpoints(ctx context.Context, req *ethpb.StateRe
 
 	return &ethpb.StateFinalityCheckpointResponse{
 		Data: &ethpb.StateFinalityCheckpointResponse_StateFinalityCheckpoint{
+			// 返回checkpoint的配置
 			PreviousJustified: checkpoint(st.PreviousJustifiedCheckpoint()),
 			CurrentJustified:  checkpoint(st.CurrentJustifiedCheckpoint()),
 			Finalized:         checkpoint(st.FinalizedCheckpoint()),

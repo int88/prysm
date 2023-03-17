@@ -168,6 +168,8 @@ func (s *Store) updateFinalizedBlockRoots(ctx context.Context, tx *bolt.Tx, chec
 // A beacon block root contained exists in this index if it is considered finalized and canonical.
 // Note: beacon blocks from the latest finalized epoch return true, whether or not they are
 // considered canonical in the "head view" of the beacon node.
+// IsFinalizedBlock返回true，如果block root存在于finalized block root index，一个beacon block root
+// 存在于这个index，如果它被认为是finalized和canonical
 func (s *Store) IsFinalizedBlock(ctx context.Context, blockRoot [32]byte) bool {
 	ctx, span := trace.StartSpan(ctx, "BeaconDB.IsFinalizedBlock")
 	defer span.End()
@@ -177,6 +179,7 @@ func (s *Store) IsFinalizedBlock(ctx context.Context, blockRoot [32]byte) bool {
 		exists = tx.Bucket(finalizedBlockRootsIndexBucket).Get(blockRoot[:]) != nil
 		// Check genesis block root.
 		if !exists {
+			// 不存在则卡看看是不是等于genesis state
 			genRoot := tx.Bucket(blocksBucket).Get(genesisBlockRootKey)
 			exists = bytesutil.ToBytes32(genRoot) == blockRoot
 		}

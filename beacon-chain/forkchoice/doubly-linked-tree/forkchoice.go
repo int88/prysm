@@ -242,6 +242,7 @@ func (f *ForkChoice) IsCanonical(root [32]byte) bool {
 }
 
 // IsOptimistic returns true if the given root has been optimistically synced.
+// IsOptimistic返回true，如果给定的root已经被乐观地同步了
 func (f *ForkChoice) IsOptimistic(root [32]byte) (bool, error) {
 	if f.store.allTipsAreInvalid {
 		return true, nil

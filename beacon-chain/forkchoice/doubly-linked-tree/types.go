@@ -46,6 +46,8 @@ type Store struct {
 
 // Node defines the individual block which includes its block parent, ancestor and how much weight accounted for it.
 // This is used as an array based stateful DAG for efficient fork choice look up.
+// Node定义了单个的block，它包含它的block parent，ancestor以及它有多少的weight
+// 这用于一个基于array的stateful DAG，用于高效地查找fork choice
 type Node struct {
 	slot                     primitives.Slot              // slot of the block converted to the node.
 	root                     [fieldparams.RootLength]byte // root of the block converted to the node.

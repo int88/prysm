@@ -95,6 +95,7 @@ type FinalizationFetcher interface {
 }
 
 // OptimisticModeFetcher retrieves information about optimistic status of the node.
+// OptimisticModeFetcher获取node的optimistic状态
 type OptimisticModeFetcher interface {
 	IsOptimistic(ctx context.Context) (bool, error)
 	IsOptimisticForRoot(ctx context.Context, root [32]byte) (bool, error)
@@ -345,8 +346,10 @@ func (s *Service) ForkChoicer() forkchoice.ForkChoicer {
 }
 
 // IsOptimistic returns true if the current head is optimistic.
+// IsOptimistic返回true，如果当前的head是optimistic
 func (s *Service) IsOptimistic(ctx context.Context) (bool, error) {
 	if slots.ToEpoch(s.CurrentSlot()) < params.BeaconConfig().BellatrixForkEpoch {
+		// 在Bellatrix之前，直接返回false
 		return false, nil
 	}
 	s.headLock.RLock()
@@ -364,11 +367,14 @@ func (s *Service) IsOptimistic(ctx context.Context) (bool, error) {
 	}
 	// If fockchoice does not have the headroot, then the node is considered
 	// optimistic
+	// 如果forkchoice没有headroot，那么这个node被认为是optimistic
 	return true, nil
 }
 
 // IsFinalized returns true if the input root is finalized.
+// IsFinalized返回true，如果输入的root是finalized
 // It first checks latest finalized root then checks finalized root index in DB.
+// 它首先检查最新的finalized root，之后检查DB中的finalized root index
 func (s *Service) IsFinalized(ctx context.Context, root [32]byte) bool {
 	s.ForkChoicer().RLock()
 	defer s.ForkChoicer().RUnlock()
@@ -377,9 +383,11 @@ func (s *Service) IsFinalized(ctx context.Context, root [32]byte) bool {
 	}
 	// If node exists in our store, then it is not
 	// finalized.
+	// 如果node存在store中，那么它没有finalized
 	if s.ForkChoicer().HasNode(root) {
 		return false
 	}
+	// 从DB中查找
 	return s.cfg.BeaconDB.IsFinalizedBlock(ctx, root)
 }
 

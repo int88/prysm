@@ -227,6 +227,7 @@ func (s *Service) validateRangeRequest(r *pb.BeaconBlocksByRangeRequest) error {
 	maxRequestBlocks := params.BeaconNetworkConfig().MaxRequestBlocks
 	// Add a buffer for possible large range requests from nodes syncing close to the
 	// head of the chain.
+	// 添加一个buffer，对于可能的large range requests，在nodes syncing中，接近head of the chain
 	buffer := rangeLimit * 2
 	highestExpectedSlot := s.cfg.chain.CurrentSlot().Add(uint64(buffer))
 

@@ -81,6 +81,7 @@ type Fetcher interface {
 	State(ctx context.Context, stateId []byte) (state.BeaconState, error)
 	StateRoot(ctx context.Context, stateId []byte) ([]byte, error)
 	StateBySlot(ctx context.Context, slot primitives.Slot) (state.BeaconState, error)
+	// 没有通过state root获取state的方法
 }
 
 // StateProvider is a real implementation of Fetcher.
@@ -267,6 +268,7 @@ func (p *StateProvider) headStateRoot(ctx context.Context) ([]byte, error) {
 }
 
 func (p *StateProvider) genesisStateRoot(ctx context.Context) ([]byte, error) {
+	// 从db中获取genesis block
 	b, err := p.BeaconDB.GenesisBlock(ctx)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not get genesis block")
@@ -279,6 +281,7 @@ func (p *StateProvider) genesisStateRoot(ctx context.Context) ([]byte, error) {
 }
 
 func (p *StateProvider) finalizedStateRoot(ctx context.Context) ([]byte, error) {
+	// 从db中获取finalized checkpoint
 	cp, err := p.BeaconDB.FinalizedCheckpoint(ctx)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not get finalized checkpoint")
