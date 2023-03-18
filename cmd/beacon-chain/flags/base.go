@@ -124,6 +124,7 @@ var (
 	}
 	// MinSyncPeers specifies the required number of successful peer handshakes in order
 	// to start syncing with external peers.
+	// MinSyncPeers指定成功的peer handshakes的数目，为了开始和external peers的同步
 	MinSyncPeers = &cli.IntFlag{
 		Name:  "min-sync-peers",
 		Usage: "The required number of valid peers to connect with before syncing.",

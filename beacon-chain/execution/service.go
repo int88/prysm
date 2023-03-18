@@ -417,6 +417,8 @@ func (s *Service) initDepositCaches(ctx context.Context, ctrs []*ethpb.DepositCo
 
 // processBlockHeader adds a newly observed eth1 block to the block cache and
 // updates the latest blockHeight, blockHash, and blockTime properties of the service.
+// processBlockHeader添加一个新发现的eth1 block到block cache并且更新最新的blockHeight, blockHash
+// 以及blockTime，关于这个service
 func (s *Service) processBlockHeader(header *types.HeaderInfo) {
 	defer safelyHandlePanic()
 	blockNumberGauge.Set(float64(header.Number.Int64()))
@@ -490,6 +492,7 @@ func (s *Service) handleETH1FollowDistance() {
 
 	// use a 5 minutes timeout for block time, because the max mining time is 278 sec (block 7208027)
 	// (analyzed the time of the block from 2018-09-01 to 2019-02-13)
+	// 对于block time，使用5分钟的超时，因为最大的mining时间是278s
 	fiveMinutesTimeout := prysmTime.Now().Add(-5 * time.Minute)
 	// check that web3 client is syncing
 	if time.Unix(int64(s.latestEth1Data.BlockTime), 0).Before(fiveMinutesTimeout) {

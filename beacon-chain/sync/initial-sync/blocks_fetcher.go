@@ -30,6 +30,7 @@ const (
 	// peersPercentagePerRequest caps percentage of peers to be used in a request.
 	peersPercentagePerRequest = 0.75
 	// handshakePollingInterval is a polling interval for checking the number of received handshakes.
+	// handshakePollingInterval是一个轮询时间间隔，用来检查接收到的handshakes的数目
 	handshakePollingInterval = 5 * time.Second
 	// peerLocksPollingInterval is a polling interval for checking if there are stale peer locks.
 	peerLocksPollingInterval = 5 * time.Minute
@@ -168,6 +169,7 @@ func (f *blocksFetcher) stop() {
 }
 
 // requestResponses exposes a channel into which fetcher pushes generated request responses.
+// requestResponses暴露一个channel，fetcher推送生成的request responses
 func (f *blocksFetcher) requestResponses() <-chan *fetchRequestResponse {
 	return f.fetchResponses
 }
@@ -241,6 +243,7 @@ func (f *blocksFetcher) scheduleRequest(ctx context.Context, start primitives.Sl
 }
 
 // handleRequest parses fetch request and forwards it to response builder.
+// handleRequest解析fetch request并且转发到response builder
 func (f *blocksFetcher) handleRequest(ctx context.Context, start primitives.Slot, count uint64) *fetchRequestResponse {
 	ctx, span := trace.StartSpan(ctx, "initialsync.handleRequest")
 	defer span.End()
@@ -264,6 +267,7 @@ func (f *blocksFetcher) handleRequest(ctx context.Context, start primitives.Slot
 	}
 
 	// Short circuit start far exceeding the highest finalized epoch in some infinite loop.
+	// 短路，超过最高的finalized epoch，在一些无限的loop中
 	if f.mode == modeStopOnFinalizedEpoch {
 		highestFinalizedSlot := params.BeaconConfig().SlotsPerEpoch.Mul(uint64(targetEpoch + 1))
 		if start > highestFinalizedSlot {
@@ -273,6 +277,7 @@ func (f *blocksFetcher) handleRequest(ctx context.Context, start primitives.Slot
 		}
 	}
 
+	// 从peer抓取blocks
 	response.blocks, response.pid, response.err = f.fetchBlocksFromPeer(ctx, start, count, peers)
 	return response
 }

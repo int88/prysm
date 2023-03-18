@@ -662,6 +662,7 @@ func (p *Status) BestFinalized(maxPeers int, ourFinalizedEpoch primitives.Epoch)
 	}
 
 	// Select the target epoch, which is the epoch most peers agree upon.
+	// 选择target epoch，大多数peers都同意的
 	var targetEpoch primitives.Epoch
 	var mostVotes uint64
 	for epoch, count := range finalizedEpochVotes {

@@ -33,6 +33,7 @@ type stateID uint8
 type eventID uint8
 
 // stateMachineManager is a collection of managed FSMs.
+// stateMachineManager是一系列被管理的FSMs
 type stateMachineManager struct {
 	keys     []primitives.Slot
 	machines map[primitives.Slot]*stateMachine
@@ -40,6 +41,7 @@ type stateMachineManager struct {
 }
 
 // stateMachine holds a state of a single block processing FSM.
+// stateMachine维护了一个block processing FSM的state
 // Each FSM allows deterministic state transitions: State(S) x Event(E) -> Actions (A), State(S').
 type stateMachine struct {
 	smm     *stateMachineManager
@@ -51,9 +53,11 @@ type stateMachine struct {
 }
 
 // eventHandlerFn is an event handler function's signature.
+// eventHandlerFn是一个event handler函数的signature
 type eventHandlerFn func(m *stateMachine, data interface{}) (newState stateID, err error)
 
 // newStateMachineManager returns fully initialized state machine manager.
+// newStateMachineManager返回完整初始化的state machine manager
 func newStateMachineManager() *stateMachineManager {
 	return &stateMachineManager{
 		keys:     make([]primitives.Slot, 0, lookaheadSteps),
@@ -120,12 +124,14 @@ func (smm *stateMachineManager) recalculateMachineAttribs() {
 }
 
 // findStateMachine returns a state machine for a given start slot (if exists).
+// findStateMachine返回一个state machine，对于一个给定的start slot（如果存在的话）
 func (smm *stateMachineManager) findStateMachine(startSlot primitives.Slot) (*stateMachine, bool) {
 	fsm, ok := smm.machines[startSlot]
 	return fsm, ok
 }
 
 // highestStartSlot returns the start slot for the latest known state machine.
+// highestStartSlot返回start slot，对于最新已知的state machine
 func (smm *stateMachineManager) highestStartSlot() (primitives.Slot, error) {
 	if len(smm.keys) == 0 {
 		return 0, errors.New("no state machine exist")
@@ -162,6 +168,7 @@ func (m *stateMachine) setState(name stateID) {
 }
 
 // trigger invokes the event handler on a given state machine.
+// trigger触发event handler，对于一个给定的state machine
 func (m *stateMachine) trigger(event eventID, data interface{}) error {
 	handlers, ok := m.smm.handlers[m.state]
 	if !ok {

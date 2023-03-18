@@ -48,10 +48,12 @@ func (s *Service) BlockExists(ctx context.Context, hash common.Hash) (bool, *big
 }
 
 // BlockHashByHeight returns the block hash of the block at the given height.
+// BlockHashByHeight返回在给定高度的block的block hash
 func (s *Service) BlockHashByHeight(ctx context.Context, height *big.Int) (common.Hash, error) {
 	ctx, span := trace.StartSpan(ctx, "powchain.BlockHashByHeight")
 	defer span.End()
 
+	// 从header cache中获取
 	if exists, hInfo, err := s.headerCache.HeaderInfoByHeight(height); exists || err != nil {
 		if err != nil {
 			return [32]byte{}, err
@@ -67,10 +69,12 @@ func (s *Service) BlockHashByHeight(ctx context.Context, height *big.Int) (commo
 		return [32]byte{}, err
 	}
 
+	// 通过height对header进行查询
 	header, err := s.HeaderByNumber(ctx, height)
 	if err != nil {
 		return [32]byte{}, errors.Wrap(err, fmt.Sprintf("could not query header with height %d", height.Uint64()))
 	}
+	// 添加到cache中
 	if err := s.headerCache.AddHeader(header); err != nil {
 		return [32]byte{}, err
 	}

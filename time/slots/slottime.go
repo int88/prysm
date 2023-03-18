@@ -77,6 +77,7 @@ func ToEpoch(slot primitives.Slot) primitives.Epoch {
 
 // EpochStart returns the first slot number of the
 // current epoch.
+// EpochStart返回当前 epoch的第一个slot number
 //
 // Spec pseudocode definition:
 //

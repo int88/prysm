@@ -250,8 +250,10 @@ func (s *Service) registerHandlers() {
 				log.WithField("starttime", startTime).Debug("Received state initialized event")
 
 				// Register respective rpc handlers at state initialized event.
+				// 注册各自的rpc handlers，在state initialized event
 				s.registerRPCHandlers()
 				// Wait for chainstart in separate routine.
+				// 在另外的routine等待chainstart
 				go func() {
 					if startTime.After(prysmTime.Now()) {
 						time.Sleep(prysmTime.Until(startTime))
@@ -287,12 +289,14 @@ func (s *Service) registerHandlers() {
 }
 
 // marks the chain as having started.
+// 将chain标记为started
 func (s *Service) markForChainStart() {
 	s.chainStarted.Set()
 }
 
 // Checker defines a struct which can verify whether a node is currently
 // synchronizing a chain with the rest of peers in the network.
+// Checker定义了一个结构，它可以校验，是否一个节点当前和network中其余的peers同步了一条chain
 type Checker interface {
 	Initialized() bool
 	Syncing() bool

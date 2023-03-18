@@ -61,6 +61,8 @@ func (s *Service) roundRobinSync(genesis time.Time) error {
 
 	// Step 2 - sync to head from majority of peers (from no less than MinimumSyncPeers*2 peers)
 	// having the same world view on non-finalized epoch.
+	// 第二步 - 同步到大多数peers的head（不少于 MinimumSyncPeers * 2的peers）
+	// 对于non-finalized epoch有着共同的world view
 	return s.syncToNonFinalizedEpoch(ctx, genesis)
 }
 
@@ -90,6 +92,7 @@ func (s *Service) syncToFinalizedEpoch(ctx context.Context, genesis time.Time) e
 	}
 
 	for data := range queue.fetchedData {
+		// 处理接收到的data
 		s.processFetchedData(ctx, genesis, s.cfg.Chain.HeadSlot(), data)
 	}
 
@@ -106,6 +109,8 @@ func (s *Service) syncToFinalizedEpoch(ctx context.Context, genesis time.Time) e
 
 // syncToNonFinalizedEpoch sync from head to best known non-finalized epoch supported by majority
 // of peers (no less than MinimumSyncPeers*2 peers).
+// syncToNonFinalizedEpoch从head同步到best known的non-finalized epoch，由大多数peers支持
+// 不少于MinimumSyncPeers*2个peers
 func (s *Service) syncToNonFinalizedEpoch(ctx context.Context, genesis time.Time) error {
 	queue := newBlocksQueue(ctx, &blocksQueueConfig{
 		p2p:                 s.cfg.P2P,
@@ -181,7 +186,9 @@ func (s *Service) processFetchedDataRegSync(
 }
 
 // highestFinalizedEpoch returns the absolute highest finalized epoch of all connected peers.
+// highestFinalizedEpoch返回所有连接的peers的最高的finalized epoch
 // Note this can be lower than our finalized epoch if we have no peers or peers that are all behind us.
+// 注意，它可能小于我们的finalized epoch，如果我们没有peers或者peers在我们之后
 func (s *Service) highestFinalizedEpoch() primitives.Epoch {
 	highest := primitives.Epoch(0)
 	for _, pid := range s.cfg.P2P.Peers().Connected() {

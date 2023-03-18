@@ -84,6 +84,7 @@ func NewService(ctx context.Context, cfg *Config) *Service {
 // 启动初始的sync service
 func (s *Service) Start() {
 	// Wait for state initialized event.
+	// 等待state初始的事件
 	genesis := <-s.genesisChan
 	if genesis.IsZero() {
 		log.Debug("Exiting Initial Sync Service")
@@ -178,6 +179,7 @@ func (s *Service) waitForMinimumPeers() {
 		required = flags.Get().MinimumSyncPeers
 	}
 	for {
+		// 找到finalized checkpoint
 		cp := s.cfg.Chain.FinalizedCheckpt()
 		_, peers := s.cfg.P2P.Peers().BestNonFinalized(flags.Get().MinimumSyncPeers, cp.Epoch)
 		if len(peers) >= required {
@@ -186,6 +188,7 @@ func (s *Service) waitForMinimumPeers() {
 		log.WithFields(logrus.Fields{
 			"suitable": len(peers),
 			"required": required,
+			// 在syncing之前等待足够多的peers
 		}).Info("Waiting for enough suitable peers before syncing")
 		time.Sleep(handshakePollingInterval)
 	}

@@ -305,9 +305,13 @@ func (f *blocksFetcher) bestNonFinalizedSlot() primitives.Slot {
 
 // calculateHeadAndTargetEpochs return node's current head epoch, along with the best known target
 // epoch. For the latter peers supporting that target epoch are returned as well.
+// calculateHeadAndTargetEpochs返回node当前的head epoch，伴随着best known target epoch，对于后续支持
+// 这个target epoch的peers也返回
 func (f *blocksFetcher) calculateHeadAndTargetEpochs() (headEpoch, targetEpoch primitives.Epoch, peers []peer.ID) {
 	if f.mode == modeStopOnFinalizedEpoch {
+		// 找到finalized checkpoint
 		cp := f.chain.FinalizedCheckpt()
+		// 从中找到target epoch
 		headEpoch = cp.Epoch
 		targetEpoch, peers = f.p2p.Peers().BestFinalized(params.BeaconConfig().MaxPeersToSync, headEpoch)
 	} else {

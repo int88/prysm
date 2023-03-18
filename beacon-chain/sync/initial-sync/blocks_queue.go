@@ -59,6 +59,7 @@ const (
 type syncMode uint8
 
 // blocksQueueConfig is a config to setup block queue service.
+// blocksQueueConfig是一个配置用于设置block queue service
 type blocksQueueConfig struct {
 	blocksFetcher       *blocksFetcher
 	chain               blockchainService
@@ -96,11 +97,13 @@ type blocksQueueFetchedData struct {
 }
 
 // newBlocksQueue creates initialized priority queue.
+// newBlocksQueue初始化优先级队列
 func newBlocksQueue(ctx context.Context, cfg *blocksQueueConfig) *blocksQueue {
 	ctx, cancel := context.WithCancel(ctx)
 
 	blocksFetcher := cfg.blocksFetcher
 	if blocksFetcher == nil {
+		// 构建block fetcher
 		blocksFetcher = newBlocksFetcher(ctx, &blocksFetcherConfig{
 			chain: cfg.chain,
 			p2p:   cfg.p2p,
@@ -117,6 +120,7 @@ func newBlocksQueue(ctx context.Context, cfg *blocksQueueConfig) *blocksQueue {
 	}
 
 	// Override fetcher's sync mode.
+	// 覆盖fetcher的同步模式
 	blocksFetcher.mode = cfg.mode
 
 	queue := &blocksQueue{
@@ -132,7 +136,9 @@ func newBlocksQueue(ctx context.Context, cfg *blocksQueueConfig) *blocksQueue {
 	}
 
 	// Configure state machines.
+	// 配置state machines
 	queue.smm = newStateMachineManager()
+	// 配置事件的handler
 	queue.smm.addEventHandler(eventTick, stateNew, queue.onScheduleEvent(ctx))
 	queue.smm.addEventHandler(eventDataReceived, stateScheduled, queue.onDataReceivedEvent(ctx))
 	queue.smm.addEventHandler(eventTick, stateDataParsed, queue.onReadyToSendEvent(ctx))
@@ -248,6 +254,7 @@ func (q *blocksQueue) loop() {
 				return
 			}
 			// Update state of an epoch for which data is received.
+			// 更新一个epoch的state，用收到的data
 			if fsm, ok := q.smm.findStateMachine(response.start); ok {
 				if err := fsm.trigger(eventDataReceived, response); err != nil {
 					log.WithFields(logrus.Fields{
@@ -288,6 +295,7 @@ func waitHighestExpectedSlot(q *blocksQueue) bool {
 }
 
 // onScheduleEvent is an event called on newly arrived epochs. Transforms state to scheduled.
+// onScheduleEvent是一个在新到来的epochs被调用的event，将状态转换为scheduled
 func (q *blocksQueue) onScheduleEvent(ctx context.Context) eventHandlerFn {
 	return func(m *stateMachine, in interface{}) (stateID, error) {
 		if m.state != stateNew {
@@ -306,6 +314,7 @@ func (q *blocksQueue) onScheduleEvent(ctx context.Context) eventHandlerFn {
 }
 
 // onDataReceivedEvent is an event called when data is received from fetcher.
+// onDataReceivedEvent是一个被调用的event，当从fetcher接收到数据时
 func (q *blocksQueue) onDataReceivedEvent(ctx context.Context) eventHandlerFn {
 	return func(m *stateMachine, in interface{}) (stateID, error) {
 		if ctx.Err() != nil {

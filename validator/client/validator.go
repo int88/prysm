@@ -306,6 +306,7 @@ func (v *validator) WaitForSync(ctx context.Context) error {
 			if !s.Syncing {
 				return nil
 			}
+			// 等待同步到latest chain head
 			log.Info("Waiting for beacon node to sync to latest chain head")
 		case <-ctx.Done():
 			return errors.New("context has been canceled, exiting goroutine")

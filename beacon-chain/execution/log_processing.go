@@ -226,8 +226,11 @@ func (s *Service) ProcessDepositLog(ctx context.Context, depositLog gethtypes.Lo
 
 // ProcessChainStart processes the log which had been received from
 // the eth1 chain by trying to determine when to start the beacon chain.
+// ProcessChainStart处理接收自eth1 chain的日志，试着决定什么时候开始beacon chain
 func (s *Service) ProcessChainStart(genesisTime uint64, eth1BlockHash [32]byte, blockNumber *big.Int) {
+	// 标记chain启动
 	s.chainStartData.Chainstarted = true
+	// 设置genesis block
 	s.chainStartData.GenesisBlock = blockNumber.Uint64()
 
 	chainStartTime := time.Unix(int64(genesisTime), 0) // lint:ignore uintcast -- Genesis time wont exceed int64 in your lifetime.
@@ -237,6 +240,7 @@ func (s *Service) ProcessChainStart(genesisTime uint64, eth1BlockHash [32]byte, 
 		if err != nil {
 			log.WithError(err).Error("unable to generate deposit proof")
 		}
+		// 不能产生deposit proof
 		s.chainStartData.ChainstartDeposits[i].Proof = proof
 	}
 
@@ -246,6 +250,7 @@ func (s *Service) ProcessChainStart(genesisTime uint64, eth1BlockHash [32]byte, 
 		return
 	}
 	s.chainStartData.Eth1Data = &ethpb.Eth1Data{
+		// 设置deposit count, root以及hash block
 		DepositCount: uint64(len(s.chainStartData.ChainstartDeposits)),
 		DepositRoot:  root[:],
 		BlockHash:    eth1BlockHash[:],
@@ -263,6 +268,7 @@ func (s *Service) ProcessChainStart(genesisTime uint64, eth1BlockHash [32]byte, 
 	if err := s.savePowchainData(s.ctx); err != nil {
 		// continue on if the save fails as this will get re-saved
 		// in the next interval.
+		// 继续如果save失败，因为这会在下一个interval再次保存
 		log.Error(err)
 	}
 }
@@ -535,6 +541,7 @@ func (s *Service) checkHeaderRange(ctx context.Context, start, end uint64, heade
 
 // retrieves the current active validator count and genesis time from
 // the provided block time.
+// 获取当前的active validator的数目以及genesis time，从提供的block time中
 func (s *Service) currentCountAndTime(ctx context.Context, blockTime uint64) (uint64, uint64) {
 	if s.preGenesisState.NumValidators() == 0 {
 		return 0, 0
@@ -552,6 +559,7 @@ func (s *Service) processChainStartIfReady(ctx context.Context, blockHash [32]by
 	if valCount == 0 {
 		return
 	}
+	// 判断是不是合法的genesis state
 	triggered := coreState.IsValidGenesisState(valCount, genesisTime)
 	if triggered {
 		s.chainStartData.GenesisTime = genesisTime

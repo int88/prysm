@@ -135,6 +135,7 @@ func (s *Service) BestJustifiedCheckpt() *ethpb.Checkpoint {
 }
 
 // HeadSlot returns the slot of the head of the chain.
+// HeadSlot返回head of the chain的slot
 func (s *Service) HeadSlot() primitives.Slot {
 	s.headLock.RLock()
 	defer s.headLock.RUnlock()
