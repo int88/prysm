@@ -45,6 +45,7 @@ func ProcessAttestationsNoVerifySignature(
 
 // ProcessAttestationNoVerifySignature processes the attestation without verifying the attestation signature. This
 // method is used to validate attestations whose signatures have already been verified or will be verified later.
+// ProcessAttestationNoVerifySignature处理attestation，而不验证attestation签名。此方法用于验证已经验证或稍后将验证的attestation的签名。
 func ProcessAttestationNoVerifySignature(
 	ctx context.Context,
 	beaconState state.BeaconState,
@@ -60,6 +61,7 @@ func ProcessAttestationNoVerifySignature(
 
 	delay, err := beaconState.Slot().SafeSubSlot(att.Data.Slot)
 	if err != nil {
+		// att slot不能大于state slot
 		return nil, fmt.Errorf("att slot %d can't be greater than state slot %d", att.Data.Slot, beaconState.Slot())
 	}
 	participatedFlags, err := AttestationParticipationFlagIndices(beaconState, att.Data, delay)
@@ -80,6 +82,7 @@ func ProcessAttestationNoVerifySignature(
 
 // SetParticipationAndRewardProposer retrieves and sets the epoch participation bits in state. Based on the epoch participation, it rewards
 // the proposer in state.
+// SetParticipationAndRewardProposer获取并且设置state中的epoch participation bits。基于epoch participation，它奖励state中的proposer。
 //
 // Spec code:
 //
@@ -140,6 +143,7 @@ func SetParticipationAndRewardProposer(
 }
 
 // HasValidatorFlag returns true if the flag at position has set.
+// HasValidatorFlag如果position处的flag已设置，则返回true。
 func HasValidatorFlag(flag, flagPosition uint8) (bool, error) {
 	if flagPosition > 7 {
 		return false, errors.New("flag position exceeds length")
@@ -218,6 +222,7 @@ func EpochParticipation(beaconState state.BeaconState, indices []uint64, epochPa
 }
 
 // RewardProposer rewards proposer by increasing proposer's balance with input reward numerator and calculated reward denominator.
+// RewardProposer通过增加proposer的balance来奖励proposer，其中包括输入的reward numerator和计算的reward denominator。
 //
 // Spec code:
 //
@@ -238,6 +243,7 @@ func RewardProposer(ctx context.Context, beaconState state.BeaconState, proposer
 
 // AttestationParticipationFlagIndices retrieves a map of attestation scoring based on Altair's participation flag indices.
 // This is used to facilitate process attestation during state transition and during upgrade to altair state.
+// AttestationParticipationFlagIndices获取基于Altair的参与标志索引的attestation评分的映射。这用于在状态转换期间和在升级到altair状态期间促进过程attestation。
 //
 // Spec code:
 // def get_attestation_participation_flag_indices(state: BeaconState,

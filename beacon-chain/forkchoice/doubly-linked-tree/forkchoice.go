@@ -82,22 +82,27 @@ func (f *ForkChoice) Head(
 
 // ProcessAttestation processes attestation for vote accounting, it iterates around validator indices
 // and update their votes accordingly.
+// ProcessAttestation处理attestation以进行vote accounting，它在validator索引周围进行迭代并相应地更新其投票。
 func (f *ForkChoice) ProcessAttestation(ctx context.Context, validatorIndices []uint64, blockRoot [32]byte, targetEpoch primitives.Epoch) {
 	_, span := trace.StartSpan(ctx, "doublyLinkedForkchoice.ProcessAttestation")
 	defer span.End()
 
 	for _, index := range validatorIndices {
 		// Validator indices will grow the vote cache.
+		// Validator indices会增加vote cache
 		for index >= uint64(len(f.votes)) {
 			f.votes = append(f.votes, Vote{currentRoot: params.BeaconConfig().ZeroHash, nextRoot: params.BeaconConfig().ZeroHash})
 		}
 
 		// Newly allocated vote if the root fields are untouched.
+		// 新分配的vote，如果root字段未被触及
 		newVote := f.votes[index].nextRoot == params.BeaconConfig().ZeroHash &&
 			f.votes[index].currentRoot == params.BeaconConfig().ZeroHash
 
 		// Vote gets updated if it's newly allocated or high target epoch.
+		// Vote被更新，如果它是新分配的或高目标epoch
 		if newVote || targetEpoch > f.votes[index].nextEpoch {
+			// 设置nextEpoch和nextRoot
 			f.votes[index].nextEpoch = targetEpoch
 			f.votes[index].nextRoot = blockRoot
 		}
@@ -107,6 +112,7 @@ func (f *ForkChoice) ProcessAttestation(ctx context.Context, validatorIndices []
 }
 
 // InsertNode processes a new block by inserting it to the fork choice store.
+// InsertNode处理一个新的block，通过将其插入到fork choice store中
 func (f *ForkChoice) InsertNode(ctx context.Context, state state.BeaconState, root [32]byte) error {
 	ctx, span := trace.StartSpan(ctx, "doublyLinkedForkchoice.InsertNode")
 	defer span.End()
@@ -149,6 +155,7 @@ func (f *ForkChoice) InsertNode(ctx context.Context, state state.BeaconState, ro
 }
 
 // updateCheckpoints update the checkpoints when inserting a new node.
+// updateCheckpoints在插入一个新的node时更新checkpoints
 func (f *ForkChoice) updateCheckpoints(ctx context.Context, jc, fc *ethpb.Checkpoint) error {
 	if jc.Epoch > f.store.justifiedCheckpoint.Epoch {
 		if jc.Epoch > f.store.bestJustifiedCheckpoint.Epoch {

@@ -16,26 +16,32 @@ import (
 // OnAttestation is called whenever an attestation is received, verifies the attestation is valid and saves
 // it to the DB. As a stateless function, this does not hold nor delay attestation based on the spec descriptions.
 // The delay is handled by the caller in `processAttestations`.
+// OnAttestation在收到attestation时调用，验证attestation是否有效，并将其保存到DB中
+// 作为一个无状态的函数，它不会保存也不会延迟attestation，基于spec的描述，delay由调用者在processAttestations中处理
 //
 // Spec pseudocode definition:
 //
-//	def on_attestation(store: Store, attestation: Attestation) -> None:
-//	 """
-//	 Run ``on_attestation`` upon receiving a new ``attestation`` from either within a block or directly on the wire.
+//				def on_attestation(store: Store, attestation: Attestation) -> None:
+//				 """
+//				 Run ``on_attestation`` upon receiving a new ``attestation`` from either within a block or directly on the wire.
+//			  运行`on_attestation`，在收到一个新的`attestation`，无论是在一个block中还是直接在wire上
 //
-//	 An ``attestation`` that is asserted as invalid may be valid at a later time,
-//	 consider scheduling it for later processing in such case.
-//	 """
-//	 validate_on_attestation(store, attestation)
-//	 store_target_checkpoint_state(store, attestation.data.target)
+//				 An ``attestation`` that is asserted as invalid may be valid at a later time,
+//				 consider scheduling it for later processing in such case.
+//		      一个``attestation``被断言为无效，可能在以后的时间是有效的，考虑在这种情况下安排它以供以后处理
+//				 """
+//				 validate_on_attestation(store, attestation)
+//				 store_target_checkpoint_state(store, attestation.data.target)
 //
-//	 # Get state at the `target` to fully validate attestation
-//	 target_state = store.checkpoint_states[attestation.data.target]
-//	 indexed_attestation = get_indexed_attestation(target_state, attestation)
-//	 assert is_valid_indexed_attestation(target_state, indexed_attestation)
+//				 # Get state at the `target` to fully validate attestation
 //
-//	 # Update latest messages for attesting indices
-//	 update_latest_messages(store, indexed_attestation.attesting_indices, attestation)
+//				 target_state = store.checkpoint_states[attestation.data.target]
+//				 indexed_attestation = get_indexed_attestation(target_state, attestation)
+//				 assert is_valid_indexed_attestation(target_state, indexed_attestation)
+//
+//				 # Update latest messages for attesting indices
+//	             # 更新latest messages，用于attesting indices
+//				 update_latest_messages(store, indexed_attestation.attesting_indices, attestation)
 func (s *Service) OnAttestation(ctx context.Context, a *ethpb.Attestation, disparity time.Duration) error {
 	ctx, span := trace.StartSpan(ctx, "blockChain.onAttestation")
 	defer span.End()
@@ -62,11 +68,13 @@ func (s *Service) OnAttestation(ctx context.Context, a *ethpb.Attestation, dispa
 	genesisTime := uint64(s.genesisTime.Unix())
 
 	// Verify attestation target is from current epoch or previous epoch.
+	// 校验attestation target是当前epoch或者上一个epoch
 	if err := verifyAttTargetEpoch(ctx, genesisTime, uint64(time.Now().Add(disparity).Unix()), tgt); err != nil {
 		return err
 	}
 
 	// Verify attestation beacon block is known and not from the future.
+	// 确认attestation beacon block是已知的，且不是来自未来
 	if err := s.verifyBeaconBlock(ctx, a.Data); err != nil {
 		return errors.Wrap(err, "could not verify attestation beacon block")
 	}
@@ -75,11 +83,13 @@ func (s *Service) OnAttestation(ctx context.Context, a *ethpb.Attestation, dispa
 	// validate_aggregate_proof.go and validate_beacon_attestation.go
 
 	// Verify attestations can only affect the fork choice of subsequent slots.
+	// 确认attestations只能影响后续slots的fork choice
 	if err := slots.VerifyTime(genesisTime, a.Data.Slot+1, disparity); err != nil {
 		return err
 	}
 
 	// Use the target state to verify attesting indices are valid.
+	// 使用target state来验证attesting indices是否有效
 	committee, err := helpers.BeaconCommitteeFromState(ctx, baseState, a.Data.Slot, a.Data.CommitteeIndex)
 	if err != nil {
 		return err
@@ -97,6 +107,7 @@ func (s *Service) OnAttestation(ctx context.Context, a *ethpb.Attestation, dispa
 	// We assume trusted attestation in this function has verified signature.
 
 	// Update forkchoice store with the new attestation for updating weight.
+	// 更新forkchoice store，使用新的attestation更新weight
 	s.cfg.ForkChoiceStore.ProcessAttestation(ctx, indexedAtt.AttestingIndices, bytesutil.ToBytes32(a.Data.BeaconBlockRoot), a.Data.Target.Epoch)
 
 	return nil

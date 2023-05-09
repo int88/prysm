@@ -40,6 +40,8 @@ func UnrealizedCheckpoints(st state.BeaconState) (*ethpb.Checkpoint, *ethpb.Chec
 // ProcessJustificationAndFinalizationPreCompute processes justification and finalization during
 // epoch processing. This is where a beacon node can justify and finalize a new epoch.
 // Note: this is an optimized version by passing in precomputed total and attesting balances.
+// ProcessJustificationAndFinalizationPreCompute在epoch processing处理justification和finalization
+// 这是一个beacon node可以justify和finalize一个新的epoch的地方
 //
 // Spec pseudocode definition:
 //
@@ -69,10 +71,12 @@ func ProcessJustificationAndFinalizationPreCompute(state state.BeaconState, pBal
 }
 
 // processJustificationBits processes the justification bits during epoch processing.
+// processJustificationBits在epoch processing处理justification bits
 func processJustificationBits(state state.BeaconState, totalActiveBalance, prevEpochTargetBalance, currEpochTargetBalance uint64) bitfield.Bitvector4 {
 	newBits := state.JustificationBits()
 	newBits.Shift(1)
 	// If 2/3 or more of total balance attested in the previous epoch.
+	// 如果前一个epoch中的2/3或更多的总balance attested
 	if 3*prevEpochTargetBalance >= 2*totalActiveBalance {
 		newBits.SetBitAt(1, true)
 	}
@@ -86,16 +90,21 @@ func processJustificationBits(state state.BeaconState, totalActiveBalance, prevE
 
 // weighJustificationAndFinalization processes justification and finalization during
 // epoch processing. This is where a beacon node can justify and finalize a new epoch.
+// weighJustificationAndFinalization在epoch processing处理justification和finalization
+// 这是一个beacon node可以justify和finalize一个新的epoch的地方
 func weighJustificationAndFinalization(state state.BeaconState, newBits bitfield.Bitvector4) (state.BeaconState, error) {
+	// 计算checkpoints
 	jc, fc, err := computeCheckpoints(state, newBits)
 	if err != nil {
 		return nil, err
 	}
 
+	// 将当前的justified checkpoint设置为previous justified checkpoint
 	if err := state.SetPreviousJustifiedCheckpoint(state.CurrentJustifiedCheckpoint()); err != nil {
 		return nil, err
 	}
 
+	// 设置当前的justified checkpoint, justification bits, finalized checkpoint
 	if err := state.SetCurrentJustifiedCheckpoint(jc); err != nil {
 		return nil, err
 	}
@@ -112,6 +121,7 @@ func weighJustificationAndFinalization(state state.BeaconState, newBits bitfield
 
 // computeCheckpoints computes the new Justification and Finalization
 // checkpoints at epoch transition
+// computeCheckpoints在epoch transition计算新的Justification和Finalization checkpoints
 // Spec pseudocode definition:
 // def weigh_justification_and_finalization(state: BeaconState,
 //
@@ -178,6 +188,7 @@ func computeCheckpoints(state state.BeaconState, newBits bitfield.Bitvector4) (*
 	}
 
 	// Process finalization according to Ethereum Beacon Chain specification.
+	// 处理finalization，根据Ethereum Beacon Chain specification
 	if len(newBits) == 0 {
 		return nil, nil, errors.New("empty justification bits")
 	}

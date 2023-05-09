@@ -233,6 +233,7 @@ func ProcessEth1DataReset(state state.BeaconState) (state.BeaconState, error) {
 }
 
 // ProcessEffectiveBalanceUpdates processes effective balance updates during epoch processing.
+// ProcessEffectiveBalanceUpdates在epoch processing期间处理effective balance updates
 //
 // Spec pseudocode definition:
 //

@@ -102,6 +102,7 @@ type WriteOnlyBeaconState interface {
 }
 
 // ReadOnlyValidator defines a struct which only has read access to validator methods.
+// ReadOnlyValidator定义了一个结构，对于validator方法只有读权限
 type ReadOnlyValidator interface {
 	EffectiveBalance() uint64
 	ActivationEligibilityEpoch() primitives.Epoch
@@ -118,6 +119,7 @@ type ReadOnlyValidator interface {
 }
 
 // ReadOnlyValidators defines a struct which only has read access to validators methods.
+// ReadOnlyValidators定义了一个结构，对于validators方法只有读权限
 type ReadOnlyValidators interface {
 	Validators() []*ethpb.Validator
 	ValidatorAtIndex(idx primitives.ValidatorIndex) (*ethpb.Validator, error)
@@ -136,6 +138,7 @@ type ReadOnlyBalances interface {
 }
 
 // ReadOnlyCheckpoint defines a struct which only has read access to checkpoint methods.
+// ReadOnlyCheckpoint定义了一个结构，对于checkpoint方法只有读权限
 type ReadOnlyCheckpoint interface {
 	PreviousJustifiedCheckpoint() *ethpb.Checkpoint
 	CurrentJustifiedCheckpoint() *ethpb.Checkpoint
@@ -189,6 +192,7 @@ type ReadOnlyWithdrawals interface {
 }
 
 // ReadOnlyParticipation defines a struct which only has read access to participation methods.
+// ReadOnlyParticipation定义了一个结构，对于participation方法只有读权限
 type ReadOnlyParticipation interface {
 	CurrentEpochParticipation() ([]byte, error)
 	PreviousEpochParticipation() ([]byte, error)

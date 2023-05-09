@@ -12,10 +12,14 @@ import (
 // ForkChoice defines the overall fork choice store which includes all block nodes, validator's latest votes and balances.
 type ForkChoice struct {
 	sync.RWMutex
-	store               *Store
-	votes               []Vote                      // tracks individual validator's last vote.
-	balances            []uint64                    // tracks individual validator's balances last accounted in votes.
-	justifiedBalances   []uint64                    // tracks individual validator's last justified balances.
+	store *Store
+	// 追踪单个validator的最新的vote
+	votes []Vote // tracks individual validator's last vote.
+	// 追踪单个validator的balances，最后在votes中计算
+	balances []uint64 // tracks individual validator's balances last accounted in votes.
+	// 追踪单个validator的last justified balances
+	justifiedBalances []uint64 // tracks individual validator's last justified balances.
+	// 追踪active validators的数量
 	numActiveValidators uint64                      // tracks the total number of active validators.
 	balancesByRoot      forkchoice.BalancesByRooter // handler to obtain balances for the state with a given root
 }
@@ -66,8 +70,12 @@ type Node struct {
 }
 
 // Vote defines an individual validator's vote.
+// Vote定义了单个validator的vote
 type Vote struct {
+	// 当前vote的epoch
 	currentRoot [fieldparams.RootLength]byte // current voting root.
-	nextRoot    [fieldparams.RootLength]byte // next voting root.
-	nextEpoch   primitives.Epoch             // epoch of next voting period.
+	// 下一个vote的epoch
+	nextRoot [fieldparams.RootLength]byte // next voting root.
+	// 下一个voting period的epoch
+	nextEpoch primitives.Epoch // epoch of next voting period.
 }

@@ -14,6 +14,7 @@ import (
 )
 
 // InitializePrecomputeValidators precomputes individual validator for its attested balances and the total sum of validators attested balances of the epoch.
+// InitializePrecomputeValidators提前计算每个验证者的attested balances和epoch中验证者attested balances的总和
 func InitializePrecomputeValidators(ctx context.Context, beaconState state.BeaconState) ([]*precompute.Validator, *precompute.Balance, error) {
 	ctx, span := trace.StartSpan(ctx, "altair.InitializePrecomputeValidators")
 	defer span.End()
@@ -29,10 +30,12 @@ func InitializePrecomputeValidators(ctx context.Context, beaconState state.Beaco
 	// This shouldn't happen with a correct beacon state,
 	// but rather be safe to defend against index out of bound panics.
 	if beaconState.NumValidators() != len(inactivityScores) {
+		// validator的数目和inactivity score的数目不一致
 		return nil, nil, errors.New("num of validators is different than num of inactivity scores")
 	}
 	if err := beaconState.ReadFromEveryValidator(func(idx int, val state.ReadOnlyValidator) error {
 		// Set validator's balance, inactivity score and slashed/withdrawable status.
+		// 设置validator的balance，inactive score，slashed/withdrawable状态
 		v := &precompute.Validator{
 			CurrentEpochEffectiveBalance: val.EffectiveBalance(),
 			InactivityScore:              inactivityScores[idx],
@@ -40,6 +43,7 @@ func InitializePrecomputeValidators(ctx context.Context, beaconState state.Beaco
 			IsWithdrawableCurrentEpoch:   currentEpoch >= val.WithdrawableEpoch(),
 		}
 		// Set validator's active status for current epoch.
+		// 设置当前epoch的validator的active状态
 		if helpers.IsActiveValidatorUsingTrie(val, currentEpoch) {
 			v.IsActiveCurrentEpoch = true
 			bal.ActiveCurrentEpoch, err = math.Add64(bal.ActiveCurrentEpoch, val.EffectiveBalance())
@@ -48,8 +52,10 @@ func InitializePrecomputeValidators(ctx context.Context, beaconState state.Beaco
 			}
 		}
 		// Set validator's active status for previous epoch.
+		// 设置上一个epoch的validator的active状态
 		if helpers.IsActiveValidatorUsingTrie(val, prevEpoch) {
 			v.IsActivePrevEpoch = true
+			// 计算总的balance
 			bal.ActivePrevEpoch, err = math.Add64(bal.ActivePrevEpoch, val.EffectiveBalance())
 			if err != nil {
 				return err
@@ -131,6 +137,7 @@ func ProcessInactivityScores(
 
 // ProcessEpochParticipation processes the epoch participation in state and updates individual validator's pre computes,
 // it also tracks and updates epoch attesting balances.
+// ProcessEpochParticipation处理state中的epoch participation并更新单个validator的pre computes，它还跟踪和更新epoch attesting balances
 // Spec code:
 // if epoch == get_current_epoch(state):
 //
@@ -163,6 +170,7 @@ func ProcessEpochParticipation(
 			return nil, nil, err
 		}
 		if has && vals[i].IsActiveCurrentEpoch {
+			// 当前epoch的attester
 			vals[i].IsCurrentEpochAttester = true
 		}
 		has, err = HasValidatorFlag(b, targetIdx)
@@ -203,6 +211,7 @@ func ProcessEpochParticipation(
 			vals[i].IsPrevEpochHeadAttester = true
 		}
 	}
+	// 更新balance
 	bal = precompute.UpdateBalance(vals, bal, beaconState.Version())
 	return vals, bal, nil
 }

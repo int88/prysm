@@ -173,6 +173,7 @@ func UpdateValidator(vp []*Validator, record *Validator, indices []uint64, a *et
 }
 
 // UpdateBalance updates pre computed balance store.
+// UpdateBalance更新预计算的balance store
 func UpdateBalance(vp []*Validator, bBal *Balance, stateVersion int) *Balance {
 	for _, v := range vp {
 		if !v.IsSlashed {
@@ -202,6 +203,8 @@ func UpdateBalance(vp []*Validator, bBal *Balance, stateVersion int) *Balance {
 
 // EnsureBalancesLowerBound ensures all the balances such as active current epoch, active previous epoch and more
 // have EffectiveBalanceIncrement(1 eth) as a lower bound.
+// EnsureBalancesLowerBound确保所有的balances，例如active current epoch, active previous epoch等
+// 有EffectiveBalanceIncrement(1 eth)作为下限
 func EnsureBalancesLowerBound(bBal *Balance) *Balance {
 	ebi := params.BeaconConfig().EffectiveBalanceIncrement
 	if ebi > bBal.ActiveCurrentEpoch {

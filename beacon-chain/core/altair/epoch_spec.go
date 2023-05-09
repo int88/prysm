@@ -44,6 +44,7 @@ func ProcessSyncCommitteeUpdates(ctx context.Context, beaconState state.BeaconSt
 }
 
 // ProcessParticipationFlagUpdates processes participation flag updates by rotating current to previous.
+// ProcessParticipationFlagUpdates处理participation flag updates通过将current旋转到previous
 //
 // Spec code:
 // def process_participation_flag_updates(state: BeaconState) -> None:

@@ -41,12 +41,14 @@ type HeadRetriever interface {
 }
 
 // BlockProcessor processes the block that's used for accounting fork choice.
+// BlockProcessor处理用于计算fork choice的block
 type BlockProcessor interface {
 	InsertNode(context.Context, state.BeaconState, [32]byte) error
 	InsertChain(context.Context, []*forkchoicetypes.BlockAndCheckpoints) error
 }
 
 // AttestationProcessor processes the attestation that's used for accounting fork choice.
+// AttestationProcessor处理用于计算fork choice的attestation
 type AttestationProcessor interface {
 	ProcessAttestation(context.Context, []uint64, [32]byte, primitives.Epoch)
 }

@@ -11,7 +11,9 @@ import (
 )
 
 // ProcessEpoch describes the per epoch operations that are performed on the beacon state.
+// ProcessEpoch描述了在beacon state上执行的每个epoch操作
 // It's optimized by pre computing validator attested info and epoch total/attested balances upfront.
+// 它通过预先计算验证者attested info和epoch total/attested balances来进行优化
 //
 // Spec code:
 // def process_epoch(state: BeaconState) -> None:

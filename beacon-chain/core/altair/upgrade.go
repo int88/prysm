@@ -130,6 +130,8 @@ func UpgradeToAltair(ctx context.Context, state state.BeaconState) (state.Beacon
 
 // TranslateParticipation translates pending attestations into participation bits, then inserts the bits into beacon state.
 // This is helper function to convert phase 0 beacon state(pending_attestations) to Altair beacon state(participation_bits).
+// TranslateParticipation转换pending attestations到participation bits，然后插入到beacon state中。
+// 这是一个帮助函数，用于将phase 0 beacon state(pending_attestations)转换为Altair beacon state(participation_bits)。
 //
 // Spec code:
 // def translate_participation(state: BeaconState, pending_attestations: Sequence[phase0.PendingAttestation]) -> None:
