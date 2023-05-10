@@ -42,6 +42,7 @@ func ProcessAttestationsNoVerifySignature(
 
 // VerifyAttestationNoVerifySignature verifies the attestation without verifying the attestation signature. This is
 // used before processing attestation with the beacon state.
+// VerifyAttestationNoVerifySignature校验attestation，但是不校验签名，这个方法用于在处理attestation之前
 func VerifyAttestationNoVerifySignature(
 	ctx context.Context,
 	beaconState state.ReadOnlyBeaconState,
@@ -58,6 +59,7 @@ func VerifyAttestationNoVerifySignature(
 	data := att.Data
 	if data.Target.Epoch != prevEpoch && data.Target.Epoch != currEpoch {
 		return fmt.Errorf(
+			// target epoch只能是当前epoch或者上一个epoch
 			"expected target epoch (%d) to be the previous epoch (%d) or the current epoch (%d)",
 			data.Target.Epoch,
 			prevEpoch,
@@ -67,10 +69,12 @@ func VerifyAttestationNoVerifySignature(
 
 	if data.Target.Epoch == currEpoch {
 		if !beaconState.MatchCurrentJustifiedCheckpoint(data.Source) {
+			// 如果target epoch是当前epoch，那么source checkpoint必须等于当前justified checkpoint
 			return errors.New("source check point not equal to current justified checkpoint")
 		}
 	} else {
 		if !beaconState.MatchPreviousJustifiedCheckpoint(data.Source) {
+			// 如果target epoch是上一个epoch，那么source checkpoint必须等于上一个justified checkpoint
 			return errors.New("source check point not equal to previous justified checkpoint")
 		}
 	}
@@ -84,6 +88,7 @@ func VerifyAttestationNoVerifySignature(
 	epochInclusionCheck := beaconState.Slot() <= s+params.BeaconConfig().SlotsPerEpoch
 	if !minInclusionCheck {
 		return fmt.Errorf(
+			// 必须在inclusion delay之内
 			"attestation slot %d + inclusion delay %d > state slot %d",
 			s,
 			params.BeaconConfig().MinAttestationInclusionDelay,
@@ -112,6 +117,7 @@ func VerifyAttestationNoVerifySignature(
 	}
 
 	// Verify attesting indices are correct.
+	// 校验attesting indices是否正确
 	committee, err := helpers.BeaconCommitteeFromState(ctx, beaconState, att.Data.Slot, att.Data.CommitteeIndex)
 	if err != nil {
 		return err

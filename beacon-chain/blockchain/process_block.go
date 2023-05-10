@@ -116,8 +116,10 @@ func (s *Service) onBlock(ctx context.Context, signed interfaces.ReadOnlySignedB
 	}
 
 	// Save current justified and finalized epochs for future use.
+	// 保存当前的justified和finalized epochs用于将来使用
 	currStoreJustifiedEpoch := s.ForkChoicer().JustifiedCheckpoint().Epoch
 	currStoreFinalizedEpoch := s.ForkChoicer().FinalizedCheckpoint().Epoch
+	// 获取preState的finalized epoch和justified epoch
 	preStateFinalizedEpoch := preState.FinalizedCheckpoint().Epoch
 	preStateJustifiedEpoch := preState.CurrentJustifiedCheckpoint().Epoch
 
@@ -568,6 +570,7 @@ func (s *Service) insertBlockToForkchoiceStore(ctx context.Context, blk interfac
 	defer span.End()
 
 	if !s.cfg.ForkChoiceStore.HasNode(blk.ParentRoot()) {
+		// 获取state的finalized checkpoint和justified checkpoint
 		fCheckpoint := st.FinalizedCheckpoint()
 		jCheckpoint := st.CurrentJustifiedCheckpoint()
 		if err := s.fillInForkChoiceMissingBlocks(ctx, blk, fCheckpoint, jCheckpoint); err != nil {
@@ -580,9 +583,13 @@ func (s *Service) insertBlockToForkchoiceStore(ctx context.Context, blk interfac
 
 // This feeds in the attestations included in the block to fork choice store. It's allows fork choice store
 // to gain information on the most current chain.
+// 将block中的attestations feed到fork choice store，它允许fork choice store获取最新链的信息
 func (s *Service) handleBlockAttestations(ctx context.Context, blk interfaces.ReadOnlyBeaconBlock, st state.BeaconState) error {
 	// Feed in block's attestations to fork choice store.
+	// 将block的attestations feed到fork choice store
 	for _, a := range blk.Body().Attestations() {
+		// 遍历block的attestations
+		// 首先获取对应的committe
 		committee, err := helpers.BeaconCommitteeFromState(ctx, st, a.Data.Slot, a.Data.CommitteeIndex)
 		if err != nil {
 			return err
@@ -595,6 +602,7 @@ func (s *Service) handleBlockAttestations(ctx context.Context, blk interfaces.Re
 		if s.cfg.ForkChoiceStore.HasNode(r) {
 			s.cfg.ForkChoiceStore.ProcessAttestation(ctx, indices, r, a.Data.Target.Epoch)
 		} else if err := s.cfg.AttPool.SaveBlockAttestation(a); err != nil {
+			// 没有对应block，保存attestation到attestation pool
 			return err
 		}
 	}

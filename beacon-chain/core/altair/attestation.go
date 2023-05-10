@@ -21,6 +21,7 @@ import (
 
 // ProcessAttestationsNoVerifySignature applies processing operations to a block's inner attestation
 // records. The only difference would be that the attestation signature would not be verified.
+// ProcessAttestationsNoVerifySignature应用处理操作到block的inner attestation记录。唯一的区别是attestation签名不会被验证。
 func ProcessAttestationsNoVerifySignature(
 	ctx context.Context,
 	beaconState state.BeaconState,
@@ -30,6 +31,7 @@ func ProcessAttestationsNoVerifySignature(
 		return nil, err
 	}
 	body := b.Block().Body()
+	// 获取totalBalance
 	totalBalance, err := helpers.TotalActiveBalance(beaconState)
 	if err != nil {
 		return nil, err
@@ -64,6 +66,7 @@ func ProcessAttestationNoVerifySignature(
 		// att slot不能大于state slot
 		return nil, fmt.Errorf("att slot %d can't be greater than state slot %d", att.Data.Slot, beaconState.Slot())
 	}
+	// 设置epoch participation bits
 	participatedFlags, err := AttestationParticipationFlagIndices(beaconState, att.Data, delay)
 	if err != nil {
 		return nil, err
@@ -160,6 +163,7 @@ func AddValidatorFlag(flag, flagPosition uint8) (uint8, error) {
 }
 
 // EpochParticipation sets and returns the proposer reward numerator and epoch participation.
+// EpochParticipation设置并返回proposer reward numerator和epoch participation。
 //
 // Spec code:
 //

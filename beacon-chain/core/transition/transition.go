@@ -29,6 +29,7 @@ import (
 )
 
 // ExecuteStateTransition defines the procedure for a state transition function.
+// ExecuteStateTransition定义了state transition function的过程
 //
 // Note: This method differs from the spec pseudocode as it uses a batch signature verification.
 // See: ExecuteStateTransitionNoVerifyAnySig

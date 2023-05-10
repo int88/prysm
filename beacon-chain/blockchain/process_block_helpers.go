@@ -208,12 +208,16 @@ func (s *Service) ancestorByDB(ctx context.Context, r [32]byte, slot primitives.
 
 // This retrieves missing blocks from DB (ie. the blocks that couldn't be received over sync) and inserts them to fork choice store.
 // This is useful for block tree visualizer and additional vote accounting.
+// 它从DB中检索缺少的块（即无法通过sync接收的块），并将它们插入到fork choice store中。
+// 这对于block tree可视化器和额外的vote accounting很有用。
 func (s *Service) fillInForkChoiceMissingBlocks(ctx context.Context, blk interfaces.ReadOnlyBeaconBlock,
 	fCheckpoint, jCheckpoint *ethpb.Checkpoint) error {
 	pendingNodes := make([]*forkchoicetypes.BlockAndCheckpoints, 0)
 
 	// Fork choice only matters from last finalized slot.
+	// Fork choice只关心最后一个finalized slot
 	finalized := s.ForkChoicer().FinalizedCheckpoint()
+	// 找到epoch的开始slot
 	fSlot, err := slots.EpochStart(finalized.Epoch)
 	if err != nil {
 		return err
@@ -242,6 +246,7 @@ func (s *Service) fillInForkChoiceMissingBlocks(ctx context.Context, blk interfa
 	if root != s.ensureRootNotZeros(finalized.Root) && !s.ForkChoicer().HasNode(root) {
 		return ErrNotDescendantOfFinalized
 	}
+	// forkchoice中插入缺失的block
 	return s.cfg.ForkChoiceStore.InsertChain(ctx, pendingNodes)
 }
 

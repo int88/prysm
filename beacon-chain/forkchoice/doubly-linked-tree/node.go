@@ -43,6 +43,7 @@ func (n *Node) applyWeightChanges(ctx context.Context) error {
 
 // updateBestDescendant updates the best descendant of this node and its
 // children.
+// updateBestDescendant更新这个节点的最佳后代和它的子节点
 func (n *Node) updateBestDescendant(ctx context.Context, justifiedEpoch, finalizedEpoch, currentEpoch primitives.Epoch) error {
 	if ctx.Err() != nil {
 		return ctx.Err()

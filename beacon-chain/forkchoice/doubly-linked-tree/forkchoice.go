@@ -133,6 +133,7 @@ func (f *ForkChoice) InsertNode(ctx context.Context, state state.BeaconState, ro
 			copy(payloadHash[:], ph.BlockHash())
 		}
 	}
+	// 从state中获取justified和finalized checkpoint
 	jc := state.CurrentJustifiedCheckpoint()
 	if jc == nil {
 		return errInvalidNilCheckpoint
@@ -159,6 +160,7 @@ func (f *ForkChoice) InsertNode(ctx context.Context, state state.BeaconState, ro
 func (f *ForkChoice) updateCheckpoints(ctx context.Context, jc, fc *ethpb.Checkpoint) error {
 	if jc.Epoch > f.store.justifiedCheckpoint.Epoch {
 		if jc.Epoch > f.store.bestJustifiedCheckpoint.Epoch {
+			// 更新best justified checkpoint
 			f.store.bestJustifiedCheckpoint = &forkchoicetypes.Checkpoint{Epoch: jc.Epoch,
 				Root: bytesutil.ToBytes32(jc.Root)}
 		}

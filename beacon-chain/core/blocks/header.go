@@ -68,6 +68,7 @@ func ProcessBlockHeader(
 
 // ProcessBlockHeaderNoVerify validates a block by its header but skips proposer
 // signature verification.
+// ProcessBlockHeaderNoVerify校验block的header，但是跳过proposer签名的校验
 //
 // WARNING: This method does not verify proposer signature. This is used for proposer to compute state root
 // using a unsigned block.
