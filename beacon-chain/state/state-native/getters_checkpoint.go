@@ -9,6 +9,7 @@ import (
 )
 
 // JustificationBits marking which epochs have been justified in the beacon chain.
+// JustificationBits标记了在beacon chain中哪些epochs已经被证明了
 func (b *BeaconState) JustificationBits() bitfield.Bitvector4 {
 	if b.justificationBits == nil {
 		return nil

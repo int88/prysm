@@ -26,6 +26,7 @@ import (
 )
 
 // DeterministicGenesisStateAltair returns a genesis state in hard fork 1 format made using the deterministic deposits.
+// DeterministicGenesisStateAltair返回一个genesis state，以hard fork 1格式，使用确定性的deposits
 func DeterministicGenesisStateAltair(t testing.TB, numValidators uint64) (state.BeaconState, []bls.SecretKey) {
 	deposits, privKeys, err := DeterministicDepositsAndKeys(numValidators)
 	if err != nil {
@@ -44,6 +45,7 @@ func DeterministicGenesisStateAltair(t testing.TB, numValidators uint64) (state.
 }
 
 // GenesisBeaconState returns the genesis beacon state.
+// GenesisBeaconState返回genesis beacon state
 func GenesisBeaconState(ctx context.Context, deposits []*ethpb.Deposit, genesisTime uint64, eth1Data *ethpb.Eth1Data) (state.BeaconState, error) {
 	st, err := emptyGenesisState()
 	if err != nil {

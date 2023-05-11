@@ -23,6 +23,7 @@ func (s *Store) setUnrealizedJustifiedEpoch(root [32]byte, epoch primitives.Epoc
 	if epoch < node.unrealizedJustifiedEpoch {
 		return errInvalidUnrealizedJustifiedEpoch
 	}
+	// 设置unrealized justified epoch
 	node.unrealizedJustifiedEpoch = epoch
 	return nil
 }
@@ -41,6 +42,8 @@ func (s *Store) setUnrealizedFinalizedEpoch(root [32]byte, epoch primitives.Epoc
 
 // updateUnrealizedCheckpoints "realizes" the unrealized justified and finalized
 // epochs stored within nodes. It should be called at the beginning of each epoch.
+// updateUnrealizedCheckpoints意识到了存储在节点中的unrealized justified和finalized epochs
+// 它应该在每个epoch的开始被调用
 func (f *ForkChoice) updateUnrealizedCheckpoints(ctx context.Context) error {
 	for _, node := range f.store.nodeByRoot {
 		node.justifiedEpoch = node.unrealizedJustifiedEpoch
@@ -81,6 +84,7 @@ func (s *Store) pullTips(state state.BeaconState, node *Node, jc, fc *ethpb.Chec
 	prevJustified := node.parent.unrealizedJustifiedEpoch+1 == currentEpoch
 	tooEarlyForCurr := slots.SinceEpochStarts(stateSlot)*3 < params.BeaconConfig().SlotsPerEpoch*2
 	// Exit early if it's justified or too early to be justified.
+	// 尽快退出，如果已经被justified或者太早被justified
 	if currJustified || (stateEpoch == currentEpoch && prevJustified && tooEarlyForCurr) {
 		node.unrealizedJustifiedEpoch = node.parent.unrealizedJustifiedEpoch
 		node.unrealizedFinalizedEpoch = node.parent.unrealizedFinalizedEpoch
@@ -94,12 +98,15 @@ func (s *Store) pullTips(state state.BeaconState, node *Node, jc, fc *ethpb.Chec
 	}
 
 	// Update store's unrealized checkpoints.
+	// 更新store的unrealized checkpoints
 	if uj.Epoch > s.unrealizedJustifiedCheckpoint.Epoch {
+		// 更新store的unrealizedJustifiedCheckpoint
 		s.unrealizedJustifiedCheckpoint = &forkchoicetypes.Checkpoint{
 			Epoch: uj.Epoch, Root: bytesutil.ToBytes32(uj.Root),
 		}
 	}
 	if uf.Epoch > s.unrealizedFinalizedCheckpoint.Epoch {
+		// 更新store的unrealizedFinalizedCheckpoint和unrealizedJustifiedCheckpoint
 		s.unrealizedJustifiedCheckpoint = &forkchoicetypes.Checkpoint{
 			Epoch: uj.Epoch, Root: bytesutil.ToBytes32(uj.Root),
 		}
@@ -109,6 +116,7 @@ func (s *Store) pullTips(state state.BeaconState, node *Node, jc, fc *ethpb.Chec
 	}
 
 	// Update node's checkpoints.
+	// 更新node的checkpoints
 	node.unrealizedJustifiedEpoch, node.unrealizedFinalizedEpoch = uj.Epoch, uf.Epoch
 	if stateEpoch < currentEpoch {
 		jc, fc = uj, uf

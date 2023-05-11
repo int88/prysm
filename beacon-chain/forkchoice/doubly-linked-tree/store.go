@@ -117,6 +117,7 @@ func (s *Store) insert(ctx context.Context,
 		}
 
 		// Update best descendants
+		// 更新best descendants
 		jEpoch := s.justifiedCheckpoint.Epoch
 		fEpoch := s.finalizedCheckpoint.Epoch
 		if err := s.treeRootNode.updateBestDescendant(ctx, jEpoch, fEpoch, slots.ToEpoch(currentSlot)); err != nil {
@@ -128,6 +129,7 @@ func (s *Store) insert(ctx context.Context,
 	nodeCount.Set(float64(len(s.nodeByRoot)))
 
 	// Only update received block slot if it's within epoch from current time.
+	// 只更新received block slot，如果它在当前时间的epoch内
 	if slot+params.BeaconConfig().SlotsPerEpoch > slots.CurrentSlot(s.genesisTime) {
 		s.receivedBlocksLastEpoch[slot%params.BeaconConfig().SlotsPerEpoch] = slot
 	}

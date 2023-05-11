@@ -24,6 +24,7 @@ import (
 )
 
 // New initializes a new fork choice store.
+// New初始化一个新的fork choice store
 func New() *ForkChoice {
 	s := &Store{
 		justifiedCheckpoint:           &forkchoicetypes.Checkpoint{},
@@ -626,11 +627,13 @@ func (f *ForkChoice) ForkChoiceDump(ctx context.Context) (*v1.ForkChoiceDump, er
 }
 
 // SetBalancesByRooter sets the balanceByRoot handler in forkchoice
+// SetBalancesByRooter在forkchoice中设置balanceByRoot handler
 func (f *ForkChoice) SetBalancesByRooter(handler forkchoice.BalancesByRooter) {
 	f.balancesByRoot = handler
 }
 
 // Weight returns the weight of the given root if found on the store
+// 返回给定root的weight，如果在store中找到
 func (f *ForkChoice) Weight(root [32]byte) (uint64, error) {
 	n, ok := f.store.nodeByRoot[root]
 	if !ok || n == nil {
@@ -640,6 +643,7 @@ func (f *ForkChoice) Weight(root [32]byte) (uint64, error) {
 }
 
 // updateJustifiedBalances updates the validators balances on the justified checkpoint pointed by root.
+// updateJustifiedBalances更新由root指向的justified checkpoint上的validators balance
 func (f *ForkChoice) updateJustifiedBalances(ctx context.Context, root [32]byte) error {
 	balances, err := f.balancesByRoot(ctx, root)
 	if err != nil {

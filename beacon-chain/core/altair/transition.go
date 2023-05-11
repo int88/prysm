@@ -101,6 +101,7 @@ func ProcessEpoch(ctx context.Context, state state.BeaconState) (state.BeaconSta
 	}
 
 	// New in Altair.
+	// 更新participation flag
 	state, err = ProcessParticipationFlagUpdates(state)
 	if err != nil {
 		return nil, err

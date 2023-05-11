@@ -27,6 +27,7 @@ func (b *BeaconState) SetPreviousParticipationBits(val []byte) error {
 
 // SetCurrentParticipationBits for the beacon state. Updates the entire
 // list to a new value by overwriting the previous one.
+// SetCurrentParticipationBits为beacon state更新整个列表为一个新值，通过覆盖前一个值
 func (b *BeaconState) SetCurrentParticipationBits(val []byte) error {
 	b.lock.Lock()
 	defer b.lock.Unlock()

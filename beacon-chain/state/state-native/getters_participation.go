@@ -7,6 +7,7 @@ import (
 )
 
 // CurrentEpochParticipation corresponding to participation bits on the beacon chain.
+// CurrentEpochParticipation对应于beacon chain上的participation bits
 func (b *BeaconState) CurrentEpochParticipation() ([]byte, error) {
 	if b.version == version.Phase0 {
 		return nil, errNotSupported("CurrentEpochParticipation", b.version)
@@ -41,6 +42,8 @@ func (b *BeaconState) PreviousEpochParticipation() ([]byte, error) {
 // UnrealizedCheckpointBalances returns the total balances: active, target attested in
 // current epoch and target attested in previous epoch. This function is used to
 // compute the "unrealized justification" that a synced Beacon Block will have.
+// UnrealizedCheckpointBalances返回总余额：当前epoch中的active，target attested以及上一个epoch中的target attested
+// 这个函数用于计算同步的Beacon Block将会有的“unrealized justification”
 func (b *BeaconState) UnrealizedCheckpointBalances() (uint64, uint64, uint64, error) {
 	if b.version == version.Phase0 {
 		return 0, 0, 0, errNotSupported("UnrealizedCheckpointBalances", b.version)

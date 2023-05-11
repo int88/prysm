@@ -64,6 +64,7 @@ type Flags struct {
 	// EnableSlashingProtectionPruning for the validator client.
 	EnableSlashingProtectionPruning bool
 
+	// DisablePullTips关闭了实验性的禁止boundary checks
 	DisablePullTips                   bool // DisablePullTips disables experimental disabling of boundary checks.
 	EnableDefensivePull               bool // EnableDefensivePull enables exerimental back boundary checks.
 	EnableVectorizedHTR               bool // EnableVectorizedHTR specifies whether the beacon state will use the optimized sha256 routines.

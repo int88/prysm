@@ -61,6 +61,7 @@ func TestStore_UpdateUnrealizedCheckpoints(t *testing.T) {
 //	  ---- D
 //
 // B is the first block that justifies A.
+// B是第一个block，justifies A
 func TestStore_LongFork(t *testing.T) {
 	f := setup(1, 1)
 	ctx := context.Background()
@@ -74,9 +75,11 @@ func TestStore_LongFork(t *testing.T) {
 	state, blkRoot, err = prepareForkchoiceState(ctx, 102, [32]byte{'c'}, [32]byte{'b'}, [32]byte{'C'}, 1, 1)
 	require.NoError(t, err)
 	require.NoError(t, f.InsertNode(ctx, state, blkRoot))
+	// 设置c的unrealized justified epoch为2
 	require.NoError(t, f.store.setUnrealizedJustifiedEpoch([32]byte{'c'}, 2))
 
 	// Add an attestation to c, it is head
+	// 添加一个attestation到c，它是head
 	f.ProcessAttestation(ctx, []uint64{0}, [32]byte{'c'}, 1)
 	f.justifiedBalances = []uint64{100}
 	headRoot, err := f.Head(ctx)
@@ -84,6 +87,7 @@ func TestStore_LongFork(t *testing.T) {
 	require.Equal(t, [32]byte{'c'}, headRoot)
 
 	// D is head even though its weight is lower.
+	// D是head，即使它的weight更低
 	ha := [32]byte{'a'}
 	state, blkRoot, err = prepareForkchoiceState(ctx, 103, [32]byte{'d'}, [32]byte{'b'}, [32]byte{'D'}, 2, 1)
 	require.NoError(t, err)
@@ -96,6 +100,7 @@ func TestStore_LongFork(t *testing.T) {
 	require.Equal(t, uint64(100), f.store.nodeByRoot[[32]byte{'c'}].weight)
 
 	// Update unrealized justification, c becomes head
+	// 更新unrealized justification，c变成head
 	require.NoError(t, f.updateUnrealizedCheckpoints(ctx))
 	headRoot, err = f.Head(ctx)
 	require.NoError(t, err)
@@ -113,6 +118,7 @@ func TestStore_LongFork(t *testing.T) {
 //	|                      |
 //
 // E justifies A. G justifies E.
+// E能够认证A，G能够认证E
 func TestStore_NoDeadLock(t *testing.T) {
 	f := setup(0, 0)
 	ctx := context.Background()
@@ -153,6 +159,7 @@ func TestStore_NoDeadLock(t *testing.T) {
 	require.NoError(t, f.store.setUnrealizedJustifiedEpoch([32]byte{'h'}, 2))
 	require.NoError(t, f.store.setUnrealizedFinalizedEpoch([32]byte{'h'}, 1))
 	// Add an attestation for h
+	// 添加一个atteation到h
 	f.ProcessAttestation(ctx, []uint64{0}, [32]byte{'h'}, 1)
 
 	// Epoch 3
@@ -164,6 +171,7 @@ func TestStore_NoDeadLock(t *testing.T) {
 	require.Equal(t, primitives.Epoch(0), f.JustifiedCheckpoint().Epoch)
 
 	// Insert Block I, it becomes Head
+	// 插入Block I，它变成Head
 	hr := [32]byte{'i'}
 	state, blkRoot, err = prepareForkchoiceState(ctx, 108, hr, [32]byte{'f'}, [32]byte{'I'}, 1, 0)
 	require.NoError(t, err)
@@ -177,6 +185,7 @@ func TestStore_NoDeadLock(t *testing.T) {
 	require.Equal(t, primitives.Epoch(0), f.FinalizedCheckpoint().Epoch)
 
 	// Realized Justified checkpoints, H becomes head
+	// 意识到了justified checkpoints，H变成head
 	require.NoError(t, f.updateUnrealizedCheckpoints(ctx))
 	headRoot, err = f.Head(ctx)
 	require.NoError(t, err)

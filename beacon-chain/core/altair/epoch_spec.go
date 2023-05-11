@@ -56,9 +56,11 @@ func ProcessParticipationFlagUpdates(beaconState state.BeaconState) (state.Beaco
 	if err != nil {
 		return nil, err
 	}
+	// 设置previous epoch participation
 	if err := beaconState.SetPreviousParticipationBits(c); err != nil {
 		return nil, err
 	}
+	// 设置当前的participation bits
 	if err := beaconState.SetCurrentParticipationBits(make([]byte, beaconState.NumValidators())); err != nil {
 		return nil, err
 	}

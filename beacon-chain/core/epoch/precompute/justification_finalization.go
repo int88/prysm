@@ -16,6 +16,8 @@ var errNilState = errors.New("nil state")
 // UnrealizedCheckpoints returns the justification and finalization checkpoints of the
 // given state as if it was progressed with empty slots until the next epoch. It
 // also returns the total active balance during the epoch.
+// UnrealizedCheckpoints返回给定state的justification和finalization checkpoints，就好像它是通过空的slots进入下一个epoch
+// 它还返回epoch期间的total active balance
 func UnrealizedCheckpoints(st state.BeaconState) (*ethpb.Checkpoint, *ethpb.Checkpoint, error) {
 	if st == nil || st.IsNil() {
 		return nil, nil, errNilState
@@ -27,6 +29,7 @@ func UnrealizedCheckpoints(st state.BeaconState) (*ethpb.Checkpoint, *ethpb.Chec
 		return jc, fc, nil
 	}
 
+	// 获取当前epoch的开始slot
 	activeBalance, prevTarget, currentTarget, err := st.UnrealizedCheckpointBalances()
 	if err != nil {
 		return nil, nil, err

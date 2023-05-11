@@ -23,6 +23,7 @@ import (
 
 // prepareForkchoiceState prepares a beacon State with the given data to mock
 // insert into forkchoice
+// prepareForkchoiceState准备一个beacon State，其中包含给定的数据，以模拟插入forkchoice
 func prepareForkchoiceState(
 	_ context.Context,
 	slot primitives.Slot,

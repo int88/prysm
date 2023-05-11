@@ -270,6 +270,7 @@ type WriteOnlyAttestations interface {
 }
 
 // WriteOnlyParticipation defines a struct which only has write access to participation methods.
+// WriteOnlyParticipation定义了一个结构，对于participation方法只有写权限
 type WriteOnlyParticipation interface {
 	AppendCurrentParticipationBits(val byte) error
 	AppendPreviousParticipationBits(val byte) error

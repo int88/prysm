@@ -22,9 +22,10 @@ type BeaconChainConfig struct {
 	JustificationBitsLength  uint64           `yaml:"JUSTIFICATION_BITS_LENGTH"`   // JustificationBitsLength defines number of epochs to track when implementing k-finality in Casper FFG.
 
 	// Misc constants.
-	PresetBase                     string `yaml:"PRESET_BASE" spec:"true"`                        // PresetBase represents the underlying spec preset this config is based on.
-	ConfigName                     string `yaml:"CONFIG_NAME" spec:"true"`                        // ConfigName for allowing an easy human-readable way of knowing what chain is being used.
-	TargetCommitteeSize            uint64 `yaml:"TARGET_COMMITTEE_SIZE" spec:"true"`              // TargetCommitteeSize is the number of validators in a committee when the chain is healthy.
+	PresetBase          string `yaml:"PRESET_BASE" spec:"true"`           // PresetBase represents the underlying spec preset this config is based on.
+	ConfigName          string `yaml:"CONFIG_NAME" spec:"true"`           // ConfigName for allowing an easy human-readable way of knowing what chain is being used.
+	TargetCommitteeSize uint64 `yaml:"TARGET_COMMITTEE_SIZE" spec:"true"` // TargetCommitteeSize is the number of validators in a committee when the chain is healthy.
+	// MaxValidatorsPerCommittee定义了committee的最大数量
 	MaxValidatorsPerCommittee      uint64 `yaml:"MAX_VALIDATORS_PER_COMMITTEE" spec:"true"`       // MaxValidatorsPerCommittee defines the upper bound of the size of a committee.
 	MaxCommitteesPerSlot           uint64 `yaml:"MAX_COMMITTEES_PER_SLOT" spec:"true"`            // MaxCommitteesPerSlot defines the max amount of committee in a single slot.
 	MinPerEpochChurnLimit          uint64 `yaml:"MIN_PER_EPOCH_CHURN_LIMIT" spec:"true"`          // MinPerEpochChurnLimit is the minimum amount of churn allotted for validator rotations.
@@ -161,6 +162,7 @@ type BeaconChainConfig struct {
 	SafetyDecay uint64 // SafetyDecay is defined as the loss in the 1/3 consensus safety margin of the casper FFG mechanism.
 
 	// New values introduced in Altair hard fork 1.
+	// 在Altair hard fork 1中引入的新的值
 	// Participation flag indices.
 	TimelySourceFlagIndex uint8 `yaml:"TIMELY_SOURCE_FLAG_INDEX" spec:"true"` // TimelySourceFlagIndex is the source flag position of the participation bits.
 	TimelyTargetFlagIndex uint8 `yaml:"TIMELY_TARGET_FLAG_INDEX" spec:"true"` // TimelyTargetFlagIndex is the target flag position of the participation bits.

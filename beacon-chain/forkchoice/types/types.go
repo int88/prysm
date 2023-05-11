@@ -10,6 +10,7 @@ import (
 // Checkpoint is an array version of ethpb.Checkpoint. It is used internally in
 // forkchoice, while the slice version is used in the interface to legacy code
 // in other packages
+// Checkpoint是ethpb.Checkpoint的数组版本，它在forkchoice内部使用，而slice版本在其他包中的旧代码接口中使用
 type Checkpoint struct {
 	Epoch primitives.Epoch
 	Root  [fieldparams.RootLength]byte
