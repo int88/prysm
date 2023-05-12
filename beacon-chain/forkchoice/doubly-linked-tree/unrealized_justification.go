@@ -75,6 +75,7 @@ func (f *ForkChoice) updateUnrealizedCheckpoints(ctx context.Context) error {
 
 func (s *Store) pullTips(state state.BeaconState, node *Node, jc, fc *ethpb.Checkpoint) (*ethpb.Checkpoint, *ethpb.Checkpoint) {
 	if node.parent == nil { // Nothing to do if the parent is nil.
+		// 如果parent为nil则什么都不做
 		return jc, fc
 	}
 	currentEpoch := slots.ToEpoch(slots.CurrentSlot(s.genesisTime))

@@ -166,13 +166,16 @@ func weighJustificationAndFinalization(state state.BeaconState, newBits bitfield
 func computeCheckpoints(state state.BeaconState, newBits bitfield.Bitvector4) (*ethpb.Checkpoint, *ethpb.Checkpoint, error) {
 	prevEpoch := time.PrevEpoch(state)
 	currentEpoch := time.CurrentEpoch(state)
+	// 从state获取old previous justified checkpoint
 	oldPrevJustifiedCheckpoint := state.PreviousJustifiedCheckpoint()
 	oldCurrJustifiedCheckpoint := state.CurrentJustifiedCheckpoint()
 
+	// 获取justified checkpoint和finalized checkpoint
 	justifiedCheckpoint := state.CurrentJustifiedCheckpoint()
 	finalizedCheckpoint := state.FinalizedCheckpoint()
 
 	// If 2/3 or more of the total balance attested in the current epoch.
+	// 如果当前epoch中的2/3或更多的总balance attested
 	if newBits.BitAt(0) && currentEpoch >= justifiedCheckpoint.Epoch {
 		blockRoot, err := helpers.BlockRoot(state, currentEpoch)
 		if err != nil {
@@ -182,6 +185,7 @@ func computeCheckpoints(state state.BeaconState, newBits bitfield.Bitvector4) (*
 		justifiedCheckpoint.Root = blockRoot
 	} else if newBits.BitAt(1) && prevEpoch >= justifiedCheckpoint.Epoch {
 		// If 2/3 or more of total balance attested in the previous epoch.
+		// 如果前一个epoch中的2/3或更多的总balance attested
 		blockRoot, err := helpers.BlockRoot(state, prevEpoch)
 		if err != nil {
 			return nil, nil, errors.Wrapf(err, "could not get block root for previous epoch %d", prevEpoch)
@@ -197,6 +201,7 @@ func computeCheckpoints(state state.BeaconState, newBits bitfield.Bitvector4) (*
 	}
 	justification := newBits.Bytes()[0]
 
+	// 设置finalized checkpoint
 	// 2nd/3rd/4th (0b1110) most recent epochs are justified, the 2nd using the 4th as source.
 	if justification&0x0E == 0x0E && (oldPrevJustifiedCheckpoint.Epoch+3) == currentEpoch {
 		finalizedCheckpoint = oldPrevJustifiedCheckpoint

@@ -23,6 +23,8 @@ func (b *BeaconState) JustificationBits() bitfield.Bitvector4 {
 
 // justificationBitsVal marking which epochs have been justified in the beacon chain.
 // This assumes that a lock is already held on BeaconState.
+// justificationBitsVal标记了在beacon chain中哪些epochs已经被证明了
+// 这假设在BeaconState上已经持有了锁
 func (b *BeaconState) justificationBitsVal() bitfield.Bitvector4 {
 	if b.justificationBits == nil {
 		return nil

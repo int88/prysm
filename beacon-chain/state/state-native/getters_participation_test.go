@@ -12,6 +12,7 @@ func TestState_UnrealizedCheckpointBalances(t *testing.T) {
 	validators := make([]*ethpb.Validator, params.BeaconConfig().MinGenesisActiveValidatorCount)
 	balances := make([]uint64, params.BeaconConfig().MinGenesisActiveValidatorCount)
 	for i := 0; i < len(validators); i++ {
+		// 构建validators
 		validators[i] = &ethpb.Validator{
 			ExitEpoch:        params.BeaconConfig().FarFutureEpoch,
 			EffectiveBalance: params.BeaconConfig().MaxEffectiveBalance,
@@ -22,7 +23,9 @@ func TestState_UnrealizedCheckpointBalances(t *testing.T) {
 		Slot:        2,
 		RandaoMixes: make([][]byte, params.BeaconConfig().EpochsPerHistoricalVector),
 
-		Validators:                 validators,
+		// 设置validators
+		Validators: validators,
+		// 初始化epoch participation
 		CurrentEpochParticipation:  make([]byte, params.BeaconConfig().MinGenesisActiveValidatorCount),
 		PreviousEpochParticipation: make([]byte, params.BeaconConfig().MinGenesisActiveValidatorCount),
 		Balances:                   balances,
@@ -31,6 +34,7 @@ func TestState_UnrealizedCheckpointBalances(t *testing.T) {
 	require.NoError(t, err)
 
 	// No one voted in the last two epochs
+	// 上两个epochs没有人投票
 	allActive := params.BeaconConfig().MinGenesisActiveValidatorCount * params.BeaconConfig().MaxEffectiveBalance
 	active, previous, current, err := state.UnrealizedCheckpointBalances()
 	require.NoError(t, err)
@@ -39,6 +43,7 @@ func TestState_UnrealizedCheckpointBalances(t *testing.T) {
 	require.Equal(t, uint64(0), previous)
 
 	// Add some votes in the last two epochs:
+	// 添加一些投票到上两个epochs
 	base.CurrentEpochParticipation[0] = 0xFF
 	base.PreviousEpochParticipation[0] = 0xFF
 	base.PreviousEpochParticipation[1] = 0xFF
@@ -48,10 +53,13 @@ func TestState_UnrealizedCheckpointBalances(t *testing.T) {
 	active, previous, current, err = state.UnrealizedCheckpointBalances()
 	require.NoError(t, err)
 	require.Equal(t, allActive, active)
+	// 设置当前的balance
 	require.Equal(t, params.BeaconConfig().MaxEffectiveBalance, current)
+	// 设置previous的balance
 	require.Equal(t, 2*params.BeaconConfig().MaxEffectiveBalance, previous)
 
 	// Slash some validators
+	// 清理掉一些validators
 	validators[0].Slashed = true
 	state, err = InitializeFromProtoAltair(base)
 	require.NoError(t, err)

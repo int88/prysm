@@ -192,6 +192,7 @@ func ProcessEpochParticipation(
 			return nil, nil, err
 		}
 		if has && vals[i].IsActivePrevEpoch {
+			// 设置prev epoch attester
 			vals[i].IsPrevEpochAttester = true
 			vals[i].IsPrevEpochSourceAttester = true
 		}

@@ -20,27 +20,28 @@ import (
 // BeaconState定义了一个结构，包含工具，用于Ethereum Beacon Chain state，定义了getters和setters
 // 对于对应的值，以及帮助函数，例如HashTreeRoot
 type BeaconState struct {
-	version                             int
-	genesisTime                         uint64
-	genesisValidatorsRoot               [32]byte
-	slot                                primitives.Slot
-	fork                                *ethpb.Fork
-	latestBlockHeader                   *ethpb.BeaconBlockHeader
-	blockRoots                          *customtypes.BlockRoots
-	stateRoots                          *customtypes.StateRoots
-	historicalRoots                     customtypes.HistoricalRoots
-	historicalSummaries                 []*ethpb.HistoricalSummary
-	eth1Data                            *ethpb.Eth1Data
-	eth1DataVotes                       []*ethpb.Eth1Data
-	eth1DepositIndex                    uint64
-	validators                          []*ethpb.Validator
-	balances                            []uint64
-	randaoMixes                         *customtypes.RandaoMixes
-	slashings                           []uint64
-	previousEpochAttestations           []*ethpb.PendingAttestation
-	currentEpochAttestations            []*ethpb.PendingAttestation
-	previousEpochParticipation          []byte
-	currentEpochParticipation           []byte
+	version                    int
+	genesisTime                uint64
+	genesisValidatorsRoot      [32]byte
+	slot                       primitives.Slot
+	fork                       *ethpb.Fork
+	latestBlockHeader          *ethpb.BeaconBlockHeader
+	blockRoots                 *customtypes.BlockRoots
+	stateRoots                 *customtypes.StateRoots
+	historicalRoots            customtypes.HistoricalRoots
+	historicalSummaries        []*ethpb.HistoricalSummary
+	eth1Data                   *ethpb.Eth1Data
+	eth1DataVotes              []*ethpb.Eth1Data
+	eth1DepositIndex           uint64
+	validators                 []*ethpb.Validator
+	balances                   []uint64
+	randaoMixes                *customtypes.RandaoMixes
+	slashings                  []uint64
+	previousEpochAttestations  []*ethpb.PendingAttestation
+	currentEpochAttestations   []*ethpb.PendingAttestation
+	previousEpochParticipation []byte
+	currentEpochParticipation  []byte
+	// 大小为4的bitfield
 	justificationBits                   bitfield.Bitvector4
 	previousJustifiedCheckpoint         *ethpb.Checkpoint
 	currentJustifiedCheckpoint          *ethpb.Checkpoint

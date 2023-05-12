@@ -26,11 +26,12 @@ type BeaconChainConfig struct {
 	ConfigName          string `yaml:"CONFIG_NAME" spec:"true"`           // ConfigName for allowing an easy human-readable way of knowing what chain is being used.
 	TargetCommitteeSize uint64 `yaml:"TARGET_COMMITTEE_SIZE" spec:"true"` // TargetCommitteeSize is the number of validators in a committee when the chain is healthy.
 	// MaxValidatorsPerCommittee定义了committee的最大数量
-	MaxValidatorsPerCommittee      uint64 `yaml:"MAX_VALIDATORS_PER_COMMITTEE" spec:"true"`       // MaxValidatorsPerCommittee defines the upper bound of the size of a committee.
-	MaxCommitteesPerSlot           uint64 `yaml:"MAX_COMMITTEES_PER_SLOT" spec:"true"`            // MaxCommitteesPerSlot defines the max amount of committee in a single slot.
-	MinPerEpochChurnLimit          uint64 `yaml:"MIN_PER_EPOCH_CHURN_LIMIT" spec:"true"`          // MinPerEpochChurnLimit is the minimum amount of churn allotted for validator rotations.
-	ChurnLimitQuotient             uint64 `yaml:"CHURN_LIMIT_QUOTIENT" spec:"true"`               // ChurnLimitQuotient is used to determine the limit of how many validators can rotate per epoch.
-	ShuffleRoundCount              uint64 `yaml:"SHUFFLE_ROUND_COUNT" spec:"true"`                // ShuffleRoundCount is used for retrieving the permuted index.
+	MaxValidatorsPerCommittee uint64 `yaml:"MAX_VALIDATORS_PER_COMMITTEE" spec:"true"` // MaxValidatorsPerCommittee defines the upper bound of the size of a committee.
+	MaxCommitteesPerSlot      uint64 `yaml:"MAX_COMMITTEES_PER_SLOT" spec:"true"`      // MaxCommitteesPerSlot defines the max amount of committee in a single slot.
+	MinPerEpochChurnLimit     uint64 `yaml:"MIN_PER_EPOCH_CHURN_LIMIT" spec:"true"`    // MinPerEpochChurnLimit is the minimum amount of churn allotted for validator rotations.
+	ChurnLimitQuotient        uint64 `yaml:"CHURN_LIMIT_QUOTIENT" spec:"true"`         // ChurnLimitQuotient is used to determine the limit of how many validators can rotate per epoch.
+	ShuffleRoundCount         uint64 `yaml:"SHUFFLE_ROUND_COUNT" spec:"true"`          // ShuffleRoundCount is used for retrieving the permuted index.
+	// MinGenesisActiveValidatorCount定义了需要多少个validators在启动beacon chain之前
 	MinGenesisActiveValidatorCount uint64 `yaml:"MIN_GENESIS_ACTIVE_VALIDATOR_COUNT" spec:"true"` // MinGenesisActiveValidatorCount defines how many validator deposits needed to kick off beacon chain.
 	MinGenesisTime                 uint64 `yaml:"MIN_GENESIS_TIME" spec:"true"`                   // MinGenesisTime is the time that needed to pass before kicking off beacon chain.
 	TargetAggregatorsPerCommittee  uint64 `yaml:"TARGET_AGGREGATORS_PER_COMMITTEE" spec:"true"`   // TargetAggregatorsPerCommittee defines the number of aggregators inside one committee.

@@ -25,6 +25,8 @@ func CurrentEpoch(state state.ReadOnlyBeaconState) primitives.Epoch {
 // PrevEpoch returns the previous epoch number calculated from
 // the slot number stored in beacon state. It also checks for
 // underflow condition.
+// PrevEpoch返回从存储在beacon state中的slot number计算出的上一个epoch number
+// 它也检查了underflow条件
 //
 // Spec pseudocode definition:
 //

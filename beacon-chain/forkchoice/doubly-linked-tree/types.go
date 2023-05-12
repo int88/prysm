@@ -58,15 +58,17 @@ type Store struct {
 // Node定义了单个的block，它包含它的block parent，ancestor以及它有多少的weight
 // 这用于一个基于array的stateful DAG，用于高效地查找fork choice
 type Node struct {
-	slot           primitives.Slot              // slot of the block converted to the node.
-	root           [fieldparams.RootLength]byte // root of the block converted to the node.
-	payloadHash    [fieldparams.RootLength]byte // payloadHash of the block converted to the node.
-	parent         *Node                        // parent index of this node.
-	children       []*Node                      // the list of direct children of this Node
-	justifiedEpoch primitives.Epoch             // justifiedEpoch of this node.
+	slot        primitives.Slot              // slot of the block converted to the node.
+	root        [fieldparams.RootLength]byte // root of the block converted to the node.
+	payloadHash [fieldparams.RootLength]byte // payloadHash of the block converted to the node.
+	parent      *Node                        // parent index of this node.
+	children    []*Node                      // the list of direct children of this Node
+	// 这个node的justifiedEpoch
+	justifiedEpoch primitives.Epoch // justifiedEpoch of this node.
 	// 如果block被推进到下一个epoch，就会被justified
 	unrealizedJustifiedEpoch primitives.Epoch // the epoch that would be justified if the block would be advanced to the next epoch.
-	finalizedEpoch           primitives.Epoch // finalizedEpoch of this node.
+	// 这个node的finalizedEpoch
+	finalizedEpoch primitives.Epoch // finalizedEpoch of this node.
 	// 如果block被推进到下一个epoch，就会被finalized
 	unrealizedFinalizedEpoch primitives.Epoch // the epoch that would be finalized if the block would be advanced to the next epoch.
 	balance                  uint64           // the balance that voted for this node directly
